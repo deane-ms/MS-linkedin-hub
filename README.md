@@ -4,7 +4,7 @@ A self-contained, single-file LinkedIn content calendar and analytics dashboard,
 MediaShock APAC. Everything runs client-side in the browser — no server, no build step, no
 external requests.
 
-**Live:** (added once GitHub Pages is enabled)
+**Live:** https://deane-ms.github.io/mediashock-linkedin-hub/
 
 ## What it does
 
