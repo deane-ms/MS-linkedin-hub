@@ -371,7 +371,10 @@
   .chart-bar { fill: var(--brand); }
   .chart-hbar-track { fill: var(--surface-alt); }
   .chart-hbar-label { fill: var(--text-soft); font-size: 10px; }
-  .chart-hgroup-label { fill: var(--text-faint); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+  .mini-stats { display: flex; gap: 2rem; margin-top: 0.9rem; padding-top: 0.9rem; border-top: 1px solid var(--border); }
+  .mini-stat { display: flex; flex-direction: column; gap: 0.2rem; }
+  .mini-stat-label { font-size: 0.68rem; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.03em; font-weight: 700; }
+  .mini-stat-value { font-size: 1.1rem; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
   .chart-hbar-value { fill: var(--text); font-size: 10px; font-weight: 700; font-variant-numeric: tabular-nums; }
   .chart-crosshair { stroke: var(--text-faint); stroke-width: 0.75; stroke-dasharray: 3 3; pointer-events: none; }
   .chart-dot { fill: var(--surface); stroke: var(--brand); stroke-width: 1.5; pointer-events: none; }
@@ -1937,39 +1940,35 @@
   // ---------- analytics: engagement breakdown (latest period) ----------
   function renderEngagementChart(latest) {
     var el = document.getElementById("engagementChart");
-    var groups = [
-      { label: "Social engagement", metrics: [
-        { label: "Likes", value: latest.likes },
-        { label: "Comments", value: latest.comments },
-        { label: "Reposts", value: latest.reposts }
-      ] },
-      { label: "Website clicks", metrics: [
-        { label: "Clicks", value: latest.clicks }
-      ] }
+    var metrics = [
+      { label: "Likes", value: latest.likes },
+      { label: "Comments", value: latest.comments },
+      { label: "Reposts", value: latest.reposts }
     ];
-    var W = 600, rowH = 34, groupGap = 22, padL = 90, padR = 50, padTop = 6;
-    var totalRows = groups.reduce(function (n, g) { return n + g.metrics.length; }, 0);
-    var H = padTop * 2 + rowH * totalRows + groupGap * (groups.length - 1) + 18 * groups.length;
+    var W = 600, rowH = 34, padL = 90, padR = 50, padTop = 6;
+    var H = padTop * 2 + rowH * metrics.length;
+    var max = Math.max.apply(null, metrics.map(function (m) { return m.value; })) || 1;
     var innerW = W - padL - padR;
 
     var rows = "";
-    var y = padTop;
-    groups.forEach(function (g, gi) {
-      var max = Math.max.apply(null, g.metrics.map(function (m) { return m.value; })) || 1;
-      rows += '<text class="chart-hgroup-label" x="' + padL + '" y="' + (y + 10) + '">' + g.label + '</text>';
-      y += 18;
-      g.metrics.forEach(function (m) {
-        var barW = Math.max((m.value / max) * innerW, 2);
-        rows += '<text class="chart-hbar-label" x="' + (padL - 10) + '" y="' + (y + rowH / 2 + 3) + '" text-anchor="end">' + m.label + '</text>';
-        rows += '<rect class="chart-hbar-track" x="' + padL + '" y="' + (y + 6) + '" width="' + innerW + '" height="' + (rowH - 14) + '" rx="4"></rect>';
-        rows += '<rect class="chart-bar" x="' + padL + '" y="' + (y + 6) + '" width="' + barW + '" height="' + (rowH - 14) + '" rx="4"></rect>';
-        rows += '<text class="chart-hbar-value" x="' + (padL + innerW + 8) + '" y="' + (y + rowH / 2 + 3) + '">' + formatNumber(m.value) + '</text>';
-        y += rowH;
-      });
-      if (gi < groups.length - 1) y += groupGap;
+    metrics.forEach(function (m, i) {
+      var y = padTop + i * rowH;
+      var barW = Math.max((m.value / max) * innerW, 2);
+      rows += '<text class="chart-hbar-label" x="' + (padL - 10) + '" y="' + (y + rowH / 2 + 3) + '" text-anchor="end">' + m.label + '</text>';
+      rows += '<rect class="chart-hbar-track" x="' + padL + '" y="' + (y + 6) + '" width="' + innerW + '" height="' + (rowH - 14) + '" rx="4"></rect>';
+      rows += '<rect class="chart-bar" x="' + padL + '" y="' + (y + 6) + '" width="' + barW + '" height="' + (rowH - 14) + '" rx="4"></rect>';
+      rows += '<text class="chart-hbar-value" x="' + (padL + innerW + 8) + '" y="' + (y + rowH / 2 + 3) + '">' + formatNumber(m.value) + '</text>';
     });
 
-    el.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="Engagement breakdown for the latest period">' + rows + '</svg>';
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="Social engagement breakdown for the latest period">' + rows + '</svg>';
+
+    var clicksHtml =
+      '<div class="mini-stats">' +
+      '<div class="mini-stat"><span class="mini-stat-label">Website clicks</span><span class="mini-stat-value">' + formatNumber(latest.clicks) + '</span></div>' +
+      '<div class="mini-stat"><span class="mini-stat-label">Click-through rate</span><span class="mini-stat-value">' + formatPercent(latest.ctr) + '</span></div>' +
+      '</div>';
+
+    el.innerHTML = svg + clicksHtml;
   }
 
   // ---------- analytics: top posts ----------
