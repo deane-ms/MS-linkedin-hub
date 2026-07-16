@@ -569,6 +569,8 @@
         <button class="metric-chip" data-metric="followers" role="tab" aria-selected="false">Followers</button>
         <button class="metric-chip active" data-metric="impressions" role="tab" aria-selected="true">Impressions</button>
         <button class="metric-chip" data-metric="uniqueImpressions" role="tab" aria-selected="false">Unique Impr.</button>
+        <button class="metric-chip" data-metric="pageViews" role="tab" aria-selected="false">Page Views</button>
+        <button class="metric-chip" data-metric="uniqueVisitors" role="tab" aria-selected="false">Unique Visitors</button>
         <button class="metric-chip" data-metric="clicks" role="tab" aria-selected="false">Clicks</button>
         <button class="metric-chip" data-metric="ctr" role="tab" aria-selected="false">CTR</button>
         <button class="metric-chip" data-metric="likes" role="tab" aria-selected="false">Likes</button>
@@ -604,7 +606,7 @@
       <div class="table-scroll">
         <table id="analyticsTable">
           <thead>
-            <tr><th>Period</th><th>Followers</th><th>Gain</th><th>Impressions</th><th>Unique</th><th>Clicks</th><th>CTR</th><th>Likes</th><th>Comments</th><th>Reposts</th><th>Eng. rate</th></tr>
+            <tr><th>Period</th><th>Followers</th><th>Gain</th><th>Impressions</th><th>Unique</th><th>Page Views</th><th>Visitors</th><th>Clicks</th><th>CTR</th><th>Likes</th><th>Comments</th><th>Reposts</th><th>Eng. rate</th></tr>
           </thead>
           <tbody id="analyticsTableBody"></tbody>
         </table>
@@ -1652,6 +1654,7 @@
       var reposts = Math.round(likes * 0.08 * noise * 4);
       var gain = Math.round(noise * (isSpike ? 6 : 2));
       followers += gain;
+      var pageViews = Math.round((isSpike ? 14 : 3) + noise * (isSpike ? 8 : 5));
       days.push({
         date: d.toISOString().slice(0, 10),
         followers: followers,
@@ -1666,7 +1669,9 @@
         likes: likes,
         comments: comments,
         reposts: reposts,
-        engagementRate: impressions > 0 ? Math.round(((clicks + likes + comments + reposts) / impressions) * 10000) / 10000 : 0
+        engagementRate: impressions > 0 ? Math.round(((clicks + likes + comments + reposts) / impressions) * 10000) / 10000 : 0,
+        pageViews: pageViews,
+        uniqueVisitors: Math.round(pageViews * 0.65)
       });
     }
     return days;
@@ -1744,7 +1749,7 @@
     days.forEach(function (d) {
       var key = keyFn(d.date);
       if (!buckets[key]) {
-        buckets[key] = { date: key, followers: 0, followerGain: 0, impressions: 0, uniqueImpressions: 0, clicks: 0, likes: 0, comments: 0, reposts: 0 };
+        buckets[key] = { date: key, followers: 0, followerGain: 0, impressions: 0, uniqueImpressions: 0, clicks: 0, likes: 0, comments: 0, reposts: 0, pageViews: 0, uniqueVisitors: 0 };
         order.push(key);
       }
       var b = buckets[key];
@@ -1756,6 +1761,8 @@
       b.likes += d.likes;
       b.comments += d.comments;
       b.reposts += d.reposts;
+      b.pageViews += d.pageViews || 0;
+      b.uniqueVisitors += d.uniqueVisitors || 0;
     });
     return order.map(function (key) {
       var b = buckets[key];
@@ -1816,6 +1823,8 @@
     followers: { label: "Followers", format: formatNumber, unit: "followers" },
     impressions: { label: "Impressions", format: formatNumber, unit: "impressions" },
     uniqueImpressions: { label: "Unique Impressions", format: formatNumber, unit: "unique impressions" },
+    pageViews: { label: "Page Views", format: formatNumber, unit: "page views" },
+    uniqueVisitors: { label: "Unique Visitors", format: formatNumber, unit: "unique visitors" },
     clicks: { label: "Clicks", format: formatNumber, unit: "clicks" },
     ctr: { label: "CTR", format: formatPercent, unit: "click-through rate" },
     likes: { label: "Likes", format: formatNumber, unit: "likes" },
@@ -2075,6 +2084,8 @@
         '<td>' + (w.followerGain >= 0 ? "+" : "") + formatNumber(w.followerGain) + '</td>' +
         '<td>' + formatNumber(w.impressions) + '</td>' +
         '<td>' + formatNumber(w.uniqueImpressions) + '</td>' +
+        '<td>' + formatNumber(w.pageViews || 0) + '</td>' +
+        '<td>' + formatNumber(w.uniqueVisitors || 0) + '</td>' +
         '<td>' + formatNumber(w.clicks) + '</td>' +
         '<td>' + formatPercent(w.ctr) + '</td>' +
         '<td>' + formatNumber(w.likes) + '</td>' +
@@ -2216,7 +2227,7 @@
   var importAnalyticsFile = document.getElementById("importAnalyticsFile");
   var importAnalyticsError = document.getElementById("importAnalyticsError");
   var analyticsLastFocused = null;
-  var DAY_FIELDS = ["date", "followers", "followerGain", "impressions", "uniqueImpressions", "clicks", "ctr", "likes", "comments", "reposts", "engagementRate"];
+  var DAY_FIELDS = ["date", "followers", "followerGain", "impressions", "uniqueImpressions", "clicks", "ctr", "likes", "comments", "reposts", "engagementRate", "pageViews", "uniqueVisitors"];
 
   document.getElementById("importAnalyticsBtn").addEventListener("click", function () {
     analyticsLastFocused = document.activeElement;
