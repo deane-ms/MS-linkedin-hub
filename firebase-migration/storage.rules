@@ -1,0 +1,14 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isMediashock() {
+      return request.auth != null
+        && request.auth.token.email != null
+        && request.auth.token.email.matches('.*@mediashock[.]com[.]sg$');
+    }
+
+    match /post-images/{postId}/{fileName} {
+      allow read, write: if isMediashock();
+    }
+  }
+}

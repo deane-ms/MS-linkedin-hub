@@ -1,0 +1,2978 @@
+<title>MediaShock APAC - LinkedIn Content Hub</title>
+<style>
+  :root {
+    --bg: #f4f6f8;
+    --surface: #ffffff;
+    --surface-alt: #f8fafc;
+    --border: #e2e8f0;
+    --text: #1e293b;
+    --text-soft: #64748b;
+    --text-faint: #94a3b8;
+    --brand: #ff4e20;
+    --brand-hover: #e0431a;
+    --brand-soft: #fff1ec;
+    --danger: #dc2626;
+    --danger-soft: #fef2f2;
+    --shadow: 0 20px 45px -18px rgba(30, 41, 59, 0.35);
+    --shadow-sm: 0 1px 2px rgba(30, 41, 59, 0.06);
+
+    --b-news: #6366f1;
+    --b-case: #2563eb;
+    --b-industry: #0891b2;
+    --b-bts: #475569;
+    --b-promo: #b45309;
+
+    --s-draft-fg: #64748b;    --s-draft-bg: #f1f5f9;    --s-draft-line: #cbd5e1;
+    --s-approved-fg: #15803d; --s-approved-bg: #f0fdf4; --s-approved-line: #bbf7d0;
+    --s-scheduled-fg: #ffffff; --s-scheduled-bg: #ff4e20; --s-scheduled-line: #ff4e20;
+
+    --good: #15803d;
+    --bad: #dc2626;
+
+    --brand-gradient: linear-gradient(135deg, var(--brand) 0%, var(--brand-hover) 100%);
+    --brand-gradient-h: linear-gradient(90deg, var(--brand) 0%, var(--brand-hover) 100%);
+
+    --font: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface-alt: #172033;
+      --border: #334155;
+      --text: #e2e8f0;
+      --text-soft: #94a3b8;
+      --text-faint: #64748b;
+      --brand: #ff7a52;
+      --brand-hover: #ff9470;
+      --brand-soft: #3a2015;
+      --danger: #f87171;
+      --danger-soft: #3f1d1d;
+      --shadow: 0 20px 45px -18px rgba(0, 0, 0, 0.6);
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+
+      --b-news: #818cf8;
+      --b-case: #60a5fa;
+      --b-industry: #22d3ee;
+      --b-bts: #94a3b8;
+      --b-promo: #f59e0b;
+
+      --s-draft-fg: #94a3b8;    --s-draft-bg: #1e293b;    --s-draft-line: #334155;
+      --s-approved-fg: #4ade80; --s-approved-bg: #14251a; --s-approved-line: #14532d;
+      --s-scheduled-fg: #0f172a; --s-scheduled-bg: #ff7a52; --s-scheduled-line: #ff7a52;
+      --good: #4ade80;
+      --bad: #f87171;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f172a; --surface: #1e293b; --surface-alt: #172033; --border: #334155;
+    --text: #e2e8f0; --text-soft: #94a3b8; --text-faint: #64748b;
+    --brand: #ff7a52; --brand-hover: #ff9470; --brand-soft: #3a2015;
+    --danger: #f87171; --danger-soft: #3f1d1d;
+    --shadow: 0 20px 45px -18px rgba(0, 0, 0, 0.6); --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --b-news: #818cf8; --b-case: #60a5fa; --b-industry: #22d3ee; --b-bts: #94a3b8; --b-promo: #f59e0b;
+    --s-draft-fg: #94a3b8; --s-draft-bg: #1e293b; --s-draft-line: #334155;
+    --s-approved-fg: #4ade80; --s-approved-bg: #14251a; --s-approved-line: #14532d;
+    --s-scheduled-fg: #0f172a; --s-scheduled-bg: #ff7a52; --s-scheduled-line: #ff7a52;
+    --good: #4ade80; --bad: #f87171;
+  }
+  :root[data-theme="light"] {
+    --bg: #f4f6f8; --surface: #ffffff; --surface-alt: #f8fafc; --border: #e2e8f0;
+    --text: #1e293b; --text-soft: #64748b; --text-faint: #94a3b8;
+    --brand: #ff4e20; --brand-hover: #e0431a; --brand-soft: #fff1ec;
+    --danger: #dc2626; --danger-soft: #fef2f2;
+    --shadow: 0 20px 45px -18px rgba(30, 41, 59, 0.35); --shadow-sm: 0 1px 2px rgba(30, 41, 59, 0.06);
+    --b-news: #6366f1; --b-case: #2563eb; --b-industry: #0891b2; --b-bts: #475569; --b-promo: #b45309;
+    --s-draft-fg: #64748b; --s-draft-bg: #f1f5f9; --s-draft-line: #cbd5e1;
+    --s-approved-fg: #15803d; --s-approved-bg: #f0fdf4; --s-approved-line: #bbf7d0;
+    --s-scheduled-fg: #ffffff; --s-scheduled-bg: #ff4e20; --s-scheduled-line: #ff4e20;
+    --good: #15803d; --bad: #dc2626;
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  button, input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+  .app { max-width: 78rem; margin: 0 auto; padding: 1.75rem 1.5rem 4rem; }
+
+  /* ---------- header ---------- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  .brand { display: flex; align-items: center; gap: 0.85rem; }
+  .logo-mark {
+    width: 2.6rem; height: 2.6rem; border-radius: 10px;
+    background: linear-gradient(155deg, var(--brand), var(--brand-hover));
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.95rem; letter-spacing: 0.02em;
+    box-shadow: var(--shadow-sm);
+    flex: none;
+  }
+  .brand h1 { font-size: 1.25rem; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+  .brand p { margin: 0.1rem 0 0; font-size: 0.82rem; color: var(--text-soft); }
+
+  .topbar-actions { display: flex; align-items: center; gap: 0.6rem; }
+  .user-chip { font-size: 0.78rem; color: var(--text-soft); padding: 0 0.4rem; }
+
+  /* ---------- auth gate ---------- */
+  .auth-gate {
+    position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center;
+    padding: 1.5rem; z-index: 100;
+  }
+  .auth-card {
+    max-width: 26rem; width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 2rem 1.8rem; text-align: center; box-shadow: var(--shadow);
+  }
+  .auth-card .logo-mark { margin: 0 auto 1rem; }
+  .auth-card h2 { margin: 0 0 0.6rem; font-size: 1.15rem; }
+  .auth-card p { margin: 0 0 1.2rem; font-size: 0.88rem; color: var(--text-soft); line-height: 1.5; }
+  .auth-card .btn-primary { width: 100%; justify-content: center; }
+  .auth-denied { color: var(--danger); }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    border-radius: 8px; border: 1px solid transparent;
+    padding: 0.55rem 1rem; font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease, transform 0.05s ease;
+    white-space: nowrap;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+  .btn-primary { background: var(--brand-gradient); color: #fff; }
+  .btn-primary:hover { background: linear-gradient(135deg, var(--brand-hover) 0%, var(--brand) 100%); }
+  .btn-ghost { background: var(--surface); color: var(--text); border-color: var(--border); }
+  .btn-ghost:hover { background: var(--surface-alt); }
+  .btn-danger { background: var(--danger-soft); color: var(--danger); border-color: var(--danger); }
+  .btn-danger:hover { background: var(--danger); color: #fff; }
+  .btn.small { padding: 0.4rem 0.7rem; font-size: 0.78rem; }
+
+  .icon-btn {
+    width: 2.1rem; height: 2.1rem; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text-soft);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 1rem; line-height: 1;
+    transition: background 0.12s ease, color 0.12s ease;
+  }
+  .icon-btn:hover { background: var(--surface-alt); color: var(--text); }
+  .icon-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+  /* ---------- toolbar ---------- */
+  .toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.7rem 1rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .view-toggle {
+    display: inline-flex; background: var(--surface-alt);
+    border: 1px solid var(--border); border-radius: 8px; padding: 3px; gap: 2px;
+  }
+  .view-btn, .gran-btn {
+    border: none; background: transparent; color: var(--text-soft);
+    padding: 0.4rem 0.85rem; border-radius: 6px; font-size: 0.82rem; font-weight: 600;
+    cursor: pointer; transition: background 0.12s ease, color 0.12s ease;
+  }
+  .view-btn.active, .gran-btn.active { background: var(--surface); color: var(--brand); box-shadow: var(--shadow-sm); }
+  .view-btn:focus-visible, .gran-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+  .nav-controls { display: flex; align-items: center; gap: 0.6rem; }
+  .nav-controls h2 { font-size: 1rem; font-weight: 700; margin: 0 0 0 0.3rem; min-width: 9rem; }
+
+  /* ---------- legend ---------- */
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.1rem;
+    margin-bottom: 1.4rem; padding: 0.1rem 0.2rem;
+  }
+  .legend-item { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.8rem; color: var(--text-soft); }
+  .legend-item i { width: 0.6rem; height: 0.6rem; border-radius: 3px; background: var(--dot); display: inline-block; }
+
+  /* ---------- bucket manager ---------- */
+  .buckets-list { display: flex; flex-direction: column; gap: 0.5rem; max-height: 22rem; overflow-y: auto; }
+  .bucket-row { display: grid; grid-template-columns: 2rem 1fr auto auto; align-items: center; gap: 0.6rem; padding: 0.4rem 0.2rem; border-bottom: 1px solid var(--border); }
+  .bucket-row input[type="color"] { width: 2rem; height: 2rem; padding: 0; border: 1px solid var(--border); border-radius: 6px; background: none; cursor: pointer; }
+  .bucket-row .bucket-label { border: 1px solid transparent; background: transparent; padding: 0.35rem 0.4rem; border-radius: 6px; font-weight: 500; }
+  .bucket-row .bucket-label:hover, .bucket-row .bucket-label:focus { border-color: var(--border); background: var(--surface-alt); }
+  .bucket-row .bucket-count { font-size: 0.72rem; color: var(--text-faint); white-space: nowrap; }
+  .bucket-row .bucket-delete { width: 1.9rem; height: 1.9rem; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-faint); cursor: pointer; font-size: 0.85rem; }
+  .bucket-row .bucket-delete:hover { background: var(--danger-soft); color: var(--danger); border-color: var(--danger); }
+  .bucket-row .bucket-delete.armed { background: var(--danger); color: #fff; border-color: var(--danger); font-size: 0.62rem; width: auto; padding: 0 0.5rem; }
+
+  /* ---------- emoji picker ---------- */
+  .field-with-action { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem; }
+  .field-with-action label { font-size: 0.78rem; font-weight: 600; color: var(--text-soft); }
+  .emoji-picker { margin-top: 0.5rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-alt); padding: 0.55rem; }
+  .emoji-tabs { display: flex; flex-wrap: wrap; gap: 0.2rem; margin-bottom: 0.45rem; }
+  .emoji-tab { border: none; background: transparent; padding: 0.28rem 0.55rem; border-radius: 6px; cursor: pointer; font-size: 0.7rem; font-weight: 600; color: var(--text-soft); }
+  .emoji-tab.active { background: var(--surface); color: var(--brand); }
+  .emoji-tab:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+  .emoji-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 0.1rem; max-height: 10rem; overflow-y: auto; }
+  .emoji-btn { all: unset; cursor: pointer; text-align: center; font-size: 1.3rem; line-height: 1.8; border-radius: 6px; }
+  .emoji-btn:hover, .emoji-btn:focus-visible { background: var(--surface); outline: 2px solid var(--brand); outline-offset: -2px; }
+
+  /* ---------- month grid ---------- */
+  .weekday-row {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--text-faint); padding: 0 0.1rem 0.5rem;
+  }
+  .weekday-row span { text-align: left; padding-left: 0.35rem; }
+
+  .month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+  .day-cell {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    min-height: 7.2rem; padding: 0.5rem; display: flex; flex-direction: column; gap: 0.35rem;
+    position: relative;
+  }
+  .day-cell.outside { background: var(--surface-alt); opacity: 0.55; }
+  .day-cell.today { border-color: var(--brand); box-shadow: 0 0 0 1px var(--brand); }
+  .day-head { display: flex; align-items: center; justify-content: space-between; }
+  .day-num { font-size: 0.78rem; font-weight: 700; color: var(--text-soft); font-variant-numeric: tabular-nums; }
+  .day-cell.today .day-num { color: var(--brand); }
+  .day-add {
+    all: unset; cursor: pointer; width: 1.3rem; height: 1.3rem; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-faint); font-size: 0.95rem; line-height: 1;
+    transition: background 0.12s ease, color 0.12s ease;
+  }
+  .day-add:hover { background: var(--brand-soft); color: var(--brand); }
+  .day-add:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+  .day-posts { display: flex; flex-direction: column; gap: 0.3rem; }
+
+  .post-card {
+    all: unset; cursor: pointer; display: block;
+    border-left: 3px solid var(--dot); background: color-mix(in srgb, var(--dot) 10%, var(--surface));
+    border-radius: 5px; padding: 0.28rem 0.4rem; font-size: 0.72rem; line-height: 1.3;
+  }
+  .post-card:hover { background: color-mix(in srgb, var(--dot) 18%, var(--surface)); }
+  .post-card:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+  .post-card .pc-title { color: var(--text); font-weight: 600; display: block; }
+  .post-card .pc-meta { display: flex; align-items: center; gap: 0.35rem; margin-top: 0.15rem; }
+  .post-card .pc-time { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-faint); }
+  .post-card .pc-img-badge { font-size: 0.62rem; color: var(--text-faint); }
+
+  /* ---------- upcoming posts ---------- */
+  .upcoming-card { margin-top: 1.4rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem 1.3rem 1.3rem; box-shadow: var(--shadow-sm); }
+  .upcoming-title { font-size: 0.95rem; font-weight: 700; margin: 0 0 0.8rem; }
+  .upcoming-list { display: flex; flex-direction: column; gap: 0.4rem; }
+  .upcoming-item {
+    all: unset; cursor: pointer; display: flex; align-items: center; gap: 0.7rem;
+    padding: 0.55rem 0.6rem; border-radius: 8px; width: 100%; box-sizing: border-box;
+  }
+  .upcoming-item:hover { background: var(--surface-alt); }
+  .upcoming-item:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+  .upcoming-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .upcoming-date { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-soft); width: 6.2rem; flex-shrink: 0; }
+  .upcoming-title-text { flex: 1; min-width: 0; font-size: 0.85rem; color: var(--text); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .upcoming-empty { color: var(--text-faint); font-size: 0.85rem; padding: 0.3rem 0; }
+
+  /* ---------- week grid ---------- */
+  .week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; align-items: start; }
+  .week-col { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.6rem; min-height: 20rem; display: flex; flex-direction: column; gap: 0.5rem; }
+  .week-col.today { border-color: var(--brand); box-shadow: 0 0 0 1px var(--brand); }
+  .week-col-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 0.3rem; border-bottom: 1px solid var(--border); }
+  .week-col-head .wd { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-faint); }
+  .week-col-head .dn { font-size: 1rem; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+  .week-col.today .dn { color: var(--brand); }
+  .week-posts { display: flex; flex-direction: column; gap: 0.4rem; flex: 1; }
+  .week-grid .post-card { padding: 0.45rem 0.55rem; font-size: 0.78rem; }
+  .week-grid .day-add { align-self: flex-start; }
+
+  /* ---------- status pill ---------- */
+  .status-pill {
+    font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;
+    padding: 0.06rem 0.4rem; border-radius: 999px; border: 1px solid;
+  }
+  .status-draft { color: var(--s-draft-fg); background: var(--s-draft-bg); border-color: var(--s-draft-line); }
+  .status-approved { color: var(--s-approved-fg); background: var(--s-approved-bg); border-color: var(--s-approved-line); }
+  .status-scheduled { color: var(--s-scheduled-fg); background: var(--brand-gradient); border-color: var(--s-scheduled-line); }
+
+  /* ---------- top-level tabs ---------- */
+  .tabs { display: flex; gap: 0.4rem; margin-bottom: 1.1rem; border-bottom: 1px solid var(--border); }
+  .tab-btn {
+    border: none; background: transparent; color: var(--text-soft);
+    padding: 0.55rem 0.2rem; margin-right: 1.2rem; font-size: 0.88rem; font-weight: 700;
+    cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px;
+    transition: color 0.12s ease, border-color 0.12s ease;
+  }
+  .tab-btn.active { color: var(--brand); border-color: var(--brand); }
+  .tab-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+  .tab-panel[hidden] { display: none; }
+
+  /* ---------- content planner (kanban) ---------- */
+  .planner-sub { margin: 0; font-size: 0.85rem; color: var(--text-soft); }
+  .kanban-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; align-items: start; margin-top: 1.2rem; }
+  .kanban-col { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 0.8rem; min-height: 8rem; min-width: 0; }
+  .kanban-col-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.7rem; }
+  .kanban-col-head h3 { margin: 0; font-size: 0.82rem; font-weight: 700; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.03em; }
+  .kanban-count { font-size: 0.68rem; font-weight: 700; color: var(--text-faint); background: var(--surface-alt); border-radius: 999px; padding: 0.05rem 0.5rem; }
+  .kanban-cards { display: flex; flex-direction: column; gap: 0.55rem; }
+  .idea-card {
+    all: unset; cursor: pointer; display: block; box-sizing: border-box; width: 100%;
+    border-left: 3px solid var(--dot); background: color-mix(in srgb, var(--dot) 10%, var(--surface));
+    border-radius: 8px; padding: 0.65rem 0.75rem; font-size: 0.78rem; line-height: 1.4;
+  }
+  .idea-card:hover { background: color-mix(in srgb, var(--dot) 18%, var(--surface)); }
+  .idea-card:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+  .idea-card .ic-title { color: var(--text); font-weight: 600; display: block; }
+  .idea-card .ic-notes {
+    color: var(--text-soft); margin-top: 0.3rem;
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 7; overflow: hidden;
+  }
+  .idea-card .ic-feedback {
+    color: var(--text-faint); font-style: italic; margin-top: 0.4rem; padding-top: 0.4rem; border-top: 1px dashed var(--border);
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+  }
+  .idea-card .ic-meta { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.5rem; font-size: 0.66rem; color: var(--text-faint); }
+  .kanban-empty { color: var(--text-faint); font-size: 0.78rem; padding: 0.4rem 0.2rem; }
+  .feedback-log { display: flex; flex-direction: column; gap: 0.6rem; max-height: 12rem; overflow-y: auto; margin: 0.6rem 0; padding-right: 0.2rem; }
+  .feedback-item { background: var(--surface-alt); border-radius: 8px; padding: 0.5rem 0.65rem; font-size: 0.8rem; }
+  .feedback-item .fb-date { display: block; font-size: 0.65rem; color: var(--text-faint); margin-bottom: 0.15rem; font-family: var(--font-mono); }
+  .feedback-empty { color: var(--text-faint); font-size: 0.8rem; }
+  .idea-stage-row { display: flex; align-items: center; gap: 0.6rem; margin: 0.2rem 0 0.9rem; }
+  .idea-stage-row label { flex: 1; }
+  .feedback-input-row { display: flex; gap: 0.5rem; align-items: flex-end; }
+  .feedback-input-row textarea { flex: 1; min-height: 3.4rem; }
+
+  /* ---------- analytics: header + sample badge ---------- */
+  .analytics-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
+  .analytics-head h2 { margin: 0; font-size: 1.15rem; font-weight: 700; }
+  .analytics-sub { margin: 0.25rem 0 0; font-size: 0.82rem; color: var(--text-soft); }
+  #analyticsRange {
+    font-family: var(--font-mono); font-size: 0.95rem; font-weight: 700;
+    color: var(--text); margin: 0.4rem 0 0.2rem; letter-spacing: 0.01em;
+  }
+  .sample-badge {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--s-draft-fg); background: var(--s-draft-bg); border: 1px solid var(--s-draft-line);
+    border-radius: 999px; padding: 0.15rem 0.55rem; margin-left: 0.5rem;
+  }
+
+  /* ---------- date range + granularity ---------- */
+  .range-bar {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.7rem;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 0.7rem 1rem; margin-bottom: 1.2rem; box-shadow: var(--shadow-sm);
+  }
+  .range-presets { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .range-custom { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--text-soft); flex-basis: 100%; }
+  .range-custom input[type="date"] { font-size: 0.8rem; }
+  .granularity-toggle { display: inline-flex; background: var(--surface-alt); border: 1px solid var(--border); border-radius: 8px; padding: 3px; gap: 2px; }
+
+  /* ---------- top posts & demographics ---------- */
+  #topPostsTable td:first-child { max-width: 26rem; white-space: normal; }
+  .post-link { color: var(--text); text-decoration: none; }
+  .post-link:hover { color: var(--brand); text-decoration: underline; }
+
+  /* ---------- market trends card ---------- */
+  .trends-updated { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-faint); white-space: nowrap; }
+  .trends-note { margin: 0 0 0.7rem; font-size: 0.82rem; color: var(--text-soft); line-height: 1.55; }
+  .takeaways-list li .post-link { display: inline-block; margin-top: 0.15rem; font-size: 0.82rem; }
+  .demographics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1.4rem; }
+  .demographic-facet h4 { margin: 0 0 0.5rem; font-size: 0.78rem; font-weight: 700; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.03em; }
+  .demo-row { display: grid; grid-template-columns: 7rem 1fr 3rem; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; font-size: 0.78rem; }
+  .demo-row .demo-label { color: var(--text-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .demo-row .demo-track { background: var(--surface-alt); border-radius: 4px; height: 0.6rem; overflow: hidden; display: block; }
+  .demo-row .demo-fill { background: var(--brand-gradient-h); height: 100%; border-radius: 4px; display: block; }
+  .demo-row .demo-value { text-align: right; color: var(--text); font-variant-numeric: tabular-nums; }
+
+  /* ---------- KPI tiles ---------- */
+  .kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.8rem; margin-bottom: 1.4rem; }
+  .kpi-tile { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.1rem; box-shadow: var(--shadow-sm); }
+  .kpi-label { font-size: 0.72rem; font-weight: 700; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.04em; }
+  .kpi-value { font-size: 1.7rem; font-weight: 700; margin-top: 0.3rem; color: var(--text); font-variant-numeric: tabular-nums; }
+  .kpi-delta { font-size: 0.78rem; font-weight: 600; margin-top: 0.25rem; display: flex; align-items: center; gap: 0.25rem; }
+  .kpi-delta.good { color: var(--good); }
+  .kpi-delta.bad { color: var(--bad); }
+  .kpi-delta.flat { color: var(--text-faint); }
+
+  /* ---------- key takeaways ---------- */
+  .takeaways-list { margin: 0; padding-left: 1.15rem; display: flex; flex-direction: column; gap: 0.55rem; font-size: 0.86rem; color: var(--text); }
+  .takeaways-list li::marker { color: var(--brand); }
+  .takeaways-list .muted { color: var(--text-soft); }
+
+  /* ---------- metric switcher ---------- */
+  .metric-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.9rem; }
+  .metric-chip {
+    border: 1px solid var(--border); background: var(--surface-alt); color: var(--text-soft);
+    border-radius: 999px; padding: 0.32rem 0.8rem; font-size: 0.78rem; font-weight: 600;
+    cursor: pointer; transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+  }
+  .metric-chip:hover { border-color: var(--brand); }
+  .metric-chip.active { background: var(--brand-gradient); color: #fff; border-color: var(--brand); }
+  .metric-chip:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+  /* ---------- chart cards ---------- */
+  .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem 1.2rem 0.9rem; margin-bottom: 1rem; box-shadow: var(--shadow-sm); }
+  .chart-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.6rem; }
+  .chart-head h3 { margin: 0; font-size: 0.92rem; font-weight: 700; }
+  .chart-body { position: relative; }
+  .chart-body svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .chart-gridline { stroke: var(--border); stroke-width: 0.75; }
+  .chart-baseline { stroke: var(--border); stroke-width: 1; }
+  .chart-axis-label { fill: var(--text-faint); font-size: 9px; font-family: var(--font-mono); }
+  .chart-line { fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .chart-area { stroke: none; }
+  .chart-end-label { fill: var(--text); font-size: 11px; font-weight: 700; }
+  .chart-bar { stroke: none; }
+  .chart-hbar-track { fill: var(--surface-alt); }
+  .chart-hbar-label { fill: var(--text-soft); font-size: 10px; }
+  .mini-stats { display: flex; gap: 2rem; margin-top: 0.9rem; padding-top: 0.9rem; border-top: 1px solid var(--border); }
+  .mini-stat { display: flex; flex-direction: column; gap: 0.2rem; }
+  .mini-stat-label { font-size: 0.68rem; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.03em; font-weight: 700; }
+  .mini-stat-value { font-size: 1.1rem; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+  .chart-hbar-value { fill: var(--text); font-size: 10px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .chart-crosshair { stroke: var(--text-faint); stroke-width: 0.75; stroke-dasharray: 3 3; pointer-events: none; }
+  .chart-dot { fill: var(--surface); stroke: var(--brand); stroke-width: 1.5; pointer-events: none; }
+  .chart-tooltip {
+    position: absolute; pointer-events: none; z-index: 5;
+    background: var(--text); color: var(--surface);
+    font-size: 0.72rem; padding: 0.3rem 0.55rem; border-radius: 5px;
+    white-space: nowrap; opacity: 0; transform: translate(-50%, -125%);
+    transition: opacity 0.08s ease;
+  }
+  .chart-tooltip.show { opacity: 1; }
+  .chart-hover-target { fill: transparent; }
+
+  .data-table-toggle { margin-top: 0.3rem; }
+  .data-table-toggle summary {
+    cursor: pointer; font-size: 0.8rem; font-weight: 600; color: var(--brand);
+    list-style: none; display: inline-flex; align-items: center; gap: 0.35rem;
+  }
+  .data-table-toggle summary::-webkit-details-marker { display: none; }
+  .data-table-toggle summary::before { content: "▸"; font-size: 0.68rem; transition: transform 0.15s ease; }
+  .data-table-toggle[open] summary::before { transform: rotate(90deg); }
+  .table-scroll { overflow-x: auto; margin-top: 0.7rem; }
+  #analyticsTable, #topPostsTable { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+  #analyticsTable th, #analyticsTable td, #topPostsTable th, #topPostsTable td { text-align: right; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+  #analyticsTable th:first-child, #analyticsTable td:first-child, #topPostsTable th:first-child, #topPostsTable td:first-child { text-align: left; font-variant-numeric: normal; }
+  #analyticsTable th, #topPostsTable th { color: var(--text-soft); font-weight: 700; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.03em; }
+
+  @media (max-width: 980px) {
+    .kpi-row { grid-template-columns: repeat(3, 1fr); }
+    .kanban-board { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 720px) {
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .kanban-board { grid-template-columns: 1fr; }
+  }
+
+  /* ---------- modal ---------- */
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5);
+    display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+    opacity: 0; pointer-events: none; transition: opacity 0.15s ease; z-index: 20;
+  }
+  .modal-backdrop.open { opacity: 1; pointer-events: auto; }
+  .modal {
+    background: var(--surface); border-radius: 14px; box-shadow: var(--shadow);
+    width: 100%; max-width: 30rem; max-height: 90vh; overflow-y: auto;
+    padding: 1.4rem 1.4rem 1.6rem;
+    transform: translateY(8px) scale(0.98); transition: transform 0.15s ease;
+  }
+  .modal-backdrop.open .modal { transform: translateY(0) scale(1); }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+  .modal-head h3 { margin: 0; font-size: 1.05rem; font-weight: 700; }
+
+  #postForm, #ideaForm { display: flex; flex-direction: column; gap: 0.9rem; }
+  #postForm label, #ideaForm label { display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.78rem; font-weight: 600; color: var(--text-soft); }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+  input, select, textarea {
+    border: 1px solid var(--border); border-radius: 8px; padding: 0.55rem 0.65rem;
+    background: var(--surface-alt); color: var(--text); font-weight: 500;
+  }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--brand); outline-offset: 1px; background: var(--surface); }
+  textarea { resize: vertical; min-height: 6.5rem; line-height: 1.45; }
+
+  .modal-actions { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.3rem; }
+  .modal-actions .spacer { flex: 1; }
+
+  /* ---------- image carousel editor ---------- */
+  .carousel-editor { margin-top: 0.6rem; }
+  .carousel-viewport {
+    position: relative; background: #14181a; border: 1px solid var(--border); border-radius: 8px;
+    aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; overflow: hidden;
+  }
+  .carousel-viewport img { width: 100%; height: 100%; object-fit: contain; }
+  .carousel-nav {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 2.1rem; height: 2.1rem; border-radius: 50%; border: none;
+    background: rgba(0, 0, 0, 0.55); color: #fff; font-size: 1.15rem; line-height: 1;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .carousel-nav:hover { background: rgba(0, 0, 0, 0.75); }
+  .carousel-nav:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+  .carousel-nav.prev { left: 0.5rem; }
+  .carousel-nav.next { right: 0.5rem; }
+  .carousel-remove {
+    position: absolute; top: 0.5rem; right: 0.5rem; width: 1.7rem; height: 1.7rem; border-radius: 50%;
+    border: none; background: rgba(0, 0, 0, 0.55); color: #fff; cursor: pointer; font-size: 0.85rem;
+  }
+  .carousel-remove:hover { background: var(--danger); }
+  .carousel-count {
+    position: absolute; bottom: 0.5rem; right: 0.6rem; background: rgba(0, 0, 0, 0.55); color: #fff;
+    font-family: var(--font-mono); font-size: 0.68rem; padding: 0.1rem 0.45rem; border-radius: 999px;
+  }
+  .carousel-dots { display: flex; justify-content: center; gap: 0.35rem; margin-top: 0.55rem; }
+  .carousel-dots .dot {
+    all: unset; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--border); cursor: pointer;
+  }
+  .carousel-dots .dot.active { background: var(--brand); }
+  .carousel-dots .dot:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+  #exportText {
+    width: 100%; font-family: var(--font-mono); font-size: 0.76rem; min-height: 18rem;
+    white-space: pre; overflow-x: auto;
+  }
+
+  @media (max-width: 720px) {
+    .field-row { grid-template-columns: 1fr; }
+    .week-grid, .month-grid { grid-template-columns: repeat(7, minmax(2.4rem, 1fr)); }
+    .day-cell { min-height: 5rem; padding: 0.35rem; }
+    .week-col { min-height: auto; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .modal-backdrop, .modal, .chart-tooltip { transition: none; }
+  }
+</style>
+
+<div class="auth-gate" id="authGate">
+  <div class="auth-card">
+    <span class="logo-mark">MS</span>
+    <h2>MediaShock APAC — LinkedIn Content Hub</h2>
+    <p id="authStatus">Sign in with your Mediashock Google account to continue.</p>
+    <button type="button" class="btn btn-primary" id="signInBtn">Sign in with Google</button>
+    <p class="auth-denied" id="authDenied" hidden>
+      This tool is restricted to <strong>@mediashock.com.sg</strong> accounts.<br>
+      <button type="button" class="btn btn-ghost small" id="authSignOutBtn" style="margin-top:0.6rem;">Sign out and try another account</button>
+    </p>
+  </div>
+</div>
+
+<div class="app" id="appRoot" hidden>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo-mark">MS</span>
+      <div>
+        <h1>MediaShock APAC — LinkedIn Content Hub</h1>
+        <p>Content calendar &amp; scheduling</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <span class="user-chip" id="userChip" hidden></span>
+      <button class="btn btn-ghost" id="importBtn">Import JSON</button>
+      <button class="btn btn-ghost" id="exportBtn">Export Calendar (JSON)</button>
+      <button class="btn btn-primary" id="newPostBtn">+ New Post</button>
+      <button class="btn btn-ghost" id="signOutBtn" hidden>Sign out</button>
+    </div>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Content Hub sections">
+    <button class="tab-btn active" data-tab="calendar" role="tab" aria-selected="true">Calendar</button>
+    <button class="tab-btn" data-tab="planner" role="tab" aria-selected="false">Content Planner</button>
+    <button class="tab-btn" data-tab="analytics" role="tab" aria-selected="false">Analytics</button>
+  </div>
+
+  <section class="tab-panel" id="calendarView">
+    <div class="toolbar">
+      <div class="view-toggle" role="tablist" aria-label="Calendar view">
+        <button class="view-btn active" data-view="month" role="tab" aria-selected="true">Month</button>
+        <button class="view-btn" data-view="week" role="tab" aria-selected="false">Week</button>
+      </div>
+      <div class="nav-controls">
+        <button class="icon-btn" id="prevBtn" aria-label="Previous">‹</button>
+        <button class="btn btn-ghost small" id="todayBtn">Today</button>
+        <button class="icon-btn" id="nextBtn" aria-label="Next">›</button>
+        <h2 id="periodLabel"></h2>
+      </div>
+    </div>
+
+    <div class="legend" id="legendRoot"></div>
+    <button type="button" class="btn btn-ghost small" id="manageBucketsBtn" style="margin:-0.8rem 0 1.2rem;">⚙ Manage buckets</button>
+
+    <div id="weekdayRow" class="weekday-row"></div>
+    <div id="calendarRoot"></div>
+
+    <div class="upcoming-card">
+      <h3 class="upcoming-title">Upcoming posts</h3>
+      <div id="upcomingList" class="upcoming-list"></div>
+    </div>
+  </section>
+
+  <section class="tab-panel" id="plannerView" hidden>
+    <div class="toolbar">
+      <p class="planner-sub">Drop in raw ideas, gather feedback, and iterate until they're ready to schedule.</p>
+      <button type="button" class="btn btn-primary" id="newIdeaBtn">+ New Idea</button>
+    </div>
+    <div class="kanban-board" id="kanbanBoard"></div>
+  </section>
+
+  <section class="tab-panel" id="analyticsView" hidden>
+    <div class="analytics-head">
+      <div>
+        <h2>LinkedIn Page Performance<span class="sample-badge" id="sampleBadge" hidden>Sample data</span></h2>
+        <p class="analytics-sub" id="analyticsRange"></p>
+        <p class="analytics-sub" id="followerSourceNote"></p>
+      </div>
+      <div style="display:flex;gap:0.6rem;">
+        <button class="btn btn-ghost" id="exportAnalyticsBtn">Export Analytics (JSON)</button>
+        <button class="btn btn-ghost" id="importAnalyticsBtn">Import Analytics JSON</button>
+      </div>
+    </div>
+
+    <div class="range-bar">
+      <div class="range-presets" id="rangePresets" role="tablist" aria-label="Date range">
+        <button class="metric-chip" data-range="7d" role="tab" aria-selected="false">7 days</button>
+        <button class="metric-chip" data-range="28d" role="tab" aria-selected="false">28 days</button>
+        <button class="metric-chip active" data-range="90d" role="tab" aria-selected="true">90 days</button>
+        <button class="metric-chip" data-range="365d" role="tab" aria-selected="false">365 days</button>
+        <button class="metric-chip" data-range="all" role="tab" aria-selected="false">All time</button>
+        <button class="metric-chip" data-range="custom" role="tab" aria-selected="false">Custom</button>
+      </div>
+      <div class="range-custom" id="rangeCustom" hidden>
+        <input type="date" id="rangeStart"> <span>to</span> <input type="date" id="rangeEnd">
+        <button class="btn btn-ghost small" id="rangeCustomApply">Apply</button>
+      </div>
+      <div class="granularity-toggle" id="granularityToggle" role="tablist" aria-label="Chart granularity">
+        <button class="gran-btn" data-granularity="day" role="tab" aria-selected="false">Day</button>
+        <button class="gran-btn active" data-granularity="week" role="tab" aria-selected="true">Week</button>
+        <button class="gran-btn" data-granularity="month" role="tab" aria-selected="false">Month</button>
+      </div>
+    </div>
+
+    <div class="kpi-row" id="kpiRow"></div>
+
+    <div class="chart-card">
+      <div class="chart-head"><h3>Trend — <span id="trendMetricLabel">Impressions</span></h3></div>
+      <div class="metric-chips" id="metricChips" role="tablist" aria-label="Trend metric">
+        <button class="metric-chip" data-metric="followers" role="tab" aria-selected="false">Followers</button>
+        <button class="metric-chip active" data-metric="impressions" role="tab" aria-selected="true">Impressions</button>
+        <button class="metric-chip" data-metric="uniqueImpressions" role="tab" aria-selected="false">Unique Impr.</button>
+        <button class="metric-chip" data-metric="pageViews" role="tab" aria-selected="false">Page Views</button>
+        <button class="metric-chip" data-metric="uniqueVisitors" role="tab" aria-selected="false">Unique Visitors</button>
+        <button class="metric-chip" data-metric="clicks" role="tab" aria-selected="false">Clicks</button>
+        <button class="metric-chip" data-metric="ctr" role="tab" aria-selected="false">CTR</button>
+        <button class="metric-chip" data-metric="likes" role="tab" aria-selected="false">Likes</button>
+        <button class="metric-chip" data-metric="comments" role="tab" aria-selected="false">Comments</button>
+        <button class="metric-chip" data-metric="reposts" role="tab" aria-selected="false">Reposts</button>
+        <button class="metric-chip" data-metric="engagementRate" role="tab" aria-selected="false">Engagement Rate</button>
+      </div>
+      <div class="chart-body" id="trendChart"></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-head"><h3>Engagement breakdown — <span id="engagementWeekLabel"></span></h3></div>
+      <div class="chart-body" id="engagementChart"></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-head"><h3>Top performing posts</h3></div>
+      <div class="table-scroll">
+        <table id="topPostsTable">
+          <thead><tr><th style="text-align:left">Post</th><th>Date</th><th>Impressions</th><th>Eng. rate</th><th>Reposts</th></tr></thead>
+          <tbody id="topPostsTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="chart-card" id="demographicsCard">
+      <div class="chart-head"><h3>Follower demographics</h3></div>
+      <div class="demographics-grid" id="demographicsGrid"></div>
+    </div>
+
+    <details class="data-table-toggle">
+      <summary>View as table</summary>
+      <div class="table-scroll">
+        <table id="analyticsTable">
+          <thead>
+            <tr><th>Period</th><th>Followers</th><th>Gain</th><th>Impressions</th><th>Unique</th><th>Page Views</th><th>Visitors</th><th>Clicks</th><th>CTR</th><th>Likes</th><th>Comments</th><th>Reposts</th><th>Eng. rate</th></tr>
+          </thead>
+          <tbody id="analyticsTableBody"></tbody>
+        </table>
+      </div>
+    </details>
+    <div class="chart-card">
+      <div class="chart-head"><h3>Key takeaways</h3></div>
+      <ul class="takeaways-list" id="takeawaysList"></ul>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-head"><h3>Suggested next steps</h3></div>
+      <ul class="takeaways-list" id="suggestionsList"></ul>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-head">
+        <h3>Industry &amp; market trends</h3>
+        <span class="trends-updated">Researched Jul 2026</span>
+      </div>
+      <p class="trends-note">
+        Grounded in current LinkedIn/B2B research relevant to Mediashock's audience (Communications
+        Directors and technical B2B leaders), industry (corporate video &amp; event storytelling), and
+        market (APAC, led out of Singapore). This is a point-in-time snapshot from external research, not
+        something the dashboard computes from your own data — ask again periodically to refresh it.
+      </p>
+      <ul class="takeaways-list">
+        <li><strong>Post through personal profiles, not just the company page.</strong> Company page organic
+          reach has fallen to roughly 1.6% of followers on average (down 60–66% since 2024), while personal
+          profiles get 5–8x the engagement and up to 561% wider reach when employees reshare company content.
+          Have founders and team members re-post flagship pieces from their own profiles instead
+          of relying on the company page alone.
+          <a class="post-link" href="https://meet-lea.com/en/blog/linkedin-personal-profile-vs-company-page-engagement" target="_blank" rel="noopener noreferrer">Personal vs. company page reach, 2026 →</a>
+        </li>
+        <li><strong>Lean further into native video.</strong> Native video gets ~5x the engagement of static
+          posts and is shared roughly 20x more — and it's the format Mediashock is actually built to produce.
+          <a class="post-link" href="https://www.linkedin.com/business/marketing/blog/trends-tips/b2b-insights-video-controls-conversation" target="_blank" rel="noopener noreferrer">LinkedIn: video isn't just content →</a>
+        </li>
+        <li><strong>For text-only posts, keep them plain and native.</strong> Simple native text is currently
+          outperforming carousels for reach (~28% higher reach, ~34% better engagement) — save carousels for
+          genuine step-by-step or portfolio content rather than defaulting to them.
+          <a class="post-link" href="https://markanamedia.com/blog/linkedin-algorithm-june-2026-b2b-reach/" target="_blank" rel="noopener noreferrer">LinkedIn algorithm update, June 2026 →</a>
+        </li>
+        <li><strong>For event promotion, lead with expertise, not the registration link.</strong> Buyers now
+          discover events through posts and people they already trust rather than announcement posts, and
+          links off-platform (like registration pages) reduce distribution under the current algorithm —
+          this matches Mediashock's own Content Choreography thesis.
+          <a class="post-link" href="https://www.linkedin.com/business/marketing/blog/trends-tips/b2b-event-marketing-pipeline-impact" target="_blank" rel="noopener noreferrer">LinkedIn: turning events into pipeline →</a>
+        </li>
+        <li><strong>Write for depth, not likes.</strong> The algorithm now weights an engagement "depth
+          score" and comment quality over comment count — ending a post with a genuine question drives ~77%
+          more comments than average.
+          <a class="post-link" href="https://blog.linkboost.co/linkedin-thought-leadership-2026/" target="_blank" rel="noopener noreferrer">LinkedIn thought leadership, 2026 →</a>
+        </li>
+        <li><strong>Avoid generic AI-toned copy.</strong> LinkedIn's 2026 update actively suppresses
+          generic AI-generated posts and rewards unique perspective and lived experience — the exact
+          advantage a storytelling agency should be leaning on rather than smoothing away.
+          <a class="post-link" href="https://www.zoomsphere.com/blog/linkedin-algorithm-2026-why-generic-ai-content-kills-your-organic-reach" target="_blank" rel="noopener noreferrer">Why generic AI content kills reach →</a>
+        </li>
+      </ul>
+      <p class="trends-note" style="margin-top:0.9rem;">
+        Reference discussion posts on these exact trends (from other practitioners, not Mediashock):
+        <a class="post-link" href="https://www.linkedin.com/posts/julierevelant_b2b-content-and-marketing-trends-insights-activity-7383484140538572800-YTv-" target="_blank" rel="noopener noreferrer">2026 B2B content &amp; marketing trends</a> ·
+        <a class="post-link" href="https://www.linkedin.com/posts/vineetpuri_b2b-marketing-events-in-2026-are-evolving-activity-7438517496640565248-GX_2" target="_blank" rel="noopener noreferrer">B2B events are evolving</a> ·
+        <a class="post-link" href="https://www.linkedin.com/posts/leeodden_i-am-very-happy-to-share-that-our-latest-activity-7394118019335151616-s88M" target="_blank" rel="noopener noreferrer">B2B thought leadership research</a>.
+        I couldn't reliably surface specific viral posts from comparable video/event agencies — LinkedIn's
+        own posts aren't well-indexed by web search — so these are analysis posts about the trends rather
+        than examples of the format itself.
+      </p>
+    </div>
+
+  </section>
+</div>
+
+<div class="modal-backdrop" id="exportAnalyticsBackdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="exportAnalyticsTitle">
+    <div class="modal-head">
+      <h3 id="exportAnalyticsTitle">Export Analytics (JSON)</h3>
+      <button class="icon-btn" id="exportAnalyticsClose" aria-label="Close">✕</button>
+    </div>
+    <p style="margin:0 0 0.7rem;font-size:0.82rem;color:var(--text-soft);">
+      Everything currently loaded in this tab — daily data, top posts, follower demographics, and your
+      current-follower calibration. Paste this into <strong>Import Analytics JSON</strong> on another
+      computer to carry it over; localStorage doesn't sync across browsers or devices on its own.
+    </p>
+    <textarea id="exportAnalyticsText" readonly></textarea>
+    <p style="margin:0.5rem 0 0;font-size:0.76rem;color:var(--text-faint);">
+      Some browsers/viewers block the Download button below — <strong>Copy to clipboard</strong> always works;
+      paste it into a text file yourself if Download does nothing.
+    </p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="downloadAnalyticsJsonBtn">Download .json</button>
+      <div class="spacer"></div>
+      <button class="btn btn-primary" id="copyAnalyticsJsonBtn">Copy to clipboard</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="importAnalyticsBackdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="importAnalyticsTitle">
+    <div class="modal-head">
+      <h3 id="importAnalyticsTitle">Import Analytics (JSON)</h3>
+      <button class="icon-btn" id="importAnalyticsClose" aria-label="Close">✕</button>
+    </div>
+    <p style="margin:0 0 0.7rem;font-size:0.82rem;color:var(--text-soft);">
+      Paste JSON from <code style="font-family:var(--font-mono);">python agent/import_linkedin_xls.py</code>
+      (or <code style="font-family:var(--font-mono);">export_analytics.py</code>), or choose the exported
+      file directly. This replaces the sample data shown below.
+    </p>
+    <input type="file" id="importAnalyticsFile" accept="application/json,.json" style="margin-bottom:0.7rem;">
+    <textarea id="importAnalyticsText" placeholder="[ { &quot;date&quot;: ..., &quot;followers&quot;: ..., &quot;impressions&quot;: ... } ]"></textarea>
+    <p id="importAnalyticsError" style="display:none;margin:0.5rem 0 0;font-size:0.8rem;color:var(--danger);"></p>
+    <div class="modal-actions">
+      <div class="spacer"></div>
+      <button class="btn btn-ghost" id="importAnalyticsCancelBtn">Cancel</button>
+      <button class="btn btn-primary" id="importAnalyticsCommitBtn">Import</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-head">
+      <h3 id="modalTitle">New Post</h3>
+      <button class="icon-btn" id="modalClose" aria-label="Close">✕</button>
+    </div>
+    <form id="postForm">
+      <label>Post Title / Working Headline
+        <input type="text" id="f-title" placeholder="e.g. How we choreographed a 3-market product launch" required>
+      </label>
+      <div class="field-row">
+        <label>Content Bucket
+          <select id="f-bucket" required></select>
+        </label>
+        <label>Status
+          <select id="f-status">
+            <option value="draft">Draft</option>
+            <option value="approved">Approved</option>
+            <option value="scheduled">Scheduled</option>
+          </select>
+        </label>
+      </div>
+      <div class="field-row">
+        <label>Scheduled Date
+          <input type="date" id="f-date" required>
+        </label>
+        <label>Time
+          <input type="time" id="f-time" value="09:00">
+        </label>
+      </div>
+      <div class="field-with-action">
+        <label for="f-copy">Post Copy / Draft Text</label>
+        <button type="button" class="icon-btn" id="emojiToggleBtn" aria-expanded="false" aria-controls="emojiPicker" aria-label="Insert emoji">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+            <line x1="9" y1="9" x2="9.01" y2="9"></line>
+            <line x1="15" y1="9" x2="15.01" y2="9"></line>
+          </svg>
+        </button>
+      </div>
+      <textarea id="f-copy" placeholder="Write the LinkedIn post draft here..."></textarea>
+      <div class="emoji-picker" id="emojiPicker" hidden>
+        <div class="emoji-tabs" id="emojiTabs" role="tablist" aria-label="Emoji categories"></div>
+        <div class="emoji-grid" id="emojiGrid"></div>
+      </div>
+      <label>Images (carousel — up to 9)
+        <input type="file" id="f-images-input" accept="image/*" multiple>
+      </label>
+      <div class="carousel-editor" id="carouselEditor" hidden>
+        <div class="carousel-viewport">
+          <button type="button" class="carousel-nav prev" id="carouselPrev" aria-label="Previous image">‹</button>
+          <img id="carouselImg" alt="Carousel slide preview">
+          <button type="button" class="carousel-nav next" id="carouselNext" aria-label="Next image">›</button>
+          <button type="button" class="carousel-remove" id="carouselRemove" aria-label="Remove this slide">✕</button>
+          <span class="carousel-count" id="carouselCount"></span>
+        </div>
+        <div class="carousel-dots" id="carouselDots"></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-danger" id="deleteBtn" hidden>Delete</button>
+        <div class="spacer"></div>
+        <button type="button" class="btn btn-ghost" id="cancelBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Post</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="ideaBackdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ideaModalTitle">
+    <div class="modal-head">
+      <h3 id="ideaModalTitle">New Idea</h3>
+      <button class="icon-btn" id="ideaModalClose" aria-label="Close">✕</button>
+    </div>
+    <form id="ideaForm">
+      <label>Idea Title
+        <input type="text" id="i-title" placeholder="e.g. Behind the scenes of our Q3 flagship shoot" required>
+      </label>
+      <div class="field-row">
+        <label>Content Bucket
+          <select id="i-bucket" required></select>
+        </label>
+      </div>
+      <label for="i-notes">Idea / Brief</label>
+      <textarea id="i-notes" placeholder="What's the angle? Any references, hooks, or notes for whoever drafts this..."></textarea>
+
+      <div class="idea-stage-row">
+        <label>Stage
+          <select id="i-stage"></select>
+        </label>
+      </div>
+
+      <label style="margin-bottom:0.3rem;">Feedback &amp; iteration log</label>
+      <div class="feedback-log" id="feedbackLog"></div>
+      <div class="feedback-input-row">
+        <textarea id="i-feedback-input" placeholder="Add a round of feedback or a note for next revision..." rows="2"></textarea>
+        <button type="button" class="btn btn-ghost small" id="addFeedbackBtn">Add</button>
+      </div>
+
+      <div class="modal-actions" style="margin-top:1.1rem;">
+        <button type="button" class="btn btn-danger" id="deleteIdeaBtn" hidden>Delete</button>
+        <div class="spacer"></div>
+        <button type="button" class="btn btn-ghost" id="sendToCalendarBtn" hidden>Send to Calendar →</button>
+        <button type="button" class="btn btn-ghost" id="ideaCancelBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Idea</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="bucketsBackdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="bucketsTitle">
+    <div class="modal-head">
+      <h3 id="bucketsTitle">Manage Content Buckets</h3>
+      <button class="icon-btn" id="bucketsClose" aria-label="Close">✕</button>
+    </div>
+    <p style="margin:0 0 0.8rem;font-size:0.82rem;color:var(--text-soft);">
+      Rename, recolor, add, or remove buckets. Deleting a bucket moves any posts using it to the first remaining bucket.
+    </p>
+    <div class="buckets-list" id="bucketsList"></div>
+    <button type="button" class="btn btn-ghost" id="addBucketBtn" style="margin-top:0.7rem;">+ Add bucket</button>
+    <div class="modal-actions">
+      <div class="spacer"></div>
+      <button type="button" class="btn btn-primary" id="bucketsDoneBtn">Done</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="exportBackdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="exportTitle">
+    <div class="modal-head">
+      <h3 id="exportTitle">Export Calendar (JSON)</h3>
+      <button class="icon-btn" id="exportClose" aria-label="Close">✕</button>
+    </div>
+    <textarea id="exportText" readonly></textarea>
+    <p style="margin:0.5rem 0 0;font-size:0.76rem;color:var(--text-faint);">
+      Some browsers/viewers block the Download button below — <strong>Copy to clipboard</strong> always works;
+      paste it into a text file yourself if Download does nothing.
+    </p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="downloadJsonBtn">Download .json</button>
+      <div class="spacer"></div>
+      <button class="btn btn-primary" id="copyJsonBtn">Copy to clipboard</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="importBackdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="importTitle">
+    <div class="modal-head">
+      <h3 id="importTitle">Import Calendar (JSON)</h3>
+      <button class="icon-btn" id="importClose" aria-label="Close">✕</button>
+    </div>
+    <p style="margin:0 0 0.7rem;font-size:0.82rem;color:var(--text-soft);">
+      Paste JSON from this dashboard's own <strong>Export Calendar (JSON)</strong> (includes your bucket
+      customizations) or from <code style="font-family:var(--font-mono);">python agent/export_calendar.py</code>,
+      or choose the exported file. Posts are matched by id — existing posts get updated, new ones get added;
+      buckets, if included, fully replace the current set.
+    </p>
+    <input type="file" id="importFile" accept="application/json,.json" style="margin-bottom:0.7rem;">
+    <textarea id="importText" placeholder="[ { &quot;title&quot;: ..., &quot;bucket&quot;: ..., &quot;date&quot;: ... } ]"></textarea>
+    <p id="importError" style="display:none;margin:0.5rem 0 0;font-size:0.8rem;color:var(--danger);"></p>
+    <div class="modal-actions">
+      <div class="spacer"></div>
+      <button class="btn btn-ghost" id="importCancelBtn">Cancel</button>
+      <button class="btn btn-primary" id="importCommitBtn">Import</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, connectAuthEmulator
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, writeBatch, arrayUnion,
+  connectFirestoreEmulator
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  getStorage, ref as fbStorageRef, uploadString, getDownloadURL, deleteObject, connectStorageEmulator
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+(function () {
+  "use strict";
+
+  // ---------- Firebase setup ----------
+  // Replace with YOUR project's config: Firebase Console -> Project settings -> Your apps -> Web app.
+  // These values are meant to be public in client code -- access control is enforced by the
+  // Firestore/Storage security rules (firestore.rules / storage.rules), not by hiding this config.
+  var firebaseConfig = {
+    apiKey: "REPLACE_ME",
+    authDomain: "REPLACE_ME.firebaseapp.com",
+    projectId: "REPLACE_ME",
+    storageBucket: "REPLACE_ME.appspot.com",
+    appId: "REPLACE_ME"
+  };
+  var ALLOWED_EMAIL_DOMAIN = "mediashock.com.sg";
+  var USE_EMULATORS = ["localhost", "127.0.0.1"].indexOf(location.hostname) > -1;
+
+  var fbApp = initializeApp(USE_EMULATORS
+    ? {
+        projectId: "demo-mediashock-hub", apiKey: "demo-key",
+        authDomain: "demo-mediashock-hub.firebaseapp.com",
+        storageBucket: "demo-mediashock-hub.appspot.com"
+      }
+    : firebaseConfig);
+  var auth = getAuth(fbApp);
+  var db = getFirestore(fbApp);
+  var storage = getStorage(fbApp);
+  if (USE_EMULATORS) {
+    connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
+    connectFirestoreEmulator(db, "127.0.0.1", 8080);
+    connectStorageEmulator(storage, "127.0.0.1", 9199);
+  }
+
+  var postsCol = collection(db, "posts");
+  var bucketsCol = collection(db, "buckets");
+  var ideasCol = collection(db, "ideas");
+  var analyticsDocRef = doc(db, "analytics", "current");
+
+  var googleProvider = new GoogleAuthProvider();
+  googleProvider.setCustomParameters({ hd: ALLOWED_EMAIL_DOMAIN });
+
+  function isAllowedEmail(email) {
+    return !!email && email.toLowerCase().endsWith("@" + ALLOWED_EMAIL_DOMAIN);
+  }
+
+  var authGate = document.getElementById("authGate");
+  var authStatus = document.getElementById("authStatus");
+  var authDenied = document.getElementById("authDenied");
+  var appRoot = document.getElementById("appRoot");
+  var signInBtn = document.getElementById("signInBtn");
+  var authSignOutBtn = document.getElementById("authSignOutBtn");
+  var topbarSignOutBtn = document.getElementById("signOutBtn");
+  var userChip = document.getElementById("userChip");
+
+  signInBtn.addEventListener("click", function () {
+    signInBtn.disabled = true;
+    authStatus.textContent = "Opening Google sign-in...";
+    signInWithPopup(auth, googleProvider).catch(function (err) {
+      authStatus.textContent = "Sign-in failed: " + err.message;
+      signInBtn.disabled = false;
+    });
+  });
+  function doSignOut() { signOut(auth); }
+  authSignOutBtn.addEventListener("click", doSignOut);
+  topbarSignOutBtn.addEventListener("click", doSignOut);
+
+  var unsubPosts = null, unsubBuckets = null, unsubIdeas = null, unsubAnalytics = null;
+  var ideasSeeded = false, postsSeeded = false;
+
+  function startListeners() {
+    if (unsubPosts) return;
+
+    unsubPosts = onSnapshot(postsCol, function (snap) {
+      if (snap.empty && !postsSeeded) {
+        postsSeeded = true;
+        var postBatch = writeBatch(db);
+        SEED_POSTS.forEach(function (post) {
+          var copy = Object.assign({}, post);
+          delete copy.id;
+          postBatch.set(doc(postsCol, post.id), copy);
+        });
+        postBatch.commit().catch(function (e) { console.error("Failed to seed posts", e); });
+        return;
+      }
+      posts = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+      render();
+    }, function (err) { console.error("posts listener error", err); });
+
+    unsubBuckets = onSnapshot(bucketsCol, function (snap) {
+      if (snap.empty) {
+        var seedBatch = writeBatch(db);
+        DEFAULT_BUCKETS.forEach(function (b, i) {
+          seedBatch.set(doc(bucketsCol, b.key), { label: b.label, color: b.color, order: i });
+        });
+        seedBatch.commit().catch(function (e) { console.error("Failed to seed buckets", e); });
+        return;
+      }
+      buckets = snap.docs
+        .map(function (d) { return Object.assign({ key: d.id }, d.data()); })
+        .sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
+      renderLegend();
+      render();
+      renderKanbanBoard();
+      if (bucketsBackdrop.classList.contains("open")) renderBucketsList();
+    }, function (err) { console.error("buckets listener error", err); });
+
+    unsubIdeas = onSnapshot(ideasCol, function (snap) {
+      if (snap.empty && !ideasSeeded) {
+        ideasSeeded = true;
+        var ideaBatch = writeBatch(db);
+        SEED_IDEAS.forEach(function (idea) {
+          var copy = Object.assign({}, idea);
+          delete copy.id;
+          ideaBatch.set(doc(ideasCol, idea.id), copy);
+        });
+        ideaBatch.commit().catch(function (e) { console.error("Failed to seed ideas", e); });
+        return;
+      }
+      ideas = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+      renderKanbanBoard();
+      if (ideaBackdrop.classList.contains("open") && editingIdeaId) {
+        var openIdea = ideas.find(function (i) { return i.id === editingIdeaId; });
+        if (openIdea) renderFeedbackLog(openIdea.feedback);
+      }
+    }, function (err) { console.error("ideas listener error", err); });
+
+    unsubAnalytics = onSnapshot(analyticsDocRef, function (snap) {
+      if (!snap.exists()) {
+        var seeded = buildDefaultAnalyticsData();
+        analyticsDataCache = seeded;
+        lastWrittenAnalyticsDataJson = JSON.stringify(seeded);
+        setDoc(analyticsDocRef, seeded).catch(function (e) { console.error("Failed to seed analytics", e); });
+        renderAnalytics();
+        return;
+      }
+      analyticsDataCache = snap.data();
+      lastWrittenAnalyticsDataJson = JSON.stringify(analyticsDataCache);
+      renderAnalytics();
+    }, function (err) { console.error("analytics listener error", err); });
+  }
+
+  function stopListeners() {
+    [unsubPosts, unsubBuckets, unsubIdeas, unsubAnalytics].forEach(function (fn) { if (fn) fn(); });
+    unsubPosts = unsubBuckets = unsubIdeas = unsubAnalytics = null;
+  }
+
+  onAuthStateChanged(auth, function (user) {
+    signInBtn.disabled = false;
+    signInBtn.hidden = false;
+    authStatus.hidden = false;
+    authDenied.hidden = true;
+
+    if (!user) {
+      stopListeners();
+      appRoot.hidden = true;
+      authGate.hidden = false;
+      userChip.hidden = true;
+      topbarSignOutBtn.hidden = true;
+      authStatus.textContent = "Sign in with your Mediashock Google account to continue.";
+      return;
+    }
+    if (!isAllowedEmail(user.email)) {
+      stopListeners();
+      appRoot.hidden = true;
+      authGate.hidden = false;
+      authStatus.hidden = true;
+      signInBtn.hidden = true;
+      authDenied.hidden = false;
+      userChip.hidden = true;
+      topbarSignOutBtn.hidden = true;
+      return;
+    }
+
+    authGate.hidden = true;
+    appRoot.hidden = false;
+    userChip.hidden = false;
+    userChip.textContent = user.email;
+    topbarSignOutBtn.hidden = false;
+    startListeners();
+  });
+
+  var DEFAULT_BUCKETS = [
+    { key: "news", label: "Company News & Culture", color: "#6366f1" },
+    { key: "case", label: "Client Success & Case Studies", color: "#2563eb" },
+    { key: "industry", label: "Industry Insights & Trends", color: "#0891b2" },
+    { key: "bts", label: "Behind the Scenes / Video Production", color: "#475569" },
+    { key: "promo", label: "Promotional / Services", color: "#b45309" }
+  ];
+  var PALETTE_ROTATION = ["#6366f1", "#2563eb", "#0891b2", "#475569", "#b45309", "#7c3aed", "#059669", "#dc2626", "#0d9488", "#c026d3", "#65a30d", "#ea580c"];
+
+  var buckets = DEFAULT_BUCKETS.slice();
+
+  function bucketByKey(key) { return buckets.find(function (b) { return b.key === key; }); }
+  function bucketColorFor(key) { var b = bucketByKey(key); return b ? b.color : "#94a3b8"; }
+  function bucketLabelFor(key) { var b = bucketByKey(key); return b ? b.label : "Uncategorized"; }
+  function nextPaletteColor() { return PALETTE_ROTATION[buckets.length % PALETTE_ROTATION.length]; }
+  function slugifyBucket(label) {
+    var base = label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-+|-+$)/g, "") || "bucket";
+    var existing = buckets.map(function (b) { return b.key; });
+    var key = base, n = 1;
+    while (existing.indexOf(key) > -1) { key = base + "-" + (++n); }
+    return key;
+  }
+
+  var WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  var MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+  var SEED_POSTS = [
+    {
+      id: "seed-1", title: "8K renders, 2am calls, and the kopi that keeps us going",
+      bucket: "bts", date: "2026-07-14", time: "09:00", status: "approved",
+      copy: "Behind every polished keynote reel: a production team running on adrenaline and kopi.\n\nThis week our crew wrapped a 3-day flagship event — juggling 8K renders, last-minute speaker coaching, and a run-of-show that changed twice before doors opened.\n\nNobody sees this part. The client sees a highlight reel. We see the 2am Slack messages that made it possible."
+    },
+    {
+      id: "seed-2", title: "How we turned dense technical content into a keynote that converted",
+      bucket: "case", date: "2026-07-16", time: "14:00", status: "scheduled",
+      copy: "A recent keynote for one of our APAC tech clients meant translating deeply technical IP into a story non-technical stakeholders could connect with.\n\nThe choreography: align comms + technical teams pre-event, capture keynote and candid reactions on-site, then repurpose into multi-channel content post-event.\n\nThis is the part of our job we love most — making technical brilliance legible to the people who write the checks."
+    },
+    {
+      id: "seed-3", title: "Welcome to the newest choreographers on our production team",
+      bucket: "news", date: "2026-07-18", time: "09:30", status: "approved",
+      copy: "Big team update — please help us welcome the newest faces on the MediaShock crew.\n\nWe hire for fluency in technical subject matter, calm under live-event pressure, and the instinct to find the story inside the jargon. Excited to see what this crew choreographs next."
+    },
+    {
+      id: "seed-4", title: "B2B video budgets are shifting across APAC",
+      bucket: "industry", date: "2026-07-21", time: "10:00", status: "draft",
+      copy: "Across the 9 markets we work in, we're seeing the same pattern: B2B budgets are moving away from one-off event highlight reels and toward always-on, multi-format content systems.\n\nWhat's changed in your content planning this year?"
+    },
+    {
+      id: "seed-5", title: "Booking Q4 flagship events now — here's how Content Choreography works",
+      bucket: "promo", date: "2026-07-24", time: "11:00", status: "draft",
+      copy: "Q4 event season books up fast. If your flagship event needs a content strategy that turns attendees into followers (not just a folder of footage), let's talk before the calendar fills up.\n\nDM us or drop a comment and we'll walk you through how Content Choreography works."
+    }
+  ];
+
+  // ---------- content planner ----------
+  var IDEA_STAGES = [
+    { key: "idea", label: "New Idea" },
+    { key: "review", label: "In Review" },
+    { key: "revise", label: "Needs Changes" },
+    { key: "approved", label: "Approved" }
+  ];
+  var SEED_IDEAS = [
+    {
+      id: "idea-seed-1", title: "Why we still shoot on-site instead of remote-only",
+      bucket: "industry", stage: "idea", createdAt: "2026-07-10T09:00:00.000Z",
+      notes: "A hot take on why flagship events still need boots-on-the-ground crews, even as remote/AI production tools improve. Tie back to Content Choreography — you can't choreograph a room's energy from a Zoom feed.",
+      feedback: []
+    },
+    {
+      id: "idea-seed-2", title: "Client onboarding: what we ask for in week one",
+      bucket: "case", stage: "review", createdAt: "2026-07-08T09:00:00.000Z",
+      notes: "Walk through the questions we ask new clients before any filming starts — positions us as consultants, not just a camera crew.",
+      feedback: [
+        { text: "Good angle — can we anonymize and pull from a real recent onboarding instead of speaking generally?", date: "2026-07-11T10:20:00.000Z" }
+      ]
+    },
+    {
+      id: "idea-seed-3", title: "Team spotlight: our new colourist", stage: "revise",
+      bucket: "news", createdAt: "2026-07-05T09:00:00.000Z",
+      notes: "Introduce the newest hire on the post-production side.",
+      feedback: [
+        { text: "Needs a quote from them directly, feels generic right now.", date: "2026-07-09T14:00:00.000Z" },
+        { text: "Also add a before/after grade example if we can share one.", date: "2026-07-12T11:30:00.000Z" }
+      ]
+    }
+  ];
+
+  var posts = [];
+  var ideas = [];
+  var editingIdeaId = null;
+  var view = "month";
+  var cursor = new Date(); cursor.setHours(0, 0, 0, 0);
+  var editingId = null;
+
+  // ---------- top-level tabs ----------
+  document.querySelectorAll(".tab-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll(".tab-btn").forEach(function (b) {
+        b.classList.toggle("active", b === btn);
+        b.setAttribute("aria-selected", b === btn ? "true" : "false");
+      });
+      document.querySelectorAll(".tab-panel").forEach(function (panel) {
+        panel.hidden = panel.id !== (btn.dataset.tab + "View");
+      });
+    });
+  });
+
+  // ---------- date helpers ----------
+  function pad(n) { return n < 10 ? "0" + n : "" + n; }
+  function dateKey(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+  function sameDay(a, b) { return dateKey(a) === dateKey(b); }
+  function addDays(d, n) { var r = new Date(d); r.setDate(r.getDate() + n); return r; }
+  function addMonths(d, n) { var r = new Date(d); r.setDate(1); r.setMonth(r.getMonth() + n); return r; }
+  function startOfWeekMonday(d) {
+    var jsDow = d.getDay();
+    var diff = (jsDow + 6) % 7;
+    return addDays(d, -diff);
+  }
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+  function formatTime12(t) {
+    var parts = t.split(":"); var h = parseInt(parts[0], 10); var m = parts[1];
+    var suffix = h >= 12 ? "pm" : "am"; var h12 = h % 12; if (h12 === 0) h12 = 12;
+    return h12 + ":" + m + suffix;
+  }
+
+  // ---------- calendar: rendering ----------
+  var weekdayRow = document.getElementById("weekdayRow");
+  var calendarRoot = document.getElementById("calendarRoot");
+  var periodLabel = document.getElementById("periodLabel");
+
+  function render() {
+    renderWeekdayRow();
+    renderPeriodLabel();
+    if (view === "month") renderMonth(); else renderWeek();
+    renderUpcomingPosts();
+  }
+
+  function renderUpcomingPosts() {
+    var el = document.getElementById("upcomingList");
+    var todayKey = dateKey(new Date());
+    var upcoming = posts
+      .filter(function (p) { return p.date >= todayKey; })
+      .sort(function (a, b) { return (a.date + a.time).localeCompare(b.date + b.time); })
+      .slice(0, 10);
+
+    if (!upcoming.length) {
+      el.innerHTML = '<p class="upcoming-empty">No upcoming posts scheduled.</p>';
+      return;
+    }
+
+    el.innerHTML = upcoming.map(function (p) {
+      return '<button type="button" class="upcoming-item" data-id="' + p.id + '">' +
+        '<span class="upcoming-dot" style="background:' + bucketColorFor(p.bucket) + '"></span>' +
+        '<span class="upcoming-date">' + formatDateShort(p.date) + ' · ' + formatTime12(p.time) + '</span>' +
+        '<span class="upcoming-title-text">' + escapeHtml(p.title) + '</span>' +
+        '<span class="status-pill status-' + p.status + '">' + p.status + '</span>' +
+        '</button>';
+    }).join("");
+
+    el.querySelectorAll(".upcoming-item").forEach(function (btn) {
+      btn.addEventListener("click", function () { openModal(btn.dataset.id); });
+    });
+  }
+
+  function renderWeekdayRow() {
+    weekdayRow.innerHTML = WEEKDAYS.map(function (w) { return "<span>" + w + "</span>"; }).join("");
+  }
+
+  function renderPeriodLabel() {
+    if (view === "month") {
+      periodLabel.textContent = MONTH_NAMES[cursor.getMonth()] + " " + cursor.getFullYear();
+    } else {
+      var start = startOfWeekMonday(cursor);
+      var end = addDays(start, 6);
+      var sameMonth = start.getMonth() === end.getMonth();
+      periodLabel.textContent = sameMonth
+        ? MONTH_NAMES[start.getMonth()] + " " + start.getDate() + "–" + end.getDate() + ", " + end.getFullYear()
+        : MONTH_NAMES[start.getMonth()].slice(0, 3) + " " + start.getDate() + " – " + MONTH_NAMES[end.getMonth()].slice(0, 3) + " " + end.getDate() + ", " + end.getFullYear();
+    }
+  }
+
+  function postsOn(key) {
+    return posts.filter(function (p) { return p.date === key; })
+      .sort(function (a, b) { return a.time.localeCompare(b.time); });
+  }
+
+  function renderMonth() {
+    var year = cursor.getFullYear(), month = cursor.getMonth();
+    var first = new Date(year, month, 1);
+    var daysInMonth = new Date(year, month + 1, 0).getDate();
+    var leading = (first.getDay() + 6) % 7;
+    var totalCells = Math.ceil((leading + daysInMonth) / 7) * 7;
+    var gridStart = addDays(first, -leading);
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+
+    var grid = document.createElement("div");
+    grid.className = "month-grid";
+
+    for (var i = 0; i < totalCells; i++) {
+      var d = addDays(gridStart, i);
+      var outside = d.getMonth() !== month;
+      var key = dateKey(d);
+      var cell = document.createElement("div");
+      cell.className = "day-cell" + (outside ? " outside" : "") + (sameDay(d, today) ? " today" : "");
+
+      var head = document.createElement("div");
+      head.className = "day-head";
+      var num = document.createElement("span");
+      num.className = "day-num";
+      num.textContent = d.getDate();
+      head.appendChild(num);
+      var addBtn = document.createElement("button");
+      addBtn.className = "day-add"; addBtn.type = "button"; addBtn.title = "Add a scheduled post";
+      addBtn.setAttribute("aria-label", "Add post on " + key);
+      addBtn.textContent = "+";
+      addBtn.addEventListener("click", function (k) { return function () { openModal(null, k); }; }(key));
+      head.appendChild(addBtn);
+      cell.appendChild(head);
+
+      var list = document.createElement("div");
+      list.className = "day-posts";
+      postsOn(key).forEach(function (p) { list.appendChild(renderPostCard(p)); });
+      cell.appendChild(list);
+
+      grid.appendChild(cell);
+    }
+    calendarRoot.innerHTML = "";
+    calendarRoot.appendChild(grid);
+  }
+
+  function renderWeek() {
+    var start = startOfWeekMonday(cursor);
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var grid = document.createElement("div");
+    grid.className = "week-grid";
+
+    for (var i = 0; i < 7; i++) {
+      var d = addDays(start, i);
+      var key = dateKey(d);
+      var col = document.createElement("div");
+      col.className = "week-col" + (sameDay(d, today) ? " today" : "");
+
+      var head = document.createElement("div");
+      head.className = "week-col-head";
+      head.innerHTML = '<span class="wd">' + WEEKDAYS[i] + '</span><span class="dn">' + d.getDate() + "</span>";
+      col.appendChild(head);
+
+      var list = document.createElement("div");
+      list.className = "week-posts";
+      postsOn(key).forEach(function (p) { list.appendChild(renderPostCard(p)); });
+      col.appendChild(list);
+
+      var addBtn = document.createElement("button");
+      addBtn.className = "day-add"; addBtn.type = "button"; addBtn.title = "Add a scheduled post";
+      addBtn.setAttribute("aria-label", "Add post on " + key);
+      addBtn.textContent = "+ Add post";
+      addBtn.style.fontSize = "0.7rem"; addBtn.style.width = "auto"; addBtn.style.padding = "0.25rem 0.4rem";
+      addBtn.addEventListener("click", function (k) { return function () { openModal(null, k); }; }(key));
+      col.appendChild(addBtn);
+
+      grid.appendChild(col);
+    }
+    calendarRoot.innerHTML = "";
+    calendarRoot.appendChild(grid);
+  }
+
+  function renderPostCard(post) {
+    var btn = document.createElement("button");
+    btn.className = "post-card"; btn.type = "button";
+    btn.style.setProperty("--dot", bucketColorFor(post.bucket));
+    var imgBadge = post.images && post.images.length ? '<span class="pc-img-badge">🖼️ ' + post.images.length + '</span>' : '';
+    btn.innerHTML =
+      '<span class="pc-title">' + escapeHtml(post.title) + '</span>' +
+      '<span class="pc-meta"><span class="pc-time">' + formatTime12(post.time) + '</span>' +
+      imgBadge +
+      '<span class="status-pill status-' + post.status + '">' + post.status + '</span></span>';
+    btn.addEventListener("click", function () { openModal(post.id); });
+    return btn;
+  }
+
+  // ---------- calendar: modal add/edit ----------
+  var modalBackdrop = document.getElementById("modalBackdrop");
+  var modalTitle = document.getElementById("modalTitle");
+  var postForm = document.getElementById("postForm");
+  var fTitle = document.getElementById("f-title");
+  var fBucket = document.getElementById("f-bucket");
+  var fStatus = document.getElementById("f-status");
+  var fDate = document.getElementById("f-date");
+  var fTime = document.getElementById("f-time");
+  var fCopy = document.getElementById("f-copy");
+  var deleteBtn = document.getElementById("deleteBtn");
+  var deleteArmed = false;
+  var lastFocused = null;
+
+  // ---------- calendar: image carousel editor ----------
+  var MAX_IMAGES = 9;
+  var currentImages = [];
+  var carouselIndex = 0;
+  var carouselEditor = document.getElementById("carouselEditor");
+  var carouselImg = document.getElementById("carouselImg");
+  var carouselDots = document.getElementById("carouselDots");
+  var carouselCount = document.getElementById("carouselCount");
+  var imagesInput = document.getElementById("f-images-input");
+
+  function readAndResizeImage(file) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function () {
+        var img = new Image();
+        img.onload = function () {
+          var maxW = 1000;
+          var scale = Math.min(1, maxW / img.width);
+          var canvas = document.createElement("canvas");
+          canvas.width = Math.max(1, Math.round(img.width * scale));
+          canvas.height = Math.max(1, Math.round(img.height * scale));
+          var ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL("image/jpeg", 0.82));
+        };
+        img.onerror = function () { reject(new Error("Could not read image: " + file.name)); };
+        img.src = reader.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function renderCarouselEditor() {
+    if (!currentImages.length) { carouselEditor.hidden = true; return; }
+    carouselEditor.hidden = false;
+    carouselIndex = Math.max(0, Math.min(carouselIndex, currentImages.length - 1));
+    carouselImg.src = currentImages[carouselIndex];
+    carouselCount.textContent = (carouselIndex + 1) + " / " + currentImages.length;
+    carouselDots.innerHTML = currentImages.map(function (_, i) {
+      return '<button type="button" class="dot' + (i === carouselIndex ? " active" : "") +
+        '" data-i="' + i + '" aria-label="Slide ' + (i + 1) + '"></button>';
+    }).join("");
+  }
+
+  imagesInput.addEventListener("change", function (e) {
+    var files = Array.prototype.slice.call(e.target.files || []);
+    var room = MAX_IMAGES - currentImages.length;
+    if (room <= 0) { e.target.value = ""; return; }
+    files = files.slice(0, room);
+    Promise.all(files.map(readAndResizeImage)).then(function (dataUrls) {
+      carouselIndex = currentImages.length;
+      currentImages = currentImages.concat(dataUrls);
+      renderCarouselEditor();
+    }).catch(function (err) { console.error(err); });
+    e.target.value = "";
+  });
+
+  document.getElementById("carouselPrev").addEventListener("click", function () {
+    carouselIndex = (carouselIndex - 1 + currentImages.length) % currentImages.length;
+    renderCarouselEditor();
+  });
+  document.getElementById("carouselNext").addEventListener("click", function () {
+    carouselIndex = (carouselIndex + 1) % currentImages.length;
+    renderCarouselEditor();
+  });
+  document.getElementById("carouselRemove").addEventListener("click", function () {
+    currentImages.splice(carouselIndex, 1);
+    renderCarouselEditor();
+  });
+  carouselDots.addEventListener("click", function (e) {
+    var dot = e.target.closest(".dot");
+    if (!dot) return;
+    carouselIndex = parseInt(dot.dataset.i, 10);
+    renderCarouselEditor();
+  });
+
+  // ---------- calendar: emoji picker ----------
+  // The standard Unicode emoji set, which is what LinkedIn's post composer
+  // renders (it doesn't restrict to a special subset) -- organized into the
+  // same broad categories most native emoji pickers use, with common/likely
+  // choices per category rather than every skin-tone and ZWJ variant.
+  var EMOJI_CATEGORIES = {
+    "Smileys": ["😀","😃","😄","😁","😆","😅","🤣","😂","🙂","🙃","😉","😊","😇","🥰","😍","🤩","😘","😗","😚","😙","😋","😛","😜","🤪","😝","🤑","🤗","🤭","🤫","🤔","🤐","🤨","😐","😑","😶","😏","😒","🙄","😬","🤥","😌","😔","😪","🤤","😴","😷","🤒","🤕","🤢","🤮","🤧","🥵","🥶","🥴","😵","🤯","🤠","🥳","😎","🤓","🧐","😕","😟","🙁","😮","😯","😲","😳","🥺","😦","😧","😨","😰","😥","😢","😭","😱","😖","😣","😞","😓","😩","😫","🥱","😤","😡","😠","🤬","😈","👿","💀","☠️","💩","🤡","👻","👽","🤖"],
+    "Gestures": ["👋","🤚","🖐️","✋","🖖","👌","🤌","🤏","✌️","🤞","🤟","🤘","🤙","👈","👉","👆","🖕","👇","☝️","👍","👎","✊","👊","🤛","🤜","👏","🙌","👐","🤲","🤝","🙏","💪","🖊️","✍️","💅","🤳","🧑‍💻","🕺","💃"],
+    "Nature": ["🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐨","🐯","🦁","🐮","🐷","🐸","🐵","🐔","🐧","🐦","🦆","🦅","🦉","🐺","🐴","🦄","🐝","🦋","🐢","🐍","🐙","🐬","🐳","🌵","🎄","🌲","🌳","🌴","🌱","🌿","☘️","🍀","🍂","🍁","🌾","💐","🌷","🌹","🌺","🌸","🌼","🌻","🌞","🌝","⭐","🌟","✨","⚡","🔥","💧","🌊","🌈"],
+    "Food": ["🍏","🍎","🍐","🍊","🍋","🍌","🍉","🍇","🍓","🫐","🍒","🍑","🥭","🍍","🥥","🥝","🍅","🥑","🥦","🥒","🌶️","🌽","🥕","🧄","🧅","🥐","🍞","🧀","🥚","🍳","🥞","🥓","🍗","🍔","🍟","🍕","🌭","🌮","🌯","🥗","🍝","🍜","🍲","🍣","🍱","🍚","🍤","🍦","🍩","🍪","🎂","🍰","🧁","🍫","🍬","🍭","🍿","🥜","☕","🍵","🥤","🍺","🍻","🥂","🍷","🥃","🍾"],
+    "Activities": ["⚽","🏀","🏈","⚾","🎾","🏐","🏉","🎱","🏓","🏸","🥊","🥋","🎽","🎿","🏋️","🤸","🏄","🏊","🚴","🏆","🥇","🥈","🥉","🏅","🎖️","🎗️","🎫","🎪","🤹","🎭","🎨","🎬","🎤","🎧","🎼","🎹","🥁","🎷","🎺","🎸","🎻","🎲","🎯","🎳","🎮"],
+    "Travel": ["🚗","🚕","🚙","🚌","🚎","🚓","🚑","🚒","🚐","🚚","🚛","🚜","🏍️","🚲","✈️","🛫","🛬","🚀","🚁","🚢","⛵","🚤","🚂","🚆","🚇","🚊","🚉","🗺️","🗽","🗼","🏰","🏯","🎡","🎢","🎠","⛲","🏖️","🏝️","🏜️","⛰️","🏔️","🗻","🏕️","🏠","🏢","🏬","🏥","🏦","🏨","⛪","🕌"],
+    "Objects": ["⌚","📱","💻","⌨️","🖥️","🖨️","🖱️","📷","📸","📹","🎥","📞","☎️","📺","📻","🔋","🔌","💡","🔦","🕯️","💰","💵","💳","💎","🧰","🔧","🔨","🛠️","🔩","⚙️","🧲","🔑","🚪","🛋️","🛏️","🖼️","🛍️","🛒","🎁","🎈","🎊","🎉","✉️","📩","📧","📦","📊","📈","📉","📅","📆","🗑️","📁","📂","📋","📌","📍","✂️","📝","✏️","🔍","🔒","🔓"],
+    "Symbols": ["❤️","🧡","💛","💚","💙","💜","🖤","🤍","🤎","💔","❣️","💕","💞","💓","💗","💖","💘","💝","💯","💢","💥","💫","💦","💨","🕳️","💬","🗨️","🗯️","💭","♻️","✅","☑️","✔️","❌","❎","➕","➖","➗","✖️","💠","🔥","⭐","🌟","✨","⚡","☀️","⛅","☁️","🌧️","❗","❓","‼️","⁉️","💯","🔔","🔕","🎵","🎶","💤","🚩","🏁","🎌","🏆"],
+    "Flags": ["🏳️","🏴","🏳️‍🌈","🇸🇬","🇲🇾","🇮🇩","🇹🇭","🇻🇳","🇵🇭","🇯🇵","🇰🇷","🇨🇳","🇭🇰","🇮🇳","🇦🇺","🇳🇿","🇬🇧","🇺🇸","🇨🇦","🇩🇪","🇫🇷","🇦🇪"]
+  };
+  var emojiPicker = document.getElementById("emojiPicker");
+  var emojiTabsEl = document.getElementById("emojiTabs");
+  var emojiGridEl = document.getElementById("emojiGrid");
+  var emojiToggleBtn = document.getElementById("emojiToggleBtn");
+  var currentEmojiCategory = Object.keys(EMOJI_CATEGORIES)[0];
+
+  function renderEmojiTabs() {
+    emojiTabsEl.innerHTML = Object.keys(EMOJI_CATEGORIES).map(function (cat) {
+      return '<button type="button" class="emoji-tab' + (cat === currentEmojiCategory ? " active" : "") +
+        '" data-cat="' + cat + '" role="tab" aria-selected="' + (cat === currentEmojiCategory) + '">' + cat + '</button>';
+    }).join("");
+  }
+  function renderEmojiGrid() {
+    emojiGridEl.innerHTML = EMOJI_CATEGORIES[currentEmojiCategory].map(function (em) {
+      return '<button type="button" class="emoji-btn" data-emoji="' + em + '" aria-label="Insert ' + em + '">' + em + '</button>';
+    }).join("");
+  }
+  function insertAtCursor(textarea, text) {
+    var start = textarea.selectionStart == null ? textarea.value.length : textarea.selectionStart;
+    var end = textarea.selectionEnd == null ? textarea.value.length : textarea.selectionEnd;
+    var val = textarea.value;
+    textarea.value = val.slice(0, start) + text + val.slice(end);
+    var pos = start + text.length;
+    textarea.focus();
+    textarea.setSelectionRange(pos, pos);
+  }
+
+  emojiTabsEl.addEventListener("click", function (e) {
+    var btn = e.target.closest(".emoji-tab");
+    if (!btn) return;
+    currentEmojiCategory = btn.dataset.cat;
+    renderEmojiTabs();
+    renderEmojiGrid();
+  });
+  emojiGridEl.addEventListener("click", function (e) {
+    var btn = e.target.closest(".emoji-btn");
+    if (!btn) return;
+    insertAtCursor(fCopy, btn.dataset.emoji);
+  });
+  emojiToggleBtn.addEventListener("click", function () {
+    var willOpen = emojiPicker.hidden;
+    emojiPicker.hidden = !willOpen;
+    emojiToggleBtn.setAttribute("aria-expanded", willOpen ? "true" : "false");
+    if (willOpen) { renderEmojiTabs(); renderEmojiGrid(); }
+  });
+
+  function openModal(postId, prefillDate, prefillData) {
+    lastFocused = document.activeElement;
+    editingId = postId;
+    deleteArmed = false;
+    resetDeleteBtn();
+    carouselIndex = 0;
+    renderBucketOptions();
+
+    if (postId) {
+      var post = posts.find(function (p) { return p.id === postId; });
+      if (!post) return;
+      modalTitle.textContent = "Edit Post";
+      fTitle.value = post.title;
+      fBucket.value = post.bucket;
+      fStatus.value = post.status;
+      fDate.value = post.date;
+      fTime.value = post.time;
+      fCopy.value = post.copy;
+      currentImages = (post.images || []).slice();
+      deleteBtn.hidden = false;
+    } else {
+      modalTitle.textContent = "New Post";
+      postForm.reset();
+      fBucket.value = (prefillData && prefillData.bucket) || (buckets[0] ? buckets[0].key : "");
+      fStatus.value = "draft";
+      fDate.value = prefillDate || dateKey(new Date());
+      fTime.value = "09:00";
+      if (prefillData) {
+        fTitle.value = prefillData.title || "";
+        fCopy.value = prefillData.copy || "";
+      }
+      currentImages = [];
+      deleteBtn.hidden = true;
+    }
+    renderCarouselEditor();
+    emojiPicker.hidden = true;
+    emojiToggleBtn.setAttribute("aria-expanded", "false");
+    modalBackdrop.classList.add("open");
+    modalBackdrop.setAttribute("aria-hidden", "false");
+    setTimeout(function () { fTitle.focus(); }, 10);
+  }
+
+  function closeModal() {
+    modalBackdrop.classList.remove("open");
+    editingId = null;
+    if (lastFocused && typeof lastFocused.focus === "function") lastFocused.focus();
+  }
+
+  function resetDeleteBtn() {
+    deleteArmed = false;
+    deleteBtn.textContent = "Delete";
+    deleteBtn.classList.remove("btn-primary");
+  }
+
+  document.getElementById("newPostBtn").addEventListener("click", function () { openModal(null); });
+  document.getElementById("modalClose").addEventListener("click", closeModal);
+  document.getElementById("cancelBtn").addEventListener("click", closeModal);
+  modalBackdrop.addEventListener("click", function (e) { if (e.target === modalBackdrop) closeModal(); });
+
+  function isDataUri(s) { return typeof s === "string" && s.indexOf("data:") === 0; }
+
+  function uploadPostImages(postId, images) {
+    return Promise.all(images.map(function (img, i) {
+      if (!isDataUri(img)) return Promise.resolve(img); // already a Storage URL from a previous save
+      var ref = fbStorageRef(storage, "post-images/" + postId + "/" + Date.now() + "-" + i + ".jpg");
+      return uploadString(ref, img, "data_url").then(function () { return getDownloadURL(ref); });
+    }));
+  }
+
+  postForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var title = fTitle.value.trim();
+    var date = fDate.value;
+    if (!title || !date) return;
+
+    var postId = editingId || ("post-" + Date.now() + "-" + Math.floor(Math.random() * 1000));
+    var submitBtn = postForm.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Saving...";
+
+    uploadPostImages(postId, currentImages.slice()).then(function (imageUrls) {
+      return setDoc(doc(postsCol, postId), {
+        title: title,
+        bucket: fBucket.value,
+        status: fStatus.value,
+        date: date,
+        time: fTime.value || "09:00",
+        copy: fCopy.value,
+        images: imageUrls
+      });
+    }).then(function () {
+      closeModal();
+    }).catch(function (err) {
+      alert("Couldn't save this post: " + err.message);
+    }).finally(function () {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Save Post";
+    });
+  });
+
+  deleteBtn.addEventListener("click", function () {
+    if (!editingId) return;
+    if (!deleteArmed) {
+      deleteArmed = true;
+      deleteBtn.textContent = "Click again to confirm";
+      deleteBtn.classList.add("btn-primary");
+      return;
+    }
+    var post = posts.find(function (p) { return p.id === editingId; });
+    deleteDoc(doc(postsCol, editingId)).then(function () {
+      closeModal();
+      if (post && Array.isArray(post.images)) {
+        post.images.forEach(function (url) {
+          try {
+            var path = decodeURIComponent(url.split("/o/")[1].split("?")[0]);
+            deleteObject(fbStorageRef(storage, path)).catch(function () {});
+          } catch (e) {}
+        });
+      }
+    }).catch(function (err) {
+      alert("Couldn't delete this post: " + err.message);
+    });
+  });
+
+  // ---------- content planner ----------
+  var ideaBackdrop = document.getElementById("ideaBackdrop");
+  var ideaModalTitle = document.getElementById("ideaModalTitle");
+  var ideaForm = document.getElementById("ideaForm");
+  var iTitle = document.getElementById("i-title");
+  var iBucket = document.getElementById("i-bucket");
+  var iNotes = document.getElementById("i-notes");
+  var iStage = document.getElementById("i-stage");
+  var iFeedbackInput = document.getElementById("i-feedback-input");
+  var feedbackLogEl = document.getElementById("feedbackLog");
+  var deleteIdeaBtn = document.getElementById("deleteIdeaBtn");
+  var sendToCalendarBtn = document.getElementById("sendToCalendarBtn");
+  var addFeedbackBtn = document.getElementById("addFeedbackBtn");
+  var ideaDeleteArmed = false;
+  var ideaLastFocused = null;
+
+  function ideaByKey(key) { return IDEA_STAGES.find(function (s) { return s.key === key; }); }
+
+  function renderKanbanBoard() {
+    var board = document.getElementById("kanbanBoard");
+    board.innerHTML = IDEA_STAGES.map(function (stage) {
+      var inStage = ideas.filter(function (idea) { return idea.stage === stage.key; });
+      var cards = inStage.length
+        ? inStage.map(function (idea) {
+            var fb = idea.feedback || [];
+            var latestFb = fb.length ? fb[fb.length - 1] : null;
+            return '<button type="button" class="idea-card" data-id="' + idea.id + '" style="--dot:' + bucketColorFor(idea.bucket) + '">' +
+              '<span class="ic-title">' + escapeHtml(idea.title) + '</span>' +
+              (idea.notes ? '<span class="ic-notes">' + escapeHtml(idea.notes) + '</span>' : '') +
+              (latestFb ? '<span class="ic-feedback">💬 ' + escapeHtml(latestFb.text) + '</span>' : '') +
+              '<span class="ic-meta">' + escapeHtml(bucketLabelFor(idea.bucket)) + (fb.length ? ' · ' + fb.length + ' round' + (fb.length > 1 ? 's' : '') : '') + '</span>' +
+              '</button>';
+          }).join("")
+        : '<p class="kanban-empty">No ideas here yet.</p>';
+      return '<div class="kanban-col">' +
+        '<div class="kanban-col-head"><h3>' + stage.label + '</h3><span class="kanban-count">' + inStage.length + '</span></div>' +
+        '<div class="kanban-cards">' + cards + '</div>' +
+        '</div>';
+    }).join("");
+
+    board.querySelectorAll(".idea-card").forEach(function (btn) {
+      btn.addEventListener("click", function () { openIdeaModal(btn.dataset.id); });
+    });
+  }
+
+  function renderIdeaBucketOptions() {
+    var current = iBucket.value;
+    iBucket.innerHTML = buckets.map(function (b) {
+      return '<option value="' + b.key + '">' + escapeHtml(b.label) + '</option>';
+    }).join("");
+    if (bucketByKey(current)) iBucket.value = current;
+  }
+
+  function renderIdeaStageOptions() {
+    iStage.innerHTML = IDEA_STAGES.map(function (s) {
+      return '<option value="' + s.key + '">' + s.label + '</option>';
+    }).join("");
+  }
+
+  function renderFeedbackLog(feedback) {
+    var list = feedback || [];
+    feedbackLogEl.innerHTML = list.length
+      ? list.map(function (f) {
+          return '<div class="feedback-item"><span class="fb-date">' + formatDateShort(f.date.slice(0, 10)) + '</span>' + escapeHtml(f.text) + '</div>';
+        }).join("")
+      : '<p class="feedback-empty">No feedback logged yet.</p>';
+    feedbackLogEl.scrollTop = feedbackLogEl.scrollHeight;
+  }
+
+  function openIdeaModal(ideaId) {
+    ideaLastFocused = document.activeElement;
+    editingIdeaId = ideaId;
+    ideaDeleteArmed = false;
+    resetIdeaDeleteBtn();
+    renderIdeaBucketOptions();
+    renderIdeaStageOptions();
+
+    if (ideaId) {
+      var idea = ideas.find(function (i) { return i.id === ideaId; });
+      if (!idea) return;
+      ideaModalTitle.textContent = "Edit Idea";
+      iTitle.value = idea.title;
+      iBucket.value = idea.bucket;
+      iNotes.value = idea.notes || "";
+      iStage.value = idea.stage;
+      renderFeedbackLog(idea.feedback);
+      deleteIdeaBtn.hidden = false;
+      sendToCalendarBtn.hidden = idea.stage !== "approved";
+    } else {
+      ideaModalTitle.textContent = "New Idea";
+      ideaForm.reset();
+      iBucket.value = buckets[0] ? buckets[0].key : "";
+      iStage.value = "idea";
+      renderFeedbackLog([]);
+      deleteIdeaBtn.hidden = true;
+      sendToCalendarBtn.hidden = true;
+    }
+    iFeedbackInput.value = "";
+    ideaBackdrop.classList.add("open");
+    ideaBackdrop.setAttribute("aria-hidden", "false");
+    setTimeout(function () { iTitle.focus(); }, 10);
+  }
+
+  function closeIdeaModal() {
+    ideaBackdrop.classList.remove("open");
+    editingIdeaId = null;
+    if (ideaLastFocused && typeof ideaLastFocused.focus === "function") ideaLastFocused.focus();
+  }
+
+  function resetIdeaDeleteBtn() {
+    ideaDeleteArmed = false;
+    deleteIdeaBtn.textContent = "Delete";
+    deleteIdeaBtn.classList.remove("btn-primary");
+  }
+
+  document.getElementById("newIdeaBtn").addEventListener("click", function () { openIdeaModal(null); });
+  document.getElementById("ideaModalClose").addEventListener("click", closeIdeaModal);
+  document.getElementById("ideaCancelBtn").addEventListener("click", closeIdeaModal);
+  ideaBackdrop.addEventListener("click", function (e) { if (e.target === ideaBackdrop) closeIdeaModal(); });
+
+  ideaForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var title = iTitle.value.trim();
+    if (!title) return;
+    var data = {
+      title: title,
+      bucket: iBucket.value,
+      notes: iNotes.value,
+      stage: iStage.value
+    };
+
+    var ideaId = editingIdeaId;
+    if (!ideaId) {
+      ideaId = "idea-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
+      data.createdAt = new Date().toISOString();
+      data.feedback = [];
+    }
+    setDoc(doc(ideasCol, ideaId), data, { merge: true }).then(function () {
+      closeIdeaModal();
+    }).catch(function (err) {
+      alert("Couldn't save this idea: " + err.message);
+    });
+  });
+
+  addFeedbackBtn.addEventListener("click", function () {
+    var text = iFeedbackInput.value.trim();
+    if (!text || !editingIdeaId) return;
+    updateDoc(doc(ideasCol, editingIdeaId), {
+      feedback: arrayUnion({ text: text, date: new Date().toISOString() })
+    }).then(function () {
+      iFeedbackInput.value = "";
+    }).catch(function (err) {
+      alert("Couldn't add feedback: " + err.message);
+    });
+  });
+
+  deleteIdeaBtn.addEventListener("click", function () {
+    if (!editingIdeaId) return;
+    if (!ideaDeleteArmed) {
+      ideaDeleteArmed = true;
+      deleteIdeaBtn.textContent = "Click again to confirm";
+      deleteIdeaBtn.classList.add("btn-primary");
+      return;
+    }
+    deleteDoc(doc(ideasCol, editingIdeaId)).then(function () {
+      closeIdeaModal();
+    }).catch(function (err) {
+      alert("Couldn't delete this idea: " + err.message);
+    });
+  });
+
+  sendToCalendarBtn.addEventListener("click", function () {
+    if (!editingIdeaId) return;
+    var idea = ideas.find(function (i) { return i.id === editingIdeaId; });
+    if (!idea) return;
+    closeIdeaModal();
+    document.querySelector('.tab-btn[data-tab="calendar"]').click();
+    openModal(null, null, { title: idea.title, bucket: idea.bucket, copy: idea.notes });
+  });
+
+  iStage.addEventListener("change", function () {
+    sendToCalendarBtn.hidden = iStage.value !== "approved";
+  });
+
+  // ---------- calendar: legend + bucket select (dynamic) ----------
+  function renderLegend() {
+    document.getElementById("legendRoot").innerHTML = buckets.map(function (b) {
+      return '<span class="legend-item"><i style="--dot:' + b.color + '"></i>' + escapeHtml(b.label) + '</span>';
+    }).join("");
+  }
+
+  function renderBucketOptions() {
+    var current = fBucket.value;
+    fBucket.innerHTML = buckets.map(function (b) {
+      return '<option value="' + b.key + '">' + escapeHtml(b.label) + '</option>';
+    }).join("");
+    if (bucketByKey(current)) fBucket.value = current;
+  }
+
+  // ---------- calendar: manage buckets modal ----------
+  var bucketsBackdrop = document.getElementById("bucketsBackdrop");
+  var bucketsList = document.getElementById("bucketsList");
+  var bucketDeleteArmedKey = null;
+
+  function renderBucketsList() {
+    bucketDeleteArmedKey = null;
+    bucketsList.innerHTML = buckets.map(function (b) {
+      var count = posts.filter(function (p) { return p.bucket === b.key; }).length;
+      return '<div class="bucket-row" data-key="' + b.key + '">' +
+        '<input type="color" class="bucket-color" value="' + b.color + '" aria-label="Color for ' + escapeHtml(b.label) + '">' +
+        '<input type="text" class="bucket-label" value="' + escapeHtml(b.label) + '" aria-label="Bucket name">' +
+        '<span class="bucket-count">' + count + ' post' + (count === 1 ? "" : "s") + '</span>' +
+        '<button type="button" class="bucket-delete" aria-label="Delete bucket">✕</button>' +
+        '</div>';
+    }).join("");
+  }
+
+  document.getElementById("manageBucketsBtn").addEventListener("click", function () {
+    lastFocused = document.activeElement;
+    renderBucketsList();
+    bucketsBackdrop.classList.add("open");
+    bucketsBackdrop.setAttribute("aria-hidden", "false");
+  });
+
+  function closeBucketsModal() {
+    bucketsBackdrop.classList.remove("open");
+    renderLegend();
+    render();
+    if (lastFocused && typeof lastFocused.focus === "function") lastFocused.focus();
+  }
+  document.getElementById("bucketsClose").addEventListener("click", closeBucketsModal);
+  document.getElementById("bucketsDoneBtn").addEventListener("click", closeBucketsModal);
+  bucketsBackdrop.addEventListener("click", function (e) { if (e.target === bucketsBackdrop) closeBucketsModal(); });
+
+  document.getElementById("addBucketBtn").addEventListener("click", function () {
+    var label = "New bucket " + (buckets.length + 1);
+    var key = slugifyBucket(label);
+    setDoc(doc(bucketsCol, key), { label: label, color: nextPaletteColor(), order: buckets.length })
+      .catch(function (err) { alert("Couldn't add bucket: " + err.message); });
+  });
+
+  bucketsList.addEventListener("change", function (e) {
+    var row = e.target.closest(".bucket-row");
+    if (!row) return;
+    var key = row.dataset.key;
+    if (e.target.classList.contains("bucket-color")) {
+      updateDoc(doc(bucketsCol, key), { color: e.target.value })
+        .catch(function (err) { alert("Couldn't update color: " + err.message); });
+    } else if (e.target.classList.contains("bucket-label")) {
+      var label = e.target.value.trim();
+      if (!label) { e.target.value = bucketLabelFor(key); return; }
+      updateDoc(doc(bucketsCol, key), { label: label })
+        .catch(function (err) { alert("Couldn't rename bucket: " + err.message); });
+    }
+  });
+
+  bucketsList.addEventListener("click", function (e) {
+    var delBtn = e.target.closest(".bucket-delete");
+    if (!delBtn) return;
+    var row = delBtn.closest(".bucket-row");
+    var key = row.dataset.key;
+
+    if (buckets.length <= 1) {
+      delBtn.title = "You need at least one bucket";
+      return;
+    }
+    if (bucketDeleteArmedKey !== key) {
+      bucketDeleteArmedKey = key;
+      delBtn.textContent = "Confirm?";
+      delBtn.classList.add("armed");
+      return;
+    }
+
+    var remaining = buckets.filter(function (b) { return b.key !== key; });
+    var fallbackKey = remaining[0].key;
+    var batch = writeBatch(db);
+    posts.forEach(function (p) {
+      if (p.bucket === key) batch.update(doc(postsCol, p.id), { bucket: fallbackKey });
+    });
+    batch.delete(doc(bucketsCol, key));
+    batch.commit().catch(function (err) { alert("Couldn't delete bucket: " + err.message); });
+  });
+
+  // ---------- calendar: export ----------
+  var exportBackdrop = document.getElementById("exportBackdrop");
+  var exportText = document.getElementById("exportText");
+
+  document.getElementById("exportBtn").addEventListener("click", function () {
+    lastFocused = document.activeElement;
+    exportText.value = JSON.stringify({ posts: posts, buckets: buckets }, null, 2);
+    exportBackdrop.classList.add("open");
+    exportBackdrop.setAttribute("aria-hidden", "false");
+    setTimeout(function () { exportText.focus(); exportText.select(); }, 10);
+  });
+  function closeExport() {
+    exportBackdrop.classList.remove("open");
+    if (lastFocused && typeof lastFocused.focus === "function") lastFocused.focus();
+  }
+  document.getElementById("exportClose").addEventListener("click", closeExport);
+  exportBackdrop.addEventListener("click", function (e) { if (e.target === exportBackdrop) closeExport(); });
+
+  document.getElementById("copyJsonBtn").addEventListener("click", function () {
+    var btn = document.getElementById("copyJsonBtn");
+    function flash(msg) { var prev = btn.textContent; btn.textContent = msg; setTimeout(function () { btn.textContent = prev; }, 1300); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(exportText.value).then(function () { flash("Copied ✓"); }, function () { flash("Copy failed"); });
+    } else {
+      exportText.select();
+      flash("Selected — press Ctrl/Cmd+C");
+    }
+  });
+
+  document.getElementById("downloadJsonBtn").addEventListener("click", function () {
+    try {
+      var blob = new Blob([exportText.value], { type: "application/json" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url; a.download = "mediashock-linkedin-calendar.json";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+    } catch (e) {
+      exportText.select();
+    }
+  });
+
+  // ---------- calendar: import ----------
+  var importBackdrop = document.getElementById("importBackdrop");
+  var importText = document.getElementById("importText");
+  var importFile = document.getElementById("importFile");
+  var importError = document.getElementById("importError");
+  var STATUS_ALIASES = {
+    idea: "draft", draft: "draft", review: "approved",
+    scheduled: "scheduled", posted: "scheduled", approved: "approved"
+  };
+
+  document.getElementById("importBtn").addEventListener("click", function () {
+    lastFocused = document.activeElement;
+    importText.value = "";
+    importFile.value = "";
+    importError.style.display = "none";
+    importBackdrop.classList.add("open");
+    importBackdrop.setAttribute("aria-hidden", "false");
+    setTimeout(function () { importText.focus(); }, 10);
+  });
+
+  function closeImport() {
+    importBackdrop.classList.remove("open");
+    if (lastFocused && typeof lastFocused.focus === "function") lastFocused.focus();
+  }
+  document.getElementById("importClose").addEventListener("click", closeImport);
+  document.getElementById("importCancelBtn").addEventListener("click", closeImport);
+  importBackdrop.addEventListener("click", function (e) { if (e.target === importBackdrop) closeImport(); });
+
+  importFile.addEventListener("change", function () {
+    var file = importFile.files && importFile.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () { importText.value = String(reader.result); };
+    reader.readAsText(file);
+  });
+
+  function normalizeImported(raw, idx) {
+    var date = raw.date;
+    if (!date) return null;
+    var bucket = bucketByKey(raw.bucket) ? raw.bucket : (buckets[0] ? buckets[0].key : "");
+    var status = STATUS_ALIASES[raw.status] || "draft";
+    var id = raw.id !== undefined && raw.id !== null && String(raw.id) !== ""
+      ? String(raw.id)
+      : "import-" + Date.now() + "-" + idx;
+    return {
+      id: id,
+      title: raw.title || "(untitled)",
+      bucket: bucket,
+      date: date,
+      time: raw.time || "09:00",
+      status: status,
+      copy: raw.copy || raw.body || ""
+    };
+  }
+
+  document.getElementById("importCommitBtn").addEventListener("click", function () {
+    var parsed;
+    importError.style.color = "var(--danger)";
+    try {
+      parsed = JSON.parse(importText.value);
+    } catch (e) {
+      importError.textContent = "That doesn't look like valid JSON: " + e.message;
+      importError.style.display = "block";
+      return;
+    }
+    // accepts either a bare array of posts (older exports) or a
+    // { posts, buckets } bundle (current export, includes bucket customizations)
+    var incomingPosts, incomingBuckets = null;
+    if (Array.isArray(parsed)) {
+      incomingPosts = parsed;
+    } else if (parsed && Array.isArray(parsed.posts)) {
+      incomingPosts = parsed.posts;
+      if (Array.isArray(parsed.buckets) && parsed.buckets.length) incomingBuckets = parsed.buckets;
+    } else {
+      importError.textContent = "Expected a JSON array of posts, or a { posts, buckets } bundle.";
+      importError.style.display = "block";
+      return;
+    }
+
+    var batch = writeBatch(db);
+    var bucketsReplaced = false;
+    if (incomingBuckets) {
+      buckets.forEach(function (b) { batch.delete(doc(bucketsCol, b.key)); });
+      incomingBuckets.forEach(function (b, i) {
+        batch.set(doc(bucketsCol, b.key), { label: b.label, color: b.color, order: i });
+      });
+      bucketsReplaced = true;
+    }
+
+    var added = 0, updated = 0, skipped = 0;
+    incomingPosts.forEach(function (raw, i) {
+      var item = normalizeImported(raw, i);
+      if (!item) { skipped++; return; }
+      var exists = posts.some(function (p) { return p.id === item.id; });
+      if (exists) updated++; else added++;
+      var itemData = Object.assign({}, item);
+      delete itemData.id;
+      batch.set(doc(postsCol, item.id), itemData);
+    });
+
+    batch.commit().then(function () {
+      importError.style.color = "var(--s-approved-fg)";
+      importError.textContent = "Imported: " + added + " added, " + updated + " updated" +
+        (skipped ? ", " + skipped + " skipped (missing a date)" : "") +
+        (bucketsReplaced ? "; buckets replaced with the imported set" : "") + ".";
+      importError.style.display = "block";
+    }).catch(function (err) {
+      importError.textContent = "Import failed: " + err.message;
+      importError.style.display = "block";
+    });
+  });
+
+
+  // ---------- calendar: view toggle + nav ----------
+  document.querySelectorAll(".view-toggle .view-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      view = btn.dataset.view;
+      document.querySelectorAll(".view-toggle .view-btn").forEach(function (b) {
+        b.classList.toggle("active", b === btn);
+        b.setAttribute("aria-selected", b === btn ? "true" : "false");
+      });
+      render();
+    });
+  });
+
+  document.getElementById("prevBtn").addEventListener("click", function () {
+    cursor = view === "month" ? addMonths(cursor, -1) : addDays(cursor, -7);
+    render();
+  });
+  document.getElementById("nextBtn").addEventListener("click", function () {
+    cursor = view === "month" ? addMonths(cursor, 1) : addDays(cursor, 7);
+    render();
+  });
+  document.getElementById("todayBtn").addEventListener("click", function () {
+    cursor = new Date(); cursor.setHours(0, 0, 0, 0);
+    render();
+  });
+
+  // ---------- analytics: sample data ----------
+  // Real data comes from `python agent/import_linkedin_xls.py` (manual
+  // LinkedIn exports, no API approval needed) or the Community Management
+  // API path (`agent/analytics.py` + `agent/export_analytics.py`). Until
+  // then this generates a plausible daily sample so the tab isn't empty.
+  var ANALYTICS_KEY = "mediashock-linkedin-analytics-v2";
+
+  function buildSampleDays() {
+    var days = [];
+    var start = new Date(); start.setDate(start.getDate() - 179); start.setHours(0, 0, 0, 0);
+    var followers = 2350;
+    for (var i = 0; i < 180; i++) {
+      var d = new Date(start); d.setDate(d.getDate() + i);
+      // deterministic pseudo-randomness so the sample is stable across renders
+      var seed = Math.sin(i * 12.9898) * 43758.5453;
+      var noise = seed - Math.floor(seed);
+      var isSpike = i % 37 === 0;
+      var impressions = Math.round((isSpike ? 900 : 120) + noise * (isSpike ? 400 : 220));
+      var clicks = Math.round(impressions * (0.03 + noise * 0.05));
+      var likes = Math.round(impressions * (0.01 + noise * 0.02));
+      var comments = Math.round(likes * 0.15 * noise * 4);
+      var reposts = Math.round(likes * 0.08 * noise * 4);
+      var gain = Math.round(noise * (isSpike ? 6 : 2));
+      followers += gain;
+      var pageViews = Math.round((isSpike ? 14 : 3) + noise * (isSpike ? 8 : 5));
+      days.push({
+        date: d.toISOString().slice(0, 10),
+        followers: followers,
+        followerGain: gain,
+        followerGainOrganic: gain,
+        followerGainSponsored: 0,
+        followerGainInvited: 0,
+        impressions: impressions,
+        uniqueImpressions: Math.round(impressions * 0.6),
+        clicks: clicks,
+        ctr: impressions > 0 ? Math.round((clicks / impressions) * 10000) / 10000 : 0,
+        likes: likes,
+        comments: comments,
+        reposts: reposts,
+        engagementRate: impressions > 0 ? Math.round(((clicks + likes + comments + reposts) / impressions) * 10000) / 10000 : 0,
+        pageViews: pageViews,
+        uniqueVisitors: Math.round(pageViews * 0.65)
+      });
+    }
+    return days;
+  }
+
+  var SAMPLE_TOP_POSTS = [
+    { title: "How we turned dense technical content into a keynote that converted", link: null, createdDate: null, impressions: 1547, views: 0, offsiteViews: 0, clicks: 205, ctr: 0.1325, likes: 35, comments: 3, reposts: 5, follows: 4, engagementRate: 0.1603, contentType: "Video" },
+    { title: "8K renders, 2am calls, and the kopi that keeps us going", link: null, createdDate: null, impressions: 1233, views: 0, offsiteViews: 0, clicks: 195, ctr: 0.1582, likes: 26, comments: 4, reposts: 3, follows: 2, engagementRate: 0.192, contentType: "Image" },
+    { title: "B2B video budgets are shifting across APAC", link: null, createdDate: null, impressions: 947, views: 0, offsiteViews: 0, clicks: 128, ctr: 0.1352, likes: 20, comments: 5, reposts: 2, follows: 1, engagementRate: 0.158, contentType: "Text" },
+    { title: "Turning a 3-country product launch into one coherent story", link: null, createdDate: null, impressions: 800, views: 0, offsiteViews: 0, clicks: 162, ctr: 0.2025, likes: 16, comments: 3, reposts: 4, follows: 1, engagementRate: 0.225, contentType: "Carousel" },
+    { title: "Welcome to the newest choreographers on our production team", link: null, createdDate: null, impressions: 626, views: 0, offsiteViews: 0, clicks: 72, ctr: 0.115, likes: 13, comments: 2, reposts: 1, follows: 3, engagementRate: 0.147, contentType: "Image" }
+  ];
+  var SAMPLE_DEMOGRAPHICS = {
+    "Location": [{ category: "Singapore", count: 225 }, { category: "Mumbai Metropolitan Region, India", count: 26 }, { category: "Jakarta Metropolitan Area, Indonesia", count: 13 }, { category: "Sydney, Australia", count: 11 }, { category: "Tokyo, Japan", count: 9 }],
+    "Job function": [{ category: "Media and Communication", count: 95 }, { category: "Arts and Design", count: 68 }, { category: "Marketing", count: 54 }, { category: "Business Development", count: 41 }],
+    "Seniority": [{ category: "Senior", count: 148 }, { category: "Entry", count: 103 }, { category: "Manager", count: 61 }, { category: "Director", count: 22 }],
+    "Industry": [{ category: "Media Production", count: 62 }, { category: "Advertising Services", count: 52 }, { category: "Technology, Information and Internet", count: 38 }],
+    "Company size": [{ category: "11-50", count: 82 }, { category: "2-10", count: 71 }, { category: "51-200", count: 44 }]
+  };
+
+  // Analytics DATA (days/topPosts/demographics/follower count) is shared across the whole team via
+  // Firestore -- kept in analyticsDataCache, fed by the analytics onSnapshot listener set up earlier.
+  // Analytics VIEW state (which date range/granularity you're looking at) stays local per-browser,
+  // like a personal preference, so one person changing it doesn't change what everyone else sees.
+  var analyticsDataCache = null;
+  var lastWrittenAnalyticsDataJson = null;
+
+  function buildDefaultAnalyticsData() {
+    return {
+      isSample: true, currentFollowers: null, currentFollowersSource: null,
+      days: buildSampleDays(), topPosts: SAMPLE_TOP_POSTS, followerDemographics: SAMPLE_DEMOGRAPHICS
+    };
+  }
+
+  function loadAnalyticsViewState() {
+    try {
+      var raw = localStorage.getItem(ANALYTICS_KEY);
+      if (raw) {
+        var v = JSON.parse(raw);
+        return {
+          rangePreset: v.rangePreset || "90d", rangeStart: v.rangeStart || null,
+          rangeEnd: v.rangeEnd || null, granularity: v.granularity || "week"
+        };
+      }
+    } catch (e) { /* fall through to defaults */ }
+    return { rangePreset: "90d", rangeStart: null, rangeEnd: null, granularity: "week" };
+  }
+
+  function loadAnalytics() {
+    var data = analyticsDataCache || buildDefaultAnalyticsData();
+    var view = loadAnalyticsViewState();
+    return Object.assign({}, data, view);
+  }
+
+  function saveAnalytics(state) {
+    var view = {
+      rangePreset: state.rangePreset, rangeStart: state.rangeStart,
+      rangeEnd: state.rangeEnd, granularity: state.granularity
+    };
+    localStorage.setItem(ANALYTICS_KEY, JSON.stringify(view));
+
+    var data = {
+      isSample: !!state.isSample,
+      currentFollowers: state.currentFollowers !== undefined ? state.currentFollowers : null,
+      currentFollowersSource: state.currentFollowersSource || null,
+      days: state.days || [],
+      topPosts: state.topPosts || [],
+      followerDemographics: state.followerDemographics || {}
+    };
+    var dataJson = JSON.stringify(data);
+    if (dataJson !== lastWrittenAnalyticsDataJson) {
+      lastWrittenAnalyticsDataJson = dataJson;
+      analyticsDataCache = data;
+      setDoc(analyticsDocRef, data).catch(function (err) { console.error("Failed to save analytics", err); });
+    }
+  }
+
+  // ---------- analytics: date range + aggregation ----------
+  function dateKeyOf(d) { return d.toISOString().slice(0, 10); }
+
+  function filterByRange(days, state) {
+    if (!days.length) return days;
+    if (state.rangePreset === "all") return days;
+    if (state.rangePreset === "custom" && state.rangeStart && state.rangeEnd) {
+      return days.filter(function (d) { return d.date >= state.rangeStart && d.date <= state.rangeEnd; });
+    }
+    var n = { "7d": 7, "28d": 28, "90d": 90, "365d": 365 }[state.rangePreset] || 90;
+    return days.slice(-n);
+  }
+
+  function weekStartIso(iso) {
+    var d = new Date(iso + "T00:00:00Z");
+    var dow = (d.getUTCDay() + 6) % 7; // 0 = Monday
+    d.setUTCDate(d.getUTCDate() - dow);
+    return d.toISOString().slice(0, 10);
+  }
+  function monthStartIso(iso) { return iso.slice(0, 7) + "-01"; }
+
+  function aggregateDays(days, granularity) {
+    if (granularity === "day") return days;
+    var keyFn = granularity === "month" ? monthStartIso : weekStartIso;
+    var buckets = {};
+    var order = [];
+    days.forEach(function (d) {
+      var key = keyFn(d.date);
+      if (!buckets[key]) {
+        buckets[key] = { date: key, followers: 0, followerGain: 0, impressions: 0, uniqueImpressions: 0, clicks: 0, likes: 0, comments: 0, reposts: 0, pageViews: 0, uniqueVisitors: 0 };
+        order.push(key);
+      }
+      var b = buckets[key];
+      b.followers = d.followers; // last value in bucket wins (dates processed in order)
+      b.followerGain += d.followerGain;
+      b.impressions += d.impressions;
+      b.uniqueImpressions += d.uniqueImpressions;
+      b.clicks += d.clicks;
+      b.likes += d.likes;
+      b.comments += d.comments;
+      b.reposts += d.reposts;
+      b.pageViews += d.pageViews || 0;
+      b.uniqueVisitors += d.uniqueVisitors || 0;
+    });
+    return order.map(function (key) {
+      var b = buckets[key];
+      b.ctr = b.impressions > 0 ? b.clicks / b.impressions : 0;
+      b.engagementRate = b.impressions > 0 ? (b.clicks + b.likes + b.comments + b.reposts) / b.impressions : 0;
+      return b;
+    });
+  }
+
+  // ---------- analytics: formatting ----------
+  function formatNumber(n) { return Math.round(n).toLocaleString("en-US"); }
+  function formatPercent(x) { return (x * 100).toFixed(2) + "%"; }
+  function formatDateShort(iso) {
+    var d = new Date(iso + "T00:00:00Z");
+    return d.toLocaleDateString("en-SG", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+  }
+
+  function ensureTooltip(container) {
+    var t = container.querySelector(".chart-tooltip");
+    if (!t) { t = document.createElement("div"); t.className = "chart-tooltip"; container.appendChild(t); }
+    return t;
+  }
+
+  // ---------- analytics: KPI tiles ----------
+  function kpiTile(label, value, delta, deltaCaption, isPercent) {
+    var deltaHtml = "";
+    if (delta !== null && delta !== undefined && !isNaN(delta) && delta !== 0) {
+      var cls = delta > 0 ? "good" : "bad";
+      var arrow = delta > 0 ? "▲" : "▼";
+      var deltaText = isPercent ? formatPercent(Math.abs(delta)) : formatNumber(Math.abs(delta));
+      deltaHtml = '<div class="kpi-delta ' + cls + '">' + arrow + ' ' + deltaText +
+        ' <span style="color:var(--text-faint);font-weight:500;">' + deltaCaption + '</span></div>';
+    }
+    return '<div class="kpi-tile"><div class="kpi-label">' + label + '</div>' +
+      '<div class="kpi-value">' + value + '</div>' + deltaHtml + '</div>';
+  }
+
+  function renderKpis(periods) {
+    var latest = periods[periods.length - 1];
+    var prev = periods.length > 1 ? periods[periods.length - 2] : null;
+    var totalImpressions = periods.reduce(function (s, w) { return s + w.impressions; }, 0);
+    var totalGain = periods.reduce(function (s, w) { return s + w.followerGain; }, 0);
+    var totalReposts = periods.reduce(function (s, w) { return s + w.reposts; }, 0);
+    var avgEngagement = periods.reduce(function (s, w) { return s + w.engagementRate; }, 0) / periods.length;
+
+    var tiles = [
+      kpiTile("Total Followers", formatNumber(latest.followers), prev ? latest.followers - prev.followers : null, "vs prior period", false),
+      kpiTile("Follower Growth", (totalGain >= 0 ? "+" : "") + formatNumber(totalGain), totalGain, "over selected range", false),
+      kpiTile("Total Impressions", formatNumber(totalImpressions), prev ? latest.impressions - prev.impressions : null, "latest vs prior period", false),
+      kpiTile("Avg. Engagement Rate", formatPercent(avgEngagement), prev ? latest.engagementRate - prev.engagementRate : null, "latest vs prior period", true),
+      kpiTile("Total Reposts", formatNumber(totalReposts), prev ? latest.reposts - prev.reposts : null, "latest vs prior period", false)
+    ];
+    document.getElementById("kpiRow").innerHTML = tiles.join("");
+  }
+
+  // ---------- analytics: metric-switchable trend chart ----------
+  var METRIC_DEFS = {
+    followers: { label: "Followers", format: formatNumber, unit: "followers" },
+    impressions: { label: "Impressions", format: formatNumber, unit: "impressions" },
+    uniqueImpressions: { label: "Unique Impressions", format: formatNumber, unit: "unique impressions" },
+    pageViews: { label: "Page Views", format: formatNumber, unit: "page views" },
+    uniqueVisitors: { label: "Unique Visitors", format: formatNumber, unit: "unique visitors" },
+    clicks: { label: "Clicks", format: formatNumber, unit: "clicks" },
+    ctr: { label: "CTR", format: formatPercent, unit: "click-through rate" },
+    likes: { label: "Likes", format: formatNumber, unit: "likes" },
+    comments: { label: "Comments", format: formatNumber, unit: "comments" },
+    reposts: { label: "Reposts", format: formatNumber, unit: "reposts" },
+    engagementRate: { label: "Engagement Rate", format: formatPercent, unit: "engagement rate" }
+  };
+  var currentMetric = "impressions";
+
+  function smoothPath(points) {
+    if (points.length < 3) {
+      return "M " + points.map(function (p) { return p[0] + "," + p[1]; }).join(" L ");
+    }
+    var d = "M " + points[0][0] + "," + points[0][1] + " ";
+    for (var i = 0; i < points.length - 1; i++) {
+      var p0 = points[i - 1] || points[i];
+      var p1 = points[i];
+      var p2 = points[i + 1];
+      var p3 = points[i + 2] || p2;
+      var c1x = p1[0] + (p2[0] - p0[0]) / 6;
+      var c1y = p1[1] + (p2[1] - p0[1]) / 6;
+      var c2x = p2[0] - (p3[0] - p1[0]) / 6;
+      var c2y = p2[1] - (p3[1] - p1[1]) / 6;
+      d += "C " + c1x + "," + c1y + " " + c2x + "," + c2y + " " + p2[0] + "," + p2[1] + " ";
+    }
+    return d.trim();
+  }
+
+  function renderTrendChart(periods, metricKey) {
+    var def = METRIC_DEFS[metricKey];
+    var el = document.getElementById("trendChart");
+    var W = 600, H = 200, padL = 44, padR = 12, padT = 16, padB = 22;
+    var innerW = W - padL - padR, innerH = H - padT - padB;
+    var values = periods.map(function (w) { return w[metricKey]; });
+    var min = Math.min.apply(null, values), max = Math.max.apply(null, values);
+    if (min === max) { min -= (min === 0 ? 1 : Math.abs(min) * 0.1); max += (max === 0 ? 1 : Math.abs(max) * 0.1); }
+    var pad = (max - min) * 0.15;
+    min -= pad; max += pad;
+
+    function xAt(i) { return padL + (periods.length === 1 ? 0 : (i / (periods.length - 1)) * innerW); }
+    function yAt(v) { return padT + innerH - ((v - min) / (max - min)) * innerH; }
+
+    var pts = periods.map(function (w, i) { return [xAt(i), yAt(w[metricKey])]; });
+    var lineD = smoothPath(pts);
+    var areaD = lineD + " L " + xAt(periods.length - 1) + "," + (padT + innerH) + " L " + xAt(0) + "," + (padT + innerH) + " Z";
+
+    var gridLines = "";
+    for (var s = 0; s <= 3; s++) {
+      var y = padT + (innerH / 3) * s;
+      gridLines += '<line class="chart-gridline" x1="' + padL + '" y1="' + y + '" x2="' + (W - padR) + '" y2="' + y + '"></line>';
+    }
+
+    var lastVal = periods[periods.length - 1][metricKey];
+    var lastX = xAt(periods.length - 1), lastY = yAt(lastVal);
+
+    el.innerHTML =
+      '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="' + def.label + ' over time">' +
+      '<defs>' +
+      '<linearGradient id="trendAreaFill" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0%" style="stop-color: var(--brand); stop-opacity: 0.28"></stop>' +
+      '<stop offset="100%" style="stop-color: var(--brand); stop-opacity: 0"></stop>' +
+      '</linearGradient>' +
+      '<linearGradient id="trendLineStroke" x1="0" y1="0" x2="1" y2="0">' +
+      '<stop offset="0%" style="stop-color: var(--brand-hover)"></stop>' +
+      '<stop offset="100%" style="stop-color: var(--brand)"></stop>' +
+      '</linearGradient>' +
+      '</defs>' +
+      gridLines +
+      '<line class="chart-baseline" x1="' + padL + '" y1="' + (padT + innerH) + '" x2="' + (W - padR) + '" y2="' + (padT + innerH) + '"></line>' +
+      '<path class="chart-area" d="' + areaD + '" fill="url(#trendAreaFill)"></path>' +
+      '<path class="chart-line" d="' + lineD + '" stroke="url(#trendLineStroke)"></path>' +
+      '<circle class="chart-dot" cx="' + lastX + '" cy="' + lastY + '" r="3.5"></circle>' +
+      '<text class="chart-end-label" x="' + (lastX - 6) + '" y="' + (lastY - 10) + '" text-anchor="end">' + def.format(lastVal) + '</text>' +
+      '<line class="chart-crosshair" x1="0" y1="' + padT + '" x2="0" y2="' + (padT + innerH) + '" style="display:none"></line>' +
+      '<circle class="chart-dot" r="4" style="display:none"></circle>' +
+      '</svg>';
+
+    var tooltip = ensureTooltip(el);
+    var crosshair = el.querySelectorAll(".chart-crosshair")[0];
+    var hoverDot = el.querySelectorAll(".chart-dot")[1];
+
+    el.addEventListener("mousemove", function (e) {
+      var rect = el.getBoundingClientRect();
+      var frac = (e.clientX - rect.left) / rect.width;
+      var idx = Math.max(0, Math.min(periods.length - 1, Math.round(frac * (periods.length - 1))));
+      var w = periods[idx];
+      var px = (xAt(idx) / W) * rect.width;
+      var py = (yAt(w[metricKey]) / H) * rect.height;
+      crosshair.setAttribute("x1", xAt(idx)); crosshair.setAttribute("x2", xAt(idx));
+      crosshair.style.display = "block";
+      hoverDot.setAttribute("cx", xAt(idx)); hoverDot.setAttribute("cy", yAt(w[metricKey]));
+      hoverDot.style.display = "block";
+      tooltip.textContent = formatDateShort(w.date) + " · " + def.format(w[metricKey]) + " " + def.unit;
+      tooltip.style.left = px + "px"; tooltip.style.top = py + "px";
+      tooltip.classList.add("show");
+    });
+    el.addEventListener("mouseleave", function () {
+      crosshair.style.display = "none"; hoverDot.style.display = "none"; tooltip.classList.remove("show");
+    });
+  }
+
+  document.getElementById("metricChips").addEventListener("click", function (e) {
+    var btn = e.target.closest(".metric-chip");
+    if (!btn || !btn.dataset.metric) return;
+    currentMetric = btn.dataset.metric;
+    document.querySelectorAll("#metricChips .metric-chip").forEach(function (c) {
+      c.classList.toggle("active", c === btn);
+      c.setAttribute("aria-selected", c === btn ? "true" : "false");
+    });
+    document.getElementById("trendMetricLabel").textContent = METRIC_DEFS[currentMetric].label;
+    renderTrendChart(currentPeriods, currentMetric);
+  });
+
+  // ---------- analytics: engagement breakdown (latest period) ----------
+  function renderEngagementChart(latest) {
+    var el = document.getElementById("engagementChart");
+    var metrics = [
+      { label: "Likes", value: latest.likes },
+      { label: "Comments", value: latest.comments },
+      { label: "Reposts", value: latest.reposts }
+    ];
+    var W = 600, rowH = 34, padL = 90, padR = 50, padTop = 6;
+    var H = padTop * 2 + rowH * metrics.length;
+    var max = Math.max.apply(null, metrics.map(function (m) { return m.value; })) || 1;
+    var innerW = W - padL - padR;
+
+    var rows = "";
+    metrics.forEach(function (m, i) {
+      var y = padTop + i * rowH;
+      var barW = Math.max((m.value / max) * innerW, 2);
+      rows += '<text class="chart-hbar-label" x="' + (padL - 10) + '" y="' + (y + rowH / 2 + 3) + '" text-anchor="end">' + m.label + '</text>';
+      rows += '<rect class="chart-hbar-track" x="' + padL + '" y="' + (y + 6) + '" width="' + innerW + '" height="' + (rowH - 14) + '" rx="4"></rect>';
+      rows += '<rect class="chart-bar" x="' + padL + '" y="' + (y + 6) + '" width="' + barW + '" height="' + (rowH - 14) + '" rx="4" fill="url(#hbarGradient)"></rect>';
+      rows += '<text class="chart-hbar-value" x="' + (padL + innerW + 8) + '" y="' + (y + rowH / 2 + 3) + '">' + formatNumber(m.value) + '</text>';
+    });
+
+    var defs = '<defs><linearGradient id="hbarGradient" x1="0" y1="0" x2="1" y2="0">' +
+      '<stop offset="0%" style="stop-color: var(--brand)"></stop>' +
+      '<stop offset="100%" style="stop-color: var(--brand-hover)"></stop>' +
+      '</linearGradient></defs>';
+
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="Social engagement breakdown for the latest period">' + defs + rows + '</svg>';
+
+    var clicksHtml =
+      '<div class="mini-stats">' +
+      '<div class="mini-stat"><span class="mini-stat-label">Website clicks</span><span class="mini-stat-value">' + formatNumber(latest.clicks) + '</span></div>' +
+      '<div class="mini-stat"><span class="mini-stat-label">Click-through rate</span><span class="mini-stat-value">' + formatPercent(latest.ctr) + '</span></div>' +
+      '</div>';
+
+    el.innerHTML = svg + clicksHtml;
+  }
+
+  // ---------- analytics: top posts ----------
+  function renderTopPosts(topPosts, rangeState) {
+    var filtered = topPosts.filter(function (p) {
+      if (!p.createdDate) return true; // sample data has no dates -- always show
+      if (rangeState.rangePreset === "all") return true;
+      if (rangeState.rangePreset === "custom" && rangeState.rangeStart && rangeState.rangeEnd) {
+        return p.createdDate >= rangeState.rangeStart && p.createdDate <= rangeState.rangeEnd;
+      }
+      return true; // preset day-count ranges are usually too short for posts; show all so the leaderboard isn't empty
+    }).slice(0, 10);
+
+    document.getElementById("topPostsTableBody").innerHTML = filtered.map(function (p) {
+      var title = p.title.replace(/\n+/g, " ").slice(0, 90);
+      var titleHtml = p.link
+        ? '<a class="post-link" href="' + p.link + '" target="_blank" rel="noopener noreferrer">' + title + '</a>'
+        : title;
+      return '<tr>' +
+        '<td>' + titleHtml + (p.contentType ? ' <span style="color:var(--text-faint);font-size:0.7rem;">· ' + p.contentType + '</span>' : '') + '</td>' +
+        '<td>' + (p.createdDate ? formatDateShort(p.createdDate) : '—') + '</td>' +
+        '<td>' + formatNumber(p.impressions) + '</td>' +
+        '<td>' + formatPercent(p.engagementRate) + '</td>' +
+        '<td>' + formatNumber(p.reposts) + '</td>' +
+        '</tr>';
+    }).join("") || '<tr><td colspan="5" style="text-align:center;color:var(--text-faint);">No post data imported yet.</td></tr>';
+  }
+
+  // ---------- analytics: follower demographics ----------
+  function renderDemographics(demographics) {
+    var facets = Object.keys(demographics);
+    var grid = document.getElementById("demographicsGrid");
+    var card = document.getElementById("demographicsCard");
+    if (!facets.length) { card.hidden = true; return; }
+    card.hidden = false;
+
+    grid.innerHTML = facets.map(function (facet) {
+      var rows = demographics[facet].slice(0, 6);
+      var max = Math.max.apply(null, rows.map(function (r) { return r.count; })) || 1;
+      var rowsHtml = rows.map(function (r) {
+        var pct = (r.count / max) * 100;
+        return '<div class="demo-row">' +
+          '<span class="demo-label" title="' + r.category + '">' + r.category + '</span>' +
+          '<span class="demo-track"><span class="demo-fill" style="width:' + pct + '%"></span></span>' +
+          '<span class="demo-value">' + formatNumber(r.count) + '</span>' +
+          '</div>';
+      }).join("");
+      return '<div class="demographic-facet"><h4>' + facet + '</h4>' + rowsHtml + '</div>';
+    }).join("");
+  }
+
+  // ---------- analytics: key takeaways ----------
+  function avg(nums) { return nums.length ? nums.reduce(function (a, b) { return a + b; }, 0) / nums.length : 0; }
+  function sum(nums) { return nums.reduce(function (a, b) { return a + b; }, 0); }
+
+  function generateTakeaways(periods) {
+    var out = [];
+    var n = periods.length;
+    var first = periods[0], last = periods[n - 1];
+
+    var hasFollowerData = periods.some(function (w) { return w.followers > 0; });
+    if (hasFollowerData) {
+      var change = last.followers - first.followers;
+      var pctStr = first.followers > 0 ? " (" + (change >= 0 ? "+" : "") + ((change / first.followers) * 100).toFixed(1) + "%)" : "";
+      var dir = change > 0 ? "grew" : change < 0 ? "declined" : "held steady";
+      out.push("Followers " + dir + " from " + formatNumber(first.followers) + " to " + formatNumber(last.followers) + pctStr + " over the selected range.");
+    } else {
+      out.push('<span class="muted">No follower data imported yet — import a Followers export to see growth takeaways.</span>');
+    }
+
+    if (n >= 8) {
+      var half = Math.floor(n / 2);
+      var recentAvg = avg(periods.slice(-half).map(function (w) { return w.impressions; }));
+      var priorAvg = avg(periods.slice(-2 * half, -half).map(function (w) { return w.impressions; }));
+      if (priorAvg > 0) {
+        var pctChange = ((recentAvg - priorAvg) / priorAvg) * 100;
+        out.push("Impressions are " + (pctChange >= 0 ? "up" : "down") + " " + Math.abs(pctChange).toFixed(0) + "% in the second half of the selected range vs. the first half.");
+      }
+    } else if (n >= 2) {
+      out.push("Impressions went from " + formatNumber(first.impressions) + " to " + formatNumber(last.impressions) + " across the selected range.");
+    }
+
+    var bestPeriod = periods.reduce(function (a, b) { return b.impressions > a.impressions ? b : a; }, periods[0]);
+    out.push("Best period for reach was " + formatDateShort(bestPeriod.date) + ", with " + formatNumber(bestPeriod.impressions) + " impressions.");
+
+    var avgEng = avg(periods.map(function (w) { return w.engagementRate; }));
+    var peakEngPeriod = periods.reduce(function (a, b) { return b.engagementRate > a.engagementRate ? b : a; }, periods[0]);
+    out.push("Average engagement rate is " + formatPercent(avgEng) + ", peaking at " + formatPercent(peakEngPeriod.engagementRate) + " on " + formatDateShort(peakEngPeriod.date) + ".");
+
+    out.push(formatNumber(sum(periods.map(function (w) { return w.impressions; }))) + " total impressions and " +
+      formatNumber(sum(periods.map(function (w) { return w.clicks; }))) + " total clicks across " + n + " period" + (n === 1 ? "" : "s") + ".");
+
+    return out;
+  }
+
+  function renderTakeaways(periods) {
+    document.getElementById("takeawaysList").innerHTML = generateTakeaways(periods).map(function (t) { return "<li>" + t + "</li>"; }).join("");
+  }
+
+  // ---------- analytics: suggested next steps (rule-based) ----------
+  function generateSuggestions(periods, topPosts) {
+    var out = [];
+    var n = periods.length;
+    if (n < 2) return ["Import more data to unlock trend-based suggestions."];
+
+    var half = Math.max(1, Math.floor(n / 2));
+    var recentEng = avg(periods.slice(-half).map(function (w) { return w.engagementRate; }));
+    var priorEng = avg(periods.slice(-2 * half, -half).map(function (w) { return w.engagementRate; }));
+    if (priorEng > 0 && recentEng < priorEng * 0.85) {
+      out.push("Engagement rate has cooled recently (" + formatPercent(recentEng) + " vs " + formatPercent(priorEng) + " earlier in the range) — try a different post format or CTA to see what re-engages your audience.");
+    } else if (priorEng > 0 && recentEng > priorEng * 1.15) {
+      out.push("Engagement is trending up (" + formatPercent(recentEng) + " vs " + formatPercent(priorEng) + " earlier) — worth identifying what changed recently and repeating it.");
+    }
+
+    var totalGain = sum(periods.map(function (w) { return w.followerGain; }));
+    if (totalGain <= 0) {
+      out.push("Follower growth was flat or negative over this range — consider a short campaign or a higher-frequency posting cadence to rebuild momentum.");
+    }
+
+    var avgCtr = avg(periods.map(function (w) { return w.ctr || 0; }));
+    if (avgCtr > 0 && avgCtr < 0.02) {
+      out.push("Average CTR is " + formatPercent(avgCtr) + ", on the low side — stronger hooks or more explicit calls-to-action in the first two lines of a post tend to lift click-through.");
+    }
+
+    var typeCounts = {};
+    topPosts.slice(0, 10).forEach(function (p) {
+      if (p.contentType) typeCounts[p.contentType] = (typeCounts[p.contentType] || 0) + 1;
+    });
+    var topType = Object.keys(typeCounts).sort(function (a, b) { return typeCounts[b] - typeCounts[a]; })[0];
+    if (topType && typeCounts[topType] >= 3) {
+      out.push('"' + topType + '" content dominates your top 10 posts (' + typeCounts[topType] + ' of them) — lean further into that format.');
+    }
+
+    out.push("Check the Top Performing Posts table below and the Key Takeaways above together — replicate the topic/format/timing of whatever's outperforming, rather than posting on a fixed schedule alone.");
+    return out;
+  }
+
+  function renderSuggestions(periods, topPosts) {
+    document.getElementById("suggestionsList").innerHTML = generateSuggestions(periods, topPosts).map(function (t) { return "<li>" + t + "</li>"; }).join("");
+  }
+
+  // ---------- analytics: data table ----------
+  function renderAnalyticsTable(periods) {
+    document.getElementById("analyticsTableBody").innerHTML = periods.map(function (w) {
+      return '<tr>' +
+        '<td>' + formatDateShort(w.date) + '</td>' +
+        '<td>' + formatNumber(w.followers) + '</td>' +
+        '<td>' + (w.followerGain >= 0 ? "+" : "") + formatNumber(w.followerGain) + '</td>' +
+        '<td>' + formatNumber(w.impressions) + '</td>' +
+        '<td>' + formatNumber(w.uniqueImpressions) + '</td>' +
+        '<td>' + formatNumber(w.pageViews || 0) + '</td>' +
+        '<td>' + formatNumber(w.uniqueVisitors || 0) + '</td>' +
+        '<td>' + formatNumber(w.clicks) + '</td>' +
+        '<td>' + formatPercent(w.ctr) + '</td>' +
+        '<td>' + formatNumber(w.likes) + '</td>' +
+        '<td>' + formatNumber(w.comments) + '</td>' +
+        '<td>' + formatNumber(w.reposts) + '</td>' +
+        '<td>' + formatPercent(w.engagementRate) + '</td>' +
+        '</tr>';
+    }).join("");
+  }
+
+  // ---------- analytics: master render ----------
+  var currentPeriods = [];
+
+  function renderAnalytics() {
+    var state = loadAnalytics();
+    var allDays = state.days || [];
+
+    document.getElementById("sampleBadge").hidden = !state.isSample;
+    document.getElementById("followerSourceNote").textContent = state.currentFollowers !== null && state.currentFollowers !== undefined
+      ? "Current followers: " + formatNumber(state.currentFollowers) + " (source: " + (state.currentFollowersSource || "import") + ")"
+      : "No absolute follower count available yet — showing a relative growth curve from 0. Re-run the importer with --current-followers <n> to calibrate it.";
+
+    document.querySelectorAll("#rangePresets .metric-chip").forEach(function (c) {
+      var active = c.dataset.range === state.rangePreset;
+      c.classList.toggle("active", active);
+      c.setAttribute("aria-selected", active ? "true" : "false");
+    });
+    document.getElementById("rangeCustom").hidden = state.rangePreset !== "custom";
+    if (state.rangeStart) document.getElementById("rangeStart").value = state.rangeStart;
+    if (state.rangeEnd) document.getElementById("rangeEnd").value = state.rangeEnd;
+    document.querySelectorAll("#granularityToggle .gran-btn").forEach(function (c) {
+      var active = c.dataset.granularity === state.granularity;
+      c.classList.toggle("active", active);
+      c.setAttribute("aria-selected", active ? "true" : "false");
+    });
+
+    var filtered = filterByRange(allDays, state);
+    document.getElementById("analyticsRange").textContent = filtered.length
+      ? formatDateShort(filtered[0].date) + " – " + formatDateShort(filtered[filtered.length - 1].date) + " (" + filtered.length + " day" + (filtered.length === 1 ? "" : "s") + ")"
+      : "No data yet — import a JSON export to get started.";
+
+    renderTopPosts(state.topPosts || [], state);
+    renderDemographics(state.followerDemographics || {});
+
+    if (!filtered.length) { currentPeriods = []; return; }
+
+    currentPeriods = aggregateDays(filtered, state.granularity);
+    renderKpis(currentPeriods);
+    renderTakeaways(currentPeriods);
+    renderSuggestions(currentPeriods, state.topPosts || []);
+    renderTrendChart(currentPeriods, currentMetric);
+    var latest = currentPeriods[currentPeriods.length - 1];
+    document.getElementById("engagementWeekLabel").textContent = formatDateShort(latest.date);
+    renderEngagementChart(latest);
+    renderAnalyticsTable(currentPeriods);
+  }
+
+  document.getElementById("rangePresets").addEventListener("click", function (e) {
+    var btn = e.target.closest(".metric-chip");
+    if (!btn) return;
+    var state = loadAnalytics();
+    state.rangePreset = btn.dataset.range;
+    saveAnalytics(state);
+    renderAnalytics();
+  });
+  document.getElementById("rangeCustomApply").addEventListener("click", function () {
+    var startVal = document.getElementById("rangeStart").value;
+    var endVal = document.getElementById("rangeEnd").value;
+    if (!startVal || !endVal) return;
+    var state = loadAnalytics();
+    state.rangePreset = "custom";
+    state.rangeStart = startVal;
+    state.rangeEnd = endVal;
+    saveAnalytics(state);
+    renderAnalytics();
+  });
+  document.getElementById("granularityToggle").addEventListener("click", function (e) {
+    var btn = e.target.closest(".gran-btn");
+    if (!btn) return;
+    var state = loadAnalytics();
+    state.granularity = btn.dataset.granularity;
+    saveAnalytics(state);
+    renderAnalytics();
+  });
+
+  // ---------- analytics: export ----------
+  var exportAnalyticsBackdrop = document.getElementById("exportAnalyticsBackdrop");
+  var exportAnalyticsText = document.getElementById("exportAnalyticsText");
+
+  document.getElementById("exportAnalyticsBtn").addEventListener("click", function () {
+    analyticsLastFocusedForExport = document.activeElement;
+    var state = loadAnalytics();
+    var bundle = {
+      currentFollowers: state.currentFollowers !== undefined ? state.currentFollowers : null,
+      currentFollowersSource: state.currentFollowersSource || null,
+      days: state.days || [],
+      topPosts: state.topPosts || [],
+      followerDemographics: state.followerDemographics || {}
+    };
+    exportAnalyticsText.value = JSON.stringify(bundle, null, 2);
+    exportAnalyticsBackdrop.classList.add("open");
+    exportAnalyticsBackdrop.setAttribute("aria-hidden", "false");
+    setTimeout(function () { exportAnalyticsText.focus(); exportAnalyticsText.select(); }, 10);
+  });
+  function closeExportAnalytics() {
+    exportAnalyticsBackdrop.classList.remove("open");
+    if (analyticsLastFocusedForExport && typeof analyticsLastFocusedForExport.focus === "function") analyticsLastFocusedForExport.focus();
+  }
+  document.getElementById("exportAnalyticsClose").addEventListener("click", closeExportAnalytics);
+  exportAnalyticsBackdrop.addEventListener("click", function (e) { if (e.target === exportAnalyticsBackdrop) closeExportAnalytics(); });
+
+  document.getElementById("copyAnalyticsJsonBtn").addEventListener("click", function () {
+    var btn = document.getElementById("copyAnalyticsJsonBtn");
+    function flash(msg) { var prev = btn.textContent; btn.textContent = msg; setTimeout(function () { btn.textContent = prev; }, 1300); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(exportAnalyticsText.value).then(function () { flash("Copied ✓"); }, function () { flash("Copy failed"); });
+    } else {
+      exportAnalyticsText.select();
+      flash("Selected — press Ctrl/Cmd+C");
+    }
+  });
+  document.getElementById("downloadAnalyticsJsonBtn").addEventListener("click", function () {
+    try {
+      var blob = new Blob([exportAnalyticsText.value], { type: "application/json" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url; a.download = "mediashock-linkedin-analytics.json";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+    } catch (e) {
+      exportAnalyticsText.select();
+    }
+  });
+
+  // ---------- analytics: import ----------
+  var analyticsLastFocusedForExport = null;
+  var importAnalyticsBackdrop = document.getElementById("importAnalyticsBackdrop");
+  var importAnalyticsText = document.getElementById("importAnalyticsText");
+  var importAnalyticsFile = document.getElementById("importAnalyticsFile");
+  var importAnalyticsError = document.getElementById("importAnalyticsError");
+  var analyticsLastFocused = null;
+  var DAY_FIELDS = ["date", "followers", "followerGain", "impressions", "uniqueImpressions", "clicks", "ctr", "likes", "comments", "reposts", "engagementRate", "pageViews", "uniqueVisitors"];
+
+  document.getElementById("importAnalyticsBtn").addEventListener("click", function () {
+    analyticsLastFocused = document.activeElement;
+    importAnalyticsText.value = ""; importAnalyticsFile.value = ""; importAnalyticsError.style.display = "none";
+    importAnalyticsBackdrop.classList.add("open");
+    importAnalyticsBackdrop.setAttribute("aria-hidden", "false");
+    setTimeout(function () { importAnalyticsText.focus(); }, 10);
+  });
+  function closeImportAnalytics() {
+    importAnalyticsBackdrop.classList.remove("open");
+    if (analyticsLastFocused && typeof analyticsLastFocused.focus === "function") analyticsLastFocused.focus();
+  }
+  document.getElementById("importAnalyticsClose").addEventListener("click", closeImportAnalytics);
+  document.getElementById("importAnalyticsCancelBtn").addEventListener("click", closeImportAnalytics);
+  importAnalyticsBackdrop.addEventListener("click", function (e) { if (e.target === importAnalyticsBackdrop) closeImportAnalytics(); });
+
+  importAnalyticsFile.addEventListener("change", function () {
+    var file = importAnalyticsFile.files && importAnalyticsFile.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () { importAnalyticsText.value = String(reader.result); };
+    reader.readAsText(file);
+  });
+
+  document.getElementById("importAnalyticsCommitBtn").addEventListener("click", function () {
+    var parsed;
+    importAnalyticsError.style.color = "var(--danger)";
+    try {
+      parsed = JSON.parse(importAnalyticsText.value);
+    } catch (e) {
+      importAnalyticsError.textContent = "That doesn't look like valid JSON: " + e.message;
+      importAnalyticsError.style.display = "block";
+      return;
+    }
+
+    var bundle;
+    if (Array.isArray(parsed)) {
+      // backward-compatible: a bare weekly array from the old export shape
+      bundle = { days: parsed.map(function (row) { return Object.assign({ uniqueImpressions: 0, ctr: 0 }, row); }), topPosts: [], followerDemographics: {}, currentFollowers: null, currentFollowersSource: null };
+    } else if (parsed && Array.isArray(parsed.days)) {
+      bundle = parsed;
+    } else {
+      importAnalyticsError.textContent = "Expected either a bundle with a 'days' array, or a plain array of daily/weekly records.";
+      importAnalyticsError.style.display = "block";
+      return;
+    }
+
+    var normalized = bundle.days.map(function (row) {
+      var out = {};
+      DAY_FIELDS.forEach(function (k) { out[k] = row[k] !== undefined ? row[k] : (k === "date" ? "" : 0); });
+      return out;
+    }).filter(function (row) { return row.date; }).sort(function (a, b) { return a.date.localeCompare(b.date); });
+
+    if (!normalized.length) {
+      importAnalyticsError.textContent = "None of the rows had a usable 'date' field.";
+      importAnalyticsError.style.display = "block";
+      return;
+    }
+
+    var prevState = loadAnalytics();
+    saveAnalytics({
+      isSample: false,
+      days: normalized,
+      topPosts: bundle.topPosts || [],
+      followerDemographics: bundle.followerDemographics || {},
+      currentFollowers: bundle.currentFollowers !== undefined ? bundle.currentFollowers : null,
+      currentFollowersSource: bundle.currentFollowersSource || null,
+      rangePreset: prevState.rangePreset || "90d",
+      rangeStart: prevState.rangeStart || null,
+      rangeEnd: prevState.rangeEnd || null,
+      granularity: prevState.granularity || "week"
+    });
+    renderAnalytics();
+    importAnalyticsError.style.color = "var(--good)";
+    importAnalyticsError.textContent = "Imported " + normalized.length + " day(s), " + (bundle.topPosts || []).length + " post(s).";
+    importAnalyticsError.style.display = "block";
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") return;
+    if (modalBackdrop.classList.contains("open")) closeModal();
+    if (ideaBackdrop.classList.contains("open")) closeIdeaModal();
+    if (bucketsBackdrop.classList.contains("open")) closeBucketsModal();
+    if (exportBackdrop.classList.contains("open")) closeExport();
+    if (importBackdrop.classList.contains("open")) closeImport();
+    if (exportAnalyticsBackdrop.classList.contains("open")) closeExportAnalytics();
+    if (importAnalyticsBackdrop.classList.contains("open")) closeImportAnalytics();
+  });
+
+  renderLegend();
+  render();
+  renderKanbanBoard();
+  renderAnalytics();
+})();
+</script>
