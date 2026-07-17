@@ -350,7 +350,24 @@
     display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
   }
   .idea-card .ic-meta { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.5rem; font-size: 0.66rem; color: var(--text-faint); }
+  .ic-head-row { display: flex; align-items: flex-start; gap: 0.55rem; }
+  .ic-thumb { width: 2.6rem; height: 2.6rem; border-radius: 6px; object-fit: cover; flex-shrink: 0; background: var(--surface-alt); border: 1px solid var(--border); }
+  .ic-thumb-wrap { position: relative; flex-shrink: 0; }
+  .ic-thumb-badge { position: absolute; bottom: -0.25rem; right: -0.25rem; background: var(--text); color: var(--surface); font-size: 0.6rem; font-weight: 700; border-radius: 999px; padding: 0.05rem 0.3rem; }
   .kanban-empty { color: var(--text-faint); font-size: 0.78rem; padding: 0.4rem 0.2rem; }
+  .idea-link-row { display: flex; gap: 0.5rem; }
+  .idea-link-row input { flex: 1; }
+  .idea-image-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.5rem 0 0.2rem; }
+  .idea-image-thumb { position: relative; width: 4.2rem; height: 4.2rem; border-radius: 6px; overflow: hidden; background: var(--surface-alt); border: 1px solid var(--border); }
+  .idea-image-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .idea-image-thumb.broken img { display: none; }
+  .idea-image-thumb.broken::after { content: "🖼️"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: var(--text-faint); }
+  .idea-image-remove {
+    position: absolute; top: 0.15rem; right: 0.15rem; width: 1.3rem; height: 1.3rem; border-radius: 50%;
+    border: none; background: rgba(0, 0, 0, 0.55); color: #fff; cursor: pointer; font-size: 0.65rem;
+    display: flex; align-items: center; justify-content: center; line-height: 1;
+  }
+  .idea-image-remove:hover { background: var(--danger); }
   .feedback-log { display: flex; flex-direction: column; gap: 0.6rem; max-height: 12rem; overflow-y: auto; margin: 0.6rem 0; padding-right: 0.2rem; }
   .feedback-item { background: var(--surface-alt); border-radius: 8px; padding: 0.5rem 0.65rem; font-size: 0.8rem; }
   .feedback-item .fb-date { display: block; font-size: 0.65rem; color: var(--text-faint); margin-bottom: 0.15rem; font-family: var(--font-mono); }
@@ -498,6 +515,7 @@
     transform: translateY(8px) scale(0.98); transition: transform 0.15s ease;
   }
   .modal-backdrop.open .modal { transform: translateY(0) scale(1); }
+  .modal.modal-wide { max-width: 40rem; }
   .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
   .modal-head h3 { margin: 0; font-size: 1.05rem; font-weight: 700; }
 
@@ -510,6 +528,16 @@
   }
   input:focus, select:focus, textarea:focus { outline: 2px solid var(--brand); outline-offset: 1px; background: var(--surface); }
   textarea { resize: vertical; min-height: 6.5rem; line-height: 1.45; }
+  #i-notes { min-height: 9.5rem; }
+  .notes-links { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: -0.3rem 0 0.2rem; }
+  .notes-link-chip {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    font-size: 0.72rem; font-weight: 600; color: var(--brand);
+    background: var(--brand-soft); border: 1px solid var(--s-draft-line);
+    border-radius: 999px; padding: 0.2rem 0.6rem; text-decoration: none;
+    max-width: 17rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .notes-link-chip:hover { text-decoration: underline; }
 
   .modal-actions { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.3rem; }
   .modal-actions .spacer { flex: 1; }
@@ -906,7 +934,7 @@
 </div>
 
 <div class="modal-backdrop" id="ideaBackdrop">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ideaModalTitle">
+  <div class="modal modal-wide" role="dialog" aria-modal="true" aria-labelledby="ideaModalTitle">
     <div class="modal-head">
       <h3 id="ideaModalTitle">New Idea</h3>
       <button class="icon-btn" id="ideaModalClose" aria-label="Close">✕</button>
@@ -922,6 +950,14 @@
       </div>
       <label for="i-notes">Idea / Brief</label>
       <textarea id="i-notes" placeholder="What's the angle? Any references, hooks, or notes for whoever drafts this..."></textarea>
+      <div class="notes-links" id="notesLinks"></div>
+
+      <label for="i-image-link">Image links (optional — paste a URL to a reference image)</label>
+      <div class="idea-link-row">
+        <input type="url" id="i-image-link" placeholder="https://...">
+        <button type="button" class="btn btn-ghost small" id="addIdeaImageBtn">Add</button>
+      </div>
+      <div class="idea-image-grid" id="ideaImageGrid"></div>
 
       <div class="idea-stage-row">
         <label>Stage
@@ -1763,8 +1799,59 @@ import {
   var addFeedbackBtn = document.getElementById("addFeedbackBtn");
   var ideaDeleteArmed = false;
   var ideaLastFocused = null;
+  var currentIdeaImages = [];
+  var ideaImageLinkInput = document.getElementById("i-image-link");
+  var ideaImageGridEl = document.getElementById("ideaImageGrid");
+  var notesLinksEl = document.getElementById("notesLinks");
 
   function ideaByKey(key) { return IDEA_STAGES.find(function (s) { return s.key === key; }); }
+
+  function renderIdeaImageGrid() {
+    ideaImageGridEl.innerHTML = currentIdeaImages.map(function (url, i) {
+      return '<div class="idea-image-thumb" data-i="' + i + '">' +
+        '<img src="' + escapeHtml(url) + '" alt="Idea reference image">' +
+        '<button type="button" class="idea-image-remove" data-i="' + i + '" aria-label="Remove image">✕</button>' +
+        '</div>';
+    }).join("");
+    ideaImageGridEl.querySelectorAll("img").forEach(function (img) {
+      img.addEventListener("error", function () { img.closest(".idea-image-thumb").classList.add("broken"); });
+    });
+  }
+
+  document.getElementById("addIdeaImageBtn").addEventListener("click", function () {
+    var url = ideaImageLinkInput.value.trim();
+    if (!url) return;
+    currentIdeaImages.push(url);
+    ideaImageLinkInput.value = "";
+    renderIdeaImageGrid();
+  });
+
+  ideaImageGridEl.addEventListener("click", function (e) {
+    var btn = e.target.closest(".idea-image-remove");
+    if (!btn) return;
+    currentIdeaImages.splice(parseInt(btn.dataset.i, 10), 1);
+    renderIdeaImageGrid();
+  });
+
+  function extractUrls(text) {
+    var matches = String(text || "").match(/https?:\/\/[^\s<>"']+/g) || [];
+    var seen = {};
+    return matches.filter(function (u) {
+      if (seen[u]) return false;
+      seen[u] = true;
+      return true;
+    });
+  }
+
+  function renderNotesLinks() {
+    var urls = extractUrls(iNotes.value);
+    notesLinksEl.innerHTML = urls.map(function (u) {
+      var label = u;
+      try { label = new URL(u).hostname.replace(/^www\./, ""); } catch (e) {}
+      return '<a class="notes-link-chip" href="' + escapeHtml(u) + '" target="_blank" rel="noopener noreferrer" title="' + escapeHtml(u) + '">🔗 ' + escapeHtml(label) + ' ↗</a>';
+    }).join("");
+  }
+  iNotes.addEventListener("input", renderNotesLinks);
 
   function renderKanbanBoard() {
     var board = document.getElementById("kanbanBoard");
@@ -1774,8 +1861,15 @@ import {
         ? inStage.map(function (idea) {
             var fb = idea.feedback || [];
             var latestFb = fb.length ? fb[fb.length - 1] : null;
+            var imgs = idea.images || [];
+            var titleBlock = '<span class="ic-title">' + escapeHtml(idea.title) + '</span>';
+            var headBlock = imgs.length
+              ? '<span class="ic-head-row"><span class="ic-thumb-wrap"><img class="ic-thumb" src="' + escapeHtml(imgs[0]) + '" alt="">' +
+                (imgs.length > 1 ? '<span class="ic-thumb-badge">+' + (imgs.length - 1) + '</span>' : '') +
+                '</span>' + titleBlock + '</span>'
+              : titleBlock;
             return '<button type="button" class="idea-card" data-id="' + idea.id + '" style="--dot:' + bucketColorFor(idea.bucket) + '">' +
-              '<span class="ic-title">' + escapeHtml(idea.title) + '</span>' +
+              headBlock +
               (idea.notes ? '<span class="ic-notes">' + escapeHtml(idea.notes) + '</span>' : '') +
               (latestFb ? '<span class="ic-feedback">💬 ' + escapeHtml(latestFb.text) + '</span>' : '') +
               '<span class="ic-meta">' + escapeHtml(bucketLabelFor(idea.bucket)) + (fb.length ? ' · ' + fb.length + ' round' + (fb.length > 1 ? 's' : '') : '') + '</span>' +
@@ -1790,6 +1884,9 @@ import {
 
     board.querySelectorAll(".idea-card").forEach(function (btn) {
       btn.addEventListener("click", function () { openIdeaModal(btn.dataset.id); });
+    });
+    board.querySelectorAll(".ic-thumb").forEach(function (img) {
+      img.addEventListener("error", function () { img.closest(".ic-thumb-wrap").style.display = "none"; });
     });
   }
 
@@ -1834,6 +1931,7 @@ import {
       iNotes.value = idea.notes || "";
       iStage.value = idea.stage;
       renderFeedbackLog(idea.feedback);
+      currentIdeaImages = (idea.images || []).slice();
       deleteIdeaBtn.hidden = false;
       sendToCalendarBtn.hidden = idea.stage !== "approved";
     } else {
@@ -1842,9 +1940,12 @@ import {
       iBucket.value = buckets[0] ? buckets[0].key : "";
       iStage.value = "idea";
       renderFeedbackLog([]);
+      currentIdeaImages = [];
       deleteIdeaBtn.hidden = true;
       sendToCalendarBtn.hidden = true;
     }
+    renderIdeaImageGrid();
+    renderNotesLinks();
     iFeedbackInput.value = "";
     ideaBackdrop.classList.add("open");
     ideaBackdrop.setAttribute("aria-hidden", "false");
@@ -1876,7 +1977,8 @@ import {
       title: title,
       bucket: iBucket.value,
       notes: iNotes.value,
-      stage: iStage.value
+      stage: iStage.value,
+      images: currentIdeaImages.slice()
     };
 
     var ideaId = editingIdeaId;
