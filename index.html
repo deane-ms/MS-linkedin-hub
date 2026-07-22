@@ -436,6 +436,18 @@
     color: var(--text-faint); font-size: 0.7rem; line-height: 1;
   }
   .owner-chip-remove:hover { color: var(--danger); }
+  .task-list { display: flex; flex-direction: column; gap: 0.4rem; }
+  .task-list:not(:empty) { margin-bottom: 0.1rem; }
+  .task-item { display: flex; align-items: center; gap: 0.55rem; background: var(--surface-alt); border: 1px solid var(--border); border-radius: 8px; padding: 0.4rem 0.6rem; }
+  .task-item .task-done-checkbox { flex-shrink: 0; }
+  .task-item .task-text { flex: 1; font-size: 0.8rem; color: var(--text); }
+  .task-item .task-text.done { text-decoration: line-through; color: var(--text-faint); }
+  .task-item .task-remove { all: unset; cursor: pointer; color: var(--text-faint); font-size: 0.72rem; padding: 0.2rem; flex-shrink: 0; }
+  .task-item .task-remove:hover { color: var(--danger); }
+  .task-empty { font-size: 0.78rem; color: var(--text-faint); margin: 0; }
+  .task-add-row { display: flex; gap: 0.5rem; }
+  .task-add-row input { flex: 1; }
+  .task-add-row select { max-width: 9rem; }
   .idea-image-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.5rem 0 0.2rem; }
   .idea-image-thumb { position: relative; width: 4.2rem; height: 4.2rem; border-radius: 6px; overflow: hidden; background: var(--surface-alt); border: 1px solid var(--border); }
   .idea-image-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -1077,6 +1089,15 @@
         </div>
         <div class="owner-chip-list" id="postOwnerChips"></div>
       </div>
+      <div class="field-col">
+        <label>Tasks</label>
+        <div class="task-list" id="postTaskList"></div>
+        <div class="task-add-row">
+          <input type="text" id="f-task-input" placeholder="Add a task...">
+          <select id="f-task-assignee"><option value="">Assign to...</option></select>
+          <button type="button" class="btn btn-ghost small" id="addPostTaskBtn">Add</button>
+        </div>
+      </div>
       <div class="field-row">
         <label>Scheduled Date
           <input type="date" id="f-date" required>
@@ -1171,6 +1192,15 @@
             <button type="button" class="btn btn-ghost small" id="addIdeaOwnerBtn">Add</button>
           </div>
           <div class="owner-chip-list" id="ideaOwnerChips"></div>
+        </div>
+      </div>
+      <div class="field-col">
+        <label>Tasks</label>
+        <div class="task-list" id="ideaTaskList"></div>
+        <div class="task-add-row">
+          <input type="text" id="i-task-input" placeholder="Add a task...">
+          <select id="i-task-assignee"><option value="">Assign to...</option></select>
+          <button type="button" class="btn btn-ghost small" id="addIdeaTaskBtn">Add</button>
         </div>
       </div>
       <div class="field-col">
@@ -1811,13 +1841,14 @@ import {
   // A small add/remove chip-list controller for multi-owner fields (used by both
   // the Post and Idea modals) -- keeps the two forms' owner UIs in sync without
   // duplicating the add/remove/render logic twice.
-  function createOwnerChipInput(inputEl, chipsEl) {
+  function createOwnerChipInput(inputEl, chipsEl, onChange) {
     var owners = [];
     function render() {
       chipsEl.innerHTML = owners.map(function (name, i) {
         return '<span class="owner-chip">' + avatarHtml(name, "small") + escapeHtml(name) +
           '<button type="button" class="owner-chip-remove" data-i="' + i + '" aria-label="Remove ' + escapeHtml(name) + '">✕</button></span>';
       }).join("");
+      if (onChange) onChange();
     }
     function add() {
       var name = inputEl.value.trim();
@@ -1839,6 +1870,66 @@ import {
       add: add,
       set: function (list) { owners = (list || []).slice(); render(); },
       get: function () { return owners.slice(); }
+    };
+  }
+
+  // A task checklist controller for Post/Idea modals -- each task can be assigned to
+  // one of that item's current Owners (kept in sync via refreshAssignees).
+  function createTaskListInput(listEl, inputEl, assigneeSelectEl, getOwners) {
+    var tasks = [];
+    function render() {
+      listEl.innerHTML = tasks.length
+        ? tasks.map(function (t) {
+            return '<div class="task-item">' +
+              '<input type="checkbox" class="task-done-checkbox" data-task-id="' + t.id + '"' + (t.done ? " checked" : "") + '>' +
+              '<span class="task-text' + (t.done ? " done" : "") + '">' + escapeHtml(t.text) + '</span>' +
+              (t.assignee ? avatarHtml(t.assignee, "small") : "") +
+              '<button type="button" class="task-remove" data-task-id="' + t.id + '" aria-label="Remove task">✕</button>' +
+              '</div>';
+          }).join("")
+        : '<p class="task-empty">No tasks yet.</p>';
+    }
+    function renderAssigneeOptions() {
+      var owners = getOwners();
+      var current = assigneeSelectEl.value;
+      assigneeSelectEl.innerHTML = '<option value="">Assign to...</option>' +
+        owners.map(function (o) { return '<option value="' + escapeHtml(o) + '">' + escapeHtml(o) + '</option>'; }).join("");
+      assigneeSelectEl.value = owners.indexOf(current) > -1 ? current : "";
+      assigneeSelectEl.disabled = !owners.length;
+    }
+    function add() {
+      var text = inputEl.value.trim();
+      if (!text) return;
+      tasks.push({
+        id: "task-" + Date.now() + "-" + Math.floor(Math.random() * 1000),
+        text: text,
+        assignee: assigneeSelectEl.value || null,
+        done: false
+      });
+      inputEl.value = "";
+      render();
+    }
+    listEl.addEventListener("click", function (e) {
+      var removeBtn = e.target.closest(".task-remove");
+      if (!removeBtn) return;
+      tasks = tasks.filter(function (t) { return t.id !== removeBtn.dataset.taskId; });
+      render();
+    });
+    listEl.addEventListener("change", function (e) {
+      var cb = e.target.closest(".task-done-checkbox");
+      if (!cb) return;
+      var task = tasks.find(function (t) { return t.id === cb.dataset.taskId; });
+      if (task) task.done = cb.checked;
+      render();
+    });
+    inputEl.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); add(); }
+    });
+    return {
+      add: add,
+      set: function (list) { tasks = (list || []).map(function (t) { return Object.assign({}, t); }); render(); },
+      get: function () { return tasks.slice(); },
+      refreshAssignees: renderAssigneeOptions
     };
   }
 
@@ -2115,8 +2206,10 @@ import {
   var fTitle = document.getElementById("f-title");
   var fBucket = document.getElementById("f-bucket");
   var fStatus = document.getElementById("f-status");
-  var postOwnersCtrl = createOwnerChipInput(document.getElementById("f-owner-input"), document.getElementById("postOwnerChips"));
+  var postOwnersCtrl = createOwnerChipInput(document.getElementById("f-owner-input"), document.getElementById("postOwnerChips"), function () { postTasksCtrl.refreshAssignees(); });
   document.getElementById("addPostOwnerBtn").addEventListener("click", function () { postOwnersCtrl.add(); });
+  var postTasksCtrl = createTaskListInput(document.getElementById("postTaskList"), document.getElementById("f-task-input"), document.getElementById("f-task-assignee"), function () { return postOwnersCtrl.get(); });
+  document.getElementById("addPostTaskBtn").addEventListener("click", function () { postTasksCtrl.add(); });
   var fDate = document.getElementById("f-date");
   var fTime = document.getElementById("f-time");
   var fCopy = document.getElementById("f-copy");
@@ -2320,6 +2413,7 @@ import {
       fBucket.value = post.bucket;
       fStatus.value = post.status;
       postOwnersCtrl.set(post.owners || (post.owner ? [post.owner] : []));
+      postTasksCtrl.set(post.tasks || []);
       fDate.value = post.date;
       fTime.value = post.time;
       fCopy.value = post.copy;
@@ -2339,6 +2433,7 @@ import {
       fDate.value = prefillDate || dateKey(new Date());
       fTime.value = "09:00";
       postOwnersCtrl.set((prefillData && prefillData.owners) || []);
+      postTasksCtrl.set([]);
       if (prefillData) {
         fTitle.value = prefillData.title || "";
         fCopy.value = prefillData.copy || "";
@@ -2412,6 +2507,7 @@ import {
       bucket: fBucket.value,
       status: fStatus.value,
       owners: postOwnersCtrl.get(),
+      tasks: postTasksCtrl.get(),
       date: date,
       time: fTime.value || "09:00",
       copy: fCopy.value,
@@ -2457,8 +2553,10 @@ import {
   var ideaForm = document.getElementById("ideaForm");
   var iTitle = document.getElementById("i-title");
   var iBucket = document.getElementById("i-bucket");
-  var ideaOwnersCtrl = createOwnerChipInput(document.getElementById("i-owner-input"), document.getElementById("ideaOwnerChips"));
+  var ideaOwnersCtrl = createOwnerChipInput(document.getElementById("i-owner-input"), document.getElementById("ideaOwnerChips"), function () { ideaTasksCtrl.refreshAssignees(); });
   document.getElementById("addIdeaOwnerBtn").addEventListener("click", function () { ideaOwnersCtrl.add(); });
+  var ideaTasksCtrl = createTaskListInput(document.getElementById("ideaTaskList"), document.getElementById("i-task-input"), document.getElementById("i-task-assignee"), function () { return ideaOwnersCtrl.get(); });
+  document.getElementById("addIdeaTaskBtn").addEventListener("click", function () { ideaTasksCtrl.add(); });
   var iNotes = document.getElementById("i-notes");
   var iStage = document.getElementById("i-stage");
   var iFeedbackInput = document.getElementById("i-feedback-input");
@@ -2651,6 +2749,7 @@ import {
       iTitle.value = idea.title;
       iBucket.value = idea.bucket;
       ideaOwnersCtrl.set(idea.owners || (idea.owner ? [idea.owner] : []));
+      ideaTasksCtrl.set(idea.tasks || []);
       iNotes.value = idea.notes || "";
       iStage.value = idea.stage;
       renderFeedbackLog(idea.feedback);
@@ -2669,6 +2768,7 @@ import {
       iBucket.value = buckets[0] ? buckets[0].key : "";
       iStage.value = "idea";
       ideaOwnersCtrl.set([]);
+      ideaTasksCtrl.set([]);
       renderFeedbackLog([]);
       currentIdeaImages = [];
       deleteIdeaBtn.hidden = true;
@@ -2710,6 +2810,7 @@ import {
       title: title,
       bucket: iBucket.value,
       owners: ideaOwnersCtrl.get(),
+      tasks: ideaTasksCtrl.get(),
       notes: iNotes.value,
       stage: iStage.value,
       images: currentIdeaImages.slice(),
