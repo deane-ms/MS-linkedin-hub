@@ -214,19 +214,6 @@
   .filter-active-dot { position: absolute; top: 0.1rem; right: 0.1rem; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--brand); }
   .icon-btn[aria-expanded="true"] { background: var(--brand-soft); color: var(--brand); border-color: var(--brand); }
 
-  /* ---------- bulk select/actions ---------- */
-  .bulk-bar {
-    display: flex; align-items: center; flex-wrap: wrap; gap: 0.6rem;
-    background: var(--surface); border: 1px solid var(--brand); border-radius: 10px;
-    padding: 0.6rem 0.9rem; margin-bottom: 1rem; box-shadow: var(--shadow-sm); font-size: 0.82rem;
-  }
-  .bulk-bar .spacer { flex: 1; }
-  .card-select-box {
-    position: absolute; top: 0.3rem; left: 0.3rem; z-index: 2; width: 1rem; height: 1rem; margin: 0;
-  }
-  .post-card, .idea-card { position: relative; }
-  .post-card.select-mode, .idea-card.select-mode { padding-left: 1.6rem; }
-
   /* ---------- legend ---------- */
   .legend {
     display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.1rem;
@@ -269,16 +256,6 @@
   .li-preview-images { display: grid; grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr)); gap: 0.4rem; margin-bottom: 0.7rem; }
   .li-preview-images img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 6px; }
   .li-preview-actions { display: flex; justify-content: space-between; padding-top: 0.6rem; border-top: 1px solid var(--border); font-size: 0.76rem; color: var(--text-soft); font-weight: 600; }
-  .templates-panel { margin-top: 0.5rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-alt); padding: 0.6rem; }
-  .templates-list { display: flex; flex-direction: column; gap: 0.3rem; max-height: 10rem; overflow-y: auto; margin-bottom: 0.6rem; }
-  .template-item { display: flex; align-items: center; gap: 0.5rem; }
-  .template-item .template-use { flex: 1; text-align: left; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 0.35rem 0.55rem; font-size: 0.78rem; cursor: pointer; color: var(--text); }
-  .template-item .template-use:hover { border-color: var(--brand); }
-  .template-item .template-delete { all: unset; cursor: pointer; color: var(--text-faint); font-size: 0.75rem; padding: 0.2rem; }
-  .template-item .template-delete:hover { color: var(--danger); }
-  .templates-empty { font-size: 0.78rem; color: var(--text-faint); margin: 0 0 0.6rem; }
-  .templates-save-row { display: flex; gap: 0.5rem; }
-  .templates-save-row input { flex: 1; }
   .goal-empty { font-size: 0.85rem; color: var(--text-faint); }
   .goal-stats { display: flex; gap: 2rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
   .goal-track { background: var(--surface-alt); border-radius: 999px; height: 0.9rem; overflow: hidden; }
@@ -713,9 +690,9 @@
       --bg: #ffffff; --surface: #ffffff; --surface-alt: #f8fafc; --border: #cbd5e1;
       --text: #000000; --text-soft: #333333; --text-faint: #666666; --shadow: none; --shadow-sm: none;
     }
-    .topbar-actions, .tabs, .view-toggle, #filterBar, #postBulkBar, #ideaBulkBar,
-    #calendarSelectToggleBtn, #filterToggleBtn, #printCalendarBtn, #manageBucketsBtn,
-    .upcoming-card, .auth-gate, #prevBtn, #nextBtn, #todayBtn, .quick-link-row, .card-select-box {
+    .topbar-actions, .tabs, .view-toggle, #filterBar,
+    #filterToggleBtn, #printCalendarBtn, #manageBucketsBtn,
+    .upcoming-card, .auth-gate, #prevBtn, #nextBtn, #todayBtn, .quick-link-row {
       display: none !important;
     }
     .app { max-width: 100%; padding: 0.5rem; }
@@ -792,30 +769,8 @@
           </svg>
           <span class="filter-active-dot" id="filterActiveDot" hidden></span>
         </button>
-        <button type="button" class="icon-btn" id="calendarSelectToggleBtn" aria-label="Select multiple posts" aria-expanded="false" title="Select multiple posts">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="9 11 12 14 22 4"></polyline>
-            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-          </svg>
-        </button>
         <button type="button" class="btn btn-ghost small" id="printCalendarBtn" title="Print this view">🖨 Print</button>
       </div>
-    </div>
-
-    <div class="bulk-bar" id="postBulkBar" hidden>
-      <span id="postBulkCount">0 selected</span>
-      <select id="postBulkStatusSelect">
-        <option value="">Set status...</option>
-        <option value="draft">Draft</option>
-        <option value="approved">Approved</option>
-        <option value="scheduled">Scheduled</option>
-      </select>
-      <button type="button" class="btn btn-ghost small" id="postBulkStatusApply">Apply</button>
-      <select id="postBulkBucketSelect"><option value="">Set bucket...</option></select>
-      <button type="button" class="btn btn-ghost small" id="postBulkBucketApply">Apply</button>
-      <div class="spacer"></div>
-      <button type="button" class="btn btn-danger small" id="postBulkDeleteBtn">Delete</button>
-      <button type="button" class="btn btn-ghost small" id="postBulkCancelBtn">Cancel</button>
     </div>
 
     <div class="filter-bar" id="filterBar" hidden>
@@ -852,20 +807,7 @@
   <section class="tab-panel" id="plannerView" hidden>
     <div class="toolbar">
       <p class="planner-sub">Drop in raw ideas, gather feedback, and iterate until they're ready to schedule.</p>
-      <div style="display:flex;gap:0.6rem;">
-        <button type="button" class="btn btn-ghost" id="ideaSelectToggleBtn" aria-expanded="false">Select</button>
-        <button type="button" class="btn btn-primary" id="newIdeaBtn">+ New Idea</button>
-      </div>
-    </div>
-    <div class="bulk-bar" id="ideaBulkBar" hidden>
-      <span id="ideaBulkCount">0 selected</span>
-      <select id="ideaBulkStageSelect">
-        <option value="">Set stage...</option>
-      </select>
-      <button type="button" class="btn btn-ghost small" id="ideaBulkStageApply">Apply</button>
-      <div class="spacer"></div>
-      <button type="button" class="btn btn-danger small" id="ideaBulkDeleteBtn">Delete</button>
-      <button type="button" class="btn btn-ghost small" id="ideaBulkCancelBtn">Cancel</button>
+      <button type="button" class="btn btn-primary" id="newIdeaBtn">+ New Idea</button>
     </div>
     <div class="kanban-board" id="kanbanBoard"></div>
   </section>
@@ -1127,13 +1069,6 @@
         <label for="f-copy">Post Copy / Draft Text</label>
         <div style="display:flex;align-items:center;gap:0.6rem;">
           <span class="char-counter" id="copyCharCount">0 / 3000</span>
-          <button type="button" class="icon-btn" id="templatesToggleBtn" aria-expanded="false" aria-controls="templatesPanel" aria-label="Post templates" title="Post templates">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M9 2h6a1 1 0 0 1 1 1v1h1a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1z"></path>
-              <line x1="8" y1="11" x2="16" y2="11"></line>
-              <line x1="8" y1="15" x2="16" y2="15"></line>
-            </svg>
-          </button>
           <button type="button" class="icon-btn" id="postPreviewToggleBtn" aria-expanded="false" aria-controls="postPreviewPanel" aria-label="Preview as LinkedIn post" title="Preview as LinkedIn post">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -1151,13 +1086,6 @@
         </div>
       </div>
       <textarea id="f-copy" placeholder="Write the LinkedIn post draft here..."></textarea>
-      <div class="templates-panel" id="templatesPanel" hidden>
-        <div class="templates-list" id="templatesList"></div>
-        <div class="templates-save-row">
-          <input type="text" id="newTemplateName" placeholder="Template name...">
-          <button type="button" class="btn btn-ghost small" id="saveTemplateBtn">Save current as template</button>
-        </div>
-      </div>
       <div class="li-preview" id="postPreviewPanel" hidden>
         <div class="li-preview-head">
           <span class="logo-mark">MS</span>
@@ -1309,12 +1237,16 @@
       <button class="icon-btn" id="goalModalClose" aria-label="Close">✕</button>
     </div>
     <p style="margin:0 0 0.8rem;font-size:0.82rem;color:var(--text-soft);">
-      A shared follower-growth target, shown as a progress card on this tab for anyone signed in.
+      A shared growth target for any metric, shown as a progress card on this tab for anyone signed in.
     </p>
     <form id="goalForm">
-      <label>Target followers
-        <input type="number" id="goal-target-followers" min="0" step="1" placeholder="e.g. 3000" required>
+      <label>Metric
+        <select id="goal-metric" required></select>
       </label>
+      <label>Target value
+        <input type="number" id="goal-target-value" min="0" step="any" placeholder="e.g. 3000" required>
+      </label>
+      <p id="goalMetricHint" style="margin:-0.3rem 0 0;font-size:0.76rem;color:var(--text-faint);"></p>
       <label>Target date
         <input type="date" id="goal-target-date" required>
       </label>
@@ -1415,7 +1347,6 @@ import {
   var analyticsDocRef = doc(db, "analytics", "current");
   var activityCol = collection(db, "activity");
   var quickLinkDocRef = doc(db, "settings", "quickLink");
-  var templatesCol = collection(db, "templates");
   var goalDocRef = doc(db, "settings", "goal");
   var activityQuery = query(activityCol, orderBy("at", "desc"), limit(50));
 
@@ -1490,8 +1421,7 @@ import {
   authSignOutBtn.addEventListener("click", doSignOut);
   topbarSignOutBtn.addEventListener("click", doSignOut);
 
-  var unsubPosts = null, unsubBuckets = null, unsubIdeas = null, unsubAnalytics = null, unsubActivity = null, unsubQuickLink = null, unsubTemplates = null, unsubGoal = null;
-  var templates = [];
+  var unsubPosts = null, unsubBuckets = null, unsubIdeas = null, unsubAnalytics = null, unsubActivity = null, unsubQuickLink = null, unsubGoal = null;
   var currentGoal = null;
   var ideasSeeded = false, postsSeeded = false;
   var activityLog = [];
@@ -1530,7 +1460,6 @@ import {
         .sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
       renderLegend();
       renderFilterBucketOptions();
-      renderPostBulkBucketOptions();
       render();
       renderKanbanBoard();
       if (bucketsBackdrop.classList.contains("open")) renderBucketsList();
@@ -1586,11 +1515,6 @@ import {
       renderQuickLink(snap.data());
     }, function (err) { console.error("quick link listener error", err); });
 
-    unsubTemplates = onSnapshot(templatesCol, function (snap) {
-      templates = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
-      renderTemplatesList();
-    }, function (err) { console.error("templates listener error", err); });
-
     unsubGoal = onSnapshot(goalDocRef, function (snap) {
       currentGoal = snap.exists() ? snap.data() : null;
       renderGoalCard();
@@ -1598,8 +1522,8 @@ import {
   }
 
   function stopListeners() {
-    [unsubPosts, unsubBuckets, unsubIdeas, unsubAnalytics, unsubActivity, unsubQuickLink, unsubTemplates, unsubGoal].forEach(function (fn) { if (fn) fn(); });
-    unsubPosts = unsubBuckets = unsubIdeas = unsubAnalytics = unsubActivity = unsubQuickLink = unsubTemplates = unsubGoal = null;
+    [unsubPosts, unsubBuckets, unsubIdeas, unsubAnalytics, unsubActivity, unsubQuickLink, unsubGoal].forEach(function (fn) { if (fn) fn(); });
+    unsubPosts = unsubBuckets = unsubIdeas = unsubAnalytics = unsubActivity = unsubQuickLink = unsubGoal = null;
   }
 
   onAuthStateChanged(auth, function (user) {
@@ -1666,91 +1590,8 @@ import {
   var filterBucket = "all";
   var filterStatus = "all";
 
-  // ---------- calendar: bulk select ----------
-  var calendarSelectMode = false;
-  var selectedPostIds = new Set();
-  var calendarSelectToggleBtn = document.getElementById("calendarSelectToggleBtn");
-  var postBulkBar = document.getElementById("postBulkBar");
-  var postBulkCount = document.getElementById("postBulkCount");
-  var postBulkStatusSelect = document.getElementById("postBulkStatusSelect");
-  var postBulkBucketSelect = document.getElementById("postBulkBucketSelect");
-  var postBulkDeleteBtn = document.getElementById("postBulkDeleteBtn");
-  var postBulkDeleteArmed = false;
-
-  function updatePostBulkBar() {
-    postBulkBar.hidden = selectedPostIds.size === 0;
-    postBulkCount.textContent = selectedPostIds.size + " selected";
-    postBulkDeleteArmed = false;
-    postBulkDeleteBtn.textContent = "Delete";
-  }
-
-  function renderPostBulkBucketOptions() {
-    postBulkBucketSelect.innerHTML = '<option value="">Set bucket...</option>' +
-      buckets.map(function (b) { return '<option value="' + b.key + '">' + escapeHtml(b.label) + '</option>'; }).join("");
-  }
-
   document.getElementById("printCalendarBtn").addEventListener("click", function () {
     window.print();
-  });
-
-  calendarSelectToggleBtn.addEventListener("click", function () {
-    calendarSelectMode = !calendarSelectMode;
-    calendarSelectToggleBtn.setAttribute("aria-expanded", calendarSelectMode ? "true" : "false");
-    if (!calendarSelectMode) { selectedPostIds.clear(); updatePostBulkBar(); }
-    render();
-  });
-
-  document.getElementById("postBulkCancelBtn").addEventListener("click", function () {
-    selectedPostIds.clear();
-    calendarSelectMode = false;
-    calendarSelectToggleBtn.setAttribute("aria-expanded", "false");
-    updatePostBulkBar();
-    render();
-  });
-
-  document.getElementById("postBulkStatusApply").addEventListener("click", function () {
-    var status = postBulkStatusSelect.value;
-    if (!status || !selectedPostIds.size) return;
-    var batch = writeBatch(db);
-    var count = selectedPostIds.size;
-    selectedPostIds.forEach(function (id) { batch.update(doc(postsCol, id), { status: status }); });
-    batch.commit().then(function () {
-      logActivity("post_updated", "Bulk-set status to " + status + " on " + count + " post(s)");
-      selectedPostIds.clear();
-      postBulkStatusSelect.value = "";
-      updatePostBulkBar();
-    }).catch(function (err) { alert("Couldn't update posts: " + err.message); });
-  });
-
-  document.getElementById("postBulkBucketApply").addEventListener("click", function () {
-    var bucket = postBulkBucketSelect.value;
-    if (!bucket || !selectedPostIds.size) return;
-    var batch = writeBatch(db);
-    var count = selectedPostIds.size;
-    selectedPostIds.forEach(function (id) { batch.update(doc(postsCol, id), { bucket: bucket }); });
-    batch.commit().then(function () {
-      logActivity("post_updated", "Bulk-set bucket on " + count + " post(s)");
-      selectedPostIds.clear();
-      postBulkBucketSelect.value = "";
-      updatePostBulkBar();
-    }).catch(function (err) { alert("Couldn't update posts: " + err.message); });
-  });
-
-  postBulkDeleteBtn.addEventListener("click", function () {
-    if (!selectedPostIds.size) return;
-    if (!postBulkDeleteArmed) {
-      postBulkDeleteArmed = true;
-      postBulkDeleteBtn.textContent = "Click again to confirm";
-      return;
-    }
-    var batch = writeBatch(db);
-    var count = selectedPostIds.size;
-    selectedPostIds.forEach(function (id) { batch.delete(doc(postsCol, id)); });
-    batch.commit().then(function () {
-      logActivity("post_deleted", "Bulk-deleted " + count + " post(s)");
-      selectedPostIds.clear();
-      updatePostBulkBar();
-    }).catch(function (err) { alert("Couldn't delete posts: " + err.message); });
   });
 
   function matchesFilters(post) {
@@ -2210,8 +2051,8 @@ import {
 
   function renderPostCard(post) {
     var btn = document.createElement("button");
-    btn.className = "post-card" + (calendarSelectMode ? " select-mode" : ""); btn.type = "button";
-    btn.draggable = !calendarSelectMode;
+    btn.className = "post-card"; btn.type = "button";
+    btn.draggable = true;
     btn.style.setProperty("--dot", bucketColorFor(post.bucket));
     var imgBadge = post.images && post.images.length ? '<span class="pc-img-badge">🖼️ ' + post.images.length + '</span>' : '';
     var postOwners = post.owners || (post.owner ? [post.owner] : []);
@@ -2224,33 +2065,8 @@ import {
       attentionBadge +
       postOwners.map(function (o) { return avatarHtml(o, "small"); }).join("") +
       '<span class="status-pill status-' + post.status + '">' + post.status + '</span></span>';
-
-    var checkbox = null;
-    if (calendarSelectMode) {
-      checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.className = "card-select-box";
-      checkbox.checked = selectedPostIds.has(post.id);
-      checkbox.addEventListener("click", function (e) { e.stopPropagation(); });
-      checkbox.addEventListener("change", function () {
-        if (checkbox.checked) selectedPostIds.add(post.id); else selectedPostIds.delete(post.id);
-        updatePostBulkBar();
-      });
-      btn.insertBefore(checkbox, btn.firstChild);
-    }
-
-    btn.addEventListener("click", function () {
-      if (calendarSelectMode) {
-        var nowSelected = !selectedPostIds.has(post.id);
-        if (nowSelected) selectedPostIds.add(post.id); else selectedPostIds.delete(post.id);
-        if (checkbox) checkbox.checked = nowSelected;
-        updatePostBulkBar();
-        return;
-      }
-      openModal(post.id);
-    });
+    btn.addEventListener("click", function () { openModal(post.id); });
     btn.addEventListener("dragstart", function (e) {
-      if (calendarSelectMode) { e.preventDefault(); return; }
       e.dataTransfer.setData("text/plain", post.id);
       e.dataTransfer.effectAllowed = "move";
     });
@@ -2353,58 +2169,6 @@ import {
   });
   fCopy.addEventListener("input", function () {
     if (!postPreviewPanel.hidden) renderPostPreview();
-  });
-
-  // ---------- post templates ----------
-  var templatesToggleBtn = document.getElementById("templatesToggleBtn");
-  var templatesPanel = document.getElementById("templatesPanel");
-  var templatesListEl = document.getElementById("templatesList");
-
-  function renderTemplatesList() {
-    templatesListEl.innerHTML = templates.length
-      ? templates.map(function (t) {
-          return '<div class="template-item"><button type="button" class="template-use" data-id="' + t.id + '">' + escapeHtml(t.name) + '</button>' +
-            '<button type="button" class="template-delete" data-id="' + t.id + '" aria-label="Delete template">✕</button></div>';
-        }).join("")
-      : '<p class="templates-empty">No templates saved yet.</p>';
-  }
-
-  templatesToggleBtn.addEventListener("click", function () {
-    var willOpen = templatesPanel.hidden;
-    templatesPanel.hidden = !willOpen;
-    templatesToggleBtn.setAttribute("aria-expanded", willOpen ? "true" : "false");
-  });
-
-  templatesListEl.addEventListener("click", function (e) {
-    var useBtn = e.target.closest(".template-use");
-    if (useBtn) {
-      var t = templates.find(function (x) { return x.id === useBtn.dataset.id; });
-      if (t) {
-        if (t.bucket) fBucket.value = t.bucket;
-        fCopy.value = t.copy || "";
-        updateCopyCharCount();
-        if (!postPreviewPanel.hidden) renderPostPreview();
-      }
-      return;
-    }
-    var delBtn = e.target.closest(".template-delete");
-    if (delBtn) {
-      deleteDoc(doc(templatesCol, delBtn.dataset.id)).catch(function (err) {
-        alert("Couldn't delete template: " + err.message);
-      });
-    }
-  });
-
-  document.getElementById("saveTemplateBtn").addEventListener("click", function () {
-    var nameInput = document.getElementById("newTemplateName");
-    var name = nameInput.value.trim();
-    if (!name) { nameInput.focus(); return; }
-    var templateId = "template-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
-    setDoc(doc(templatesCol, templateId), {
-      name: name, bucket: fBucket.value, copy: fCopy.value
-    }).then(function () {
-      nameInput.value = "";
-    }).catch(function (err) { alert("Couldn't save template: " + err.message); });
   });
 
   imagesInput.addEventListener("change", function (e) {
@@ -2551,8 +2315,6 @@ import {
     emojiToggleBtn.setAttribute("aria-expanded", "false");
     postPreviewPanel.hidden = true;
     postPreviewToggleBtn.setAttribute("aria-expanded", "false");
-    templatesPanel.hidden = true;
-    templatesToggleBtn.setAttribute("aria-expanded", "false");
     modalBackdrop.classList.add("open");
     modalBackdrop.setAttribute("aria-hidden", "false");
     setTimeout(function () { fTitle.focus(); }, 10);
@@ -2666,76 +2428,6 @@ import {
   var ideaImageGridEl = document.getElementById("ideaImageGrid");
   var notesLinksEl = document.getElementById("notesLinks");
 
-  // ---------- planner: bulk select ----------
-  var ideaSelectMode = false;
-  var selectedIdeaIds = new Set();
-  var ideaSelectToggleBtn = document.getElementById("ideaSelectToggleBtn");
-  var ideaBulkBar = document.getElementById("ideaBulkBar");
-  var ideaBulkCount = document.getElementById("ideaBulkCount");
-  var ideaBulkStageSelect = document.getElementById("ideaBulkStageSelect");
-  var ideaBulkDeleteBtn = document.getElementById("ideaBulkDeleteBtn");
-  var ideaBulkDeleteArmed = false;
-
-  ideaBulkStageSelect.innerHTML = '<option value="">Set stage...</option>' +
-    IDEA_STAGES.map(function (s) { return '<option value="' + s.key + '">' + s.label + '</option>'; }).join("");
-
-  function updateIdeaBulkBar() {
-    ideaBulkBar.hidden = selectedIdeaIds.size === 0;
-    ideaBulkCount.textContent = selectedIdeaIds.size + " selected";
-    ideaBulkDeleteArmed = false;
-    ideaBulkDeleteBtn.textContent = "Delete";
-  }
-
-  ideaSelectToggleBtn.addEventListener("click", function () {
-    ideaSelectMode = !ideaSelectMode;
-    ideaSelectToggleBtn.setAttribute("aria-expanded", ideaSelectMode ? "true" : "false");
-    if (!ideaSelectMode) { selectedIdeaIds.clear(); updateIdeaBulkBar(); }
-    renderKanbanBoard();
-  });
-
-  document.getElementById("ideaBulkCancelBtn").addEventListener("click", function () {
-    selectedIdeaIds.clear();
-    ideaSelectMode = false;
-    ideaSelectToggleBtn.setAttribute("aria-expanded", "false");
-    updateIdeaBulkBar();
-    renderKanbanBoard();
-  });
-
-  document.getElementById("ideaBulkStageApply").addEventListener("click", function () {
-    var stage = ideaBulkStageSelect.value;
-    if (!stage || !selectedIdeaIds.size) return;
-    var batch = writeBatch(db);
-    var count = selectedIdeaIds.size;
-    var nowIso = new Date().toISOString();
-    selectedIdeaIds.forEach(function (id) {
-      batch.update(doc(ideasCol, id), { stage: stage, stageChangedAt: nowIso });
-    });
-    batch.commit().then(function () {
-      var stageDef = ideaByKey(stage);
-      logActivity("idea_moved", "Bulk-moved " + count + " idea(s) to " + (stageDef ? stageDef.label : stage));
-      selectedIdeaIds.clear();
-      ideaBulkStageSelect.value = "";
-      updateIdeaBulkBar();
-    }).catch(function (err) { alert("Couldn't update ideas: " + err.message); });
-  });
-
-  ideaBulkDeleteBtn.addEventListener("click", function () {
-    if (!selectedIdeaIds.size) return;
-    if (!ideaBulkDeleteArmed) {
-      ideaBulkDeleteArmed = true;
-      ideaBulkDeleteBtn.textContent = "Click again to confirm";
-      return;
-    }
-    var batch = writeBatch(db);
-    var count = selectedIdeaIds.size;
-    selectedIdeaIds.forEach(function (id) { batch.delete(doc(ideasCol, id)); });
-    batch.commit().then(function () {
-      logActivity("idea_deleted", "Bulk-deleted " + count + " idea(s)");
-      selectedIdeaIds.clear();
-      updateIdeaBulkBar();
-    }).catch(function (err) { alert("Couldn't delete ideas: " + err.message); });
-  });
-
   function ideaByKey(key) { return IDEA_STAGES.find(function (s) { return s.key === key; }); }
 
   var STALE_IDEA_DAYS = 5;
@@ -2828,11 +2520,7 @@ import {
                 (imgs.length > 1 ? '<span class="ic-thumb-badge">+' + (imgs.length - 1) + '</span>' : '') +
                 '</span>' + titleBlock + '</span>'
               : titleBlock;
-            var checkboxHtml = ideaSelectMode
-              ? '<input type="checkbox" class="card-select-box" data-idea-checkbox="' + idea.id + '"' + (selectedIdeaIds.has(idea.id) ? " checked" : "") + '>'
-              : "";
-            return '<button type="button" class="idea-card' + (stale ? ' needs-attention' : '') + (ideaSelectMode ? ' select-mode' : '') + '" draggable="' + (!ideaSelectMode) + '" data-id="' + idea.id + '" style="--dot:' + bucketColorFor(idea.bucket) + '">' +
-              checkboxHtml +
+            return '<button type="button" class="idea-card' + (stale ? ' needs-attention' : '') + '" draggable="true" data-id="' + idea.id + '" style="--dot:' + bucketColorFor(idea.bucket) + '">' +
               headBlock +
               (idea.notes ? '<span class="ic-notes">' + escapeHtml(idea.notes) + '</span>' : '') +
               (latestFb ? '<span class="ic-feedback">💬 ' + escapeHtml(latestFb.text) + '</span>' : '') +
@@ -2849,31 +2537,10 @@ import {
     }).join("");
 
     board.querySelectorAll(".idea-card").forEach(function (btn) {
-      btn.addEventListener("click", function (e) {
-        if (ideaSelectMode) {
-          if (e.target.matches('input[type="checkbox"]')) return;
-          var id = btn.dataset.id;
-          var nowSelected = !selectedIdeaIds.has(id);
-          if (nowSelected) selectedIdeaIds.add(id); else selectedIdeaIds.delete(id);
-          var cb = btn.querySelector('input[type="checkbox"]');
-          if (cb) cb.checked = nowSelected;
-          updateIdeaBulkBar();
-          return;
-        }
-        openIdeaModal(btn.dataset.id);
-      });
+      btn.addEventListener("click", function () { openIdeaModal(btn.dataset.id); });
       btn.addEventListener("dragstart", function (e) {
-        if (ideaSelectMode) { e.preventDefault(); return; }
         e.dataTransfer.setData("text/plain", btn.dataset.id);
         e.dataTransfer.effectAllowed = "move";
-      });
-    });
-    board.querySelectorAll("input[data-idea-checkbox]").forEach(function (cb) {
-      cb.addEventListener("click", function (e) { e.stopPropagation(); });
-      cb.addEventListener("change", function () {
-        var id = cb.getAttribute("data-idea-checkbox");
-        if (cb.checked) selectedIdeaIds.add(id); else selectedIdeaIds.delete(id);
-        updateIdeaBulkBar();
       });
     });
     board.querySelectorAll(".ic-thumb").forEach(function (img) {
@@ -3610,17 +3277,17 @@ import {
 
   // ---------- analytics: metric-switchable trend chart ----------
   var METRIC_DEFS = {
-    followers: { label: "Followers", format: formatNumber, unit: "followers" },
-    impressions: { label: "Impressions", format: formatNumber, unit: "impressions" },
-    uniqueImpressions: { label: "Unique Impressions", format: formatNumber, unit: "unique impressions" },
-    pageViews: { label: "Page Views", format: formatNumber, unit: "page views" },
-    uniqueVisitors: { label: "Unique Visitors", format: formatNumber, unit: "unique visitors" },
-    clicks: { label: "Clicks", format: formatNumber, unit: "clicks" },
-    ctr: { label: "CTR", format: formatPercent, unit: "click-through rate" },
-    likes: { label: "Likes", format: formatNumber, unit: "likes" },
-    comments: { label: "Comments", format: formatNumber, unit: "comments" },
-    reposts: { label: "Reposts", format: formatNumber, unit: "reposts" },
-    engagementRate: { label: "Engagement Rate", format: formatPercent, unit: "engagement rate" }
+    followers: { label: "Followers", format: formatNumber, unit: "followers", kind: "stock" },
+    impressions: { label: "Impressions", format: formatNumber, unit: "impressions", kind: "flow" },
+    uniqueImpressions: { label: "Unique Impressions", format: formatNumber, unit: "unique impressions", kind: "flow" },
+    pageViews: { label: "Page Views", format: formatNumber, unit: "page views", kind: "flow" },
+    uniqueVisitors: { label: "Unique Visitors", format: formatNumber, unit: "unique visitors", kind: "flow" },
+    clicks: { label: "Clicks", format: formatNumber, unit: "clicks", kind: "flow" },
+    ctr: { label: "CTR", format: formatPercent, unit: "click-through rate", kind: "rate" },
+    likes: { label: "Likes", format: formatNumber, unit: "likes", kind: "flow" },
+    comments: { label: "Comments", format: formatNumber, unit: "comments", kind: "flow" },
+    reposts: { label: "Reposts", format: formatNumber, unit: "reposts", kind: "flow" },
+    engagementRate: { label: "Engagement Rate", format: formatPercent, unit: "engagement rate", kind: "rate" }
   };
   var currentMetric = "impressions";
 
@@ -4004,6 +3671,18 @@ import {
   });
 
   // ---------- analytics: growth goal ----------
+  // Normalizes the pre-migration goal shape ({targetFollowers, targetDate}) to the
+  // current one ({metric, targetValue, targetDate}) so an existing shared goal keeps
+  // working after this change, per the no-breakage rule for this app.
+  function normalizedGoal(goal) {
+    if (!goal) return null;
+    if (goal.metric && goal.targetValue !== undefined) return goal;
+    if (goal.targetFollowers !== undefined) {
+      return { metric: "followers", targetValue: goal.targetFollowers, targetDate: goal.targetDate };
+    }
+    return null;
+  }
+
   function getCurrentFollowerEstimate(state) {
     if (state.currentFollowers !== null && state.currentFollowers !== undefined) return state.currentFollowers;
     var days = state.days || [];
@@ -4018,41 +3697,75 @@ import {
     if (dayCount <= 0) return 0;
     return (recent[recent.length - 1].followers - recent[0].followers) / dayCount;
   }
+  function getGoalCurrentValue(state, metricKey) {
+    var days = state.days || [];
+    if (!days.length) return null;
+    if (metricKey === "followers") return getCurrentFollowerEstimate(state);
+    var def = METRIC_DEFS[metricKey];
+    if (!def) return null;
+    if (def.kind === "rate") {
+      var recentR = days.slice(-30);
+      var sumR = recentR.reduce(function (s, d) { return s + (d[metricKey] || 0); }, 0);
+      return recentR.length ? sumR / recentR.length : null;
+    }
+    return days.reduce(function (s, d) { return s + (d[metricKey] || 0); }, 0);
+  }
+  function getGoalDailyRate(state, metricKey) {
+    if (metricKey === "followers") return getRecentDailyGrowthRate(state);
+    var days = state.days || [];
+    var recent = days.slice(-30);
+    if (!recent.length) return 0;
+    var sum = recent.reduce(function (s, d) { return s + (d[metricKey] || 0); }, 0);
+    return sum / recent.length;
+  }
+
   function renderGoalCard() {
     var goalCard = document.getElementById("goalCard");
     var goalContent = document.getElementById("goalContent");
-    if (!currentGoal || !currentGoal.targetFollowers || !currentGoal.targetDate) {
+    var goal = normalizedGoal(currentGoal);
+    if (!goal || !goal.metric || !goal.targetValue || !goal.targetDate) {
       goalCard.hidden = true;
       return;
     }
+    var def = METRIC_DEFS[goal.metric];
+    if (!def) { goalCard.hidden = true; return; }
     goalCard.hidden = false;
+    goalCard.querySelector(".chart-head h3").textContent = def.label + " Goal";
+
     var state = loadAnalytics();
-    var current = getCurrentFollowerEstimate(state);
+    var current = getGoalCurrentValue(state, goal.metric);
     if (current === null) {
-      goalContent.innerHTML = '<p class="goal-empty">Not enough follower data yet to track progress toward this goal.</p>';
+      goalContent.innerHTML = '<p class="goal-empty">Not enough data yet to track progress toward this goal.</p>';
       return;
     }
-    var target = currentGoal.targetFollowers;
+    var target = goal.targetValue;
     var pct = target > 0 ? Math.max(0, Math.min(100, (current / target) * 100)) : 0;
     var today = new Date(); today.setHours(0, 0, 0, 0);
-    var targetDate = new Date(currentGoal.targetDate + "T00:00:00");
+    var targetDate = new Date(goal.targetDate + "T00:00:00");
     var daysLeft = Math.round((targetDate - today) / 86400000);
-    var dailyRate = getRecentDailyGrowthRate(state);
-    var neededDaily = daysLeft > 0 ? (target - current) / daysLeft : (current >= target ? 0 : Infinity);
-    var onTrack = current >= target || (daysLeft > 0 && dailyRate >= neededDaily);
 
-    var paceHtml = current >= target
-      ? '<div class="goal-pace good">🎉 Goal reached!</div>'
-      : daysLeft <= 0
-        ? '<div class="goal-pace bad">Target date has passed and the goal wasn\'t reached.</div>'
-        : '<div class="goal-pace ' + (onTrack ? "good" : "bad") + '">' + (onTrack ? "✓ On track" : "⚠ Behind pace") +
-          ' — need ~' + Math.ceil(neededDaily) + '/day, currently gaining ~' + Math.round(dailyRate) + '/day</div>';
+    var paceHtml;
+    if (def.kind === "rate") {
+      paceHtml = current >= target
+        ? '<div class="goal-pace good">🎉 Target reached!</div>'
+        : '<div class="goal-pace bad">Currently ' + def.format(current) + ' vs a target of ' + def.format(target) + '.</div>';
+    } else {
+      var dailyRate = getGoalDailyRate(state, goal.metric);
+      var neededDaily = daysLeft > 0 ? (target - current) / daysLeft : (current >= target ? 0 : Infinity);
+      var onTrack = current >= target || (daysLeft > 0 && dailyRate >= neededDaily);
+      paceHtml = current >= target
+        ? '<div class="goal-pace good">🎉 Goal reached!</div>'
+        : daysLeft <= 0
+          ? '<div class="goal-pace bad">Target date has passed and the goal wasn\'t reached.</div>'
+          : '<div class="goal-pace ' + (onTrack ? "good" : "bad") + '">' + (onTrack ? "✓ On track" : "⚠ Behind pace") +
+            ' — need ~' + def.format(neededDaily) + '/day, currently at ~' + def.format(dailyRate) + '/day</div>';
+    }
 
     goalContent.innerHTML =
       '<div class="goal-stats">' +
-      '<div class="mini-stat"><span class="mini-stat-label">Current</span><span class="mini-stat-value">' + formatNumber(current) + '</span></div>' +
-      '<div class="mini-stat"><span class="mini-stat-label">Target</span><span class="mini-stat-value">' + formatNumber(target) + '</span></div>' +
-      '<div class="mini-stat"><span class="mini-stat-label">Target date</span><span class="mini-stat-value">' + formatDateShort(currentGoal.targetDate) + '</span></div>' +
+      '<div class="mini-stat"><span class="mini-stat-label">Current</span><span class="mini-stat-value">' + def.format(current) + '</span></div>' +
+      '<div class="mini-stat"><span class="mini-stat-label">Target</span><span class="mini-stat-value">' + def.format(target) + '</span></div>' +
+      '<div class="mini-stat"><span class="mini-stat-label">Target date</span><span class="mini-stat-value">' + formatDateShort(goal.targetDate) + '</span></div>' +
       '<div class="mini-stat"><span class="mini-stat-label">Days left</span><span class="mini-stat-value">' + Math.max(0, daysLeft) + '</span></div>' +
       '</div>' +
       '<div class="goal-track"><div class="goal-fill" style="width:' + pct.toFixed(1) + '%"></div></div>' +
@@ -4061,14 +3774,37 @@ import {
 
   var goalBackdrop = document.getElementById("goalBackdrop");
   var goalLastFocused = null;
+  var goalMetricSelect = document.getElementById("goal-metric");
+  var goalTargetValueInput = document.getElementById("goal-target-value");
+  var goalMetricHint = document.getElementById("goalMetricHint");
+  goalMetricSelect.innerHTML = Object.keys(METRIC_DEFS).map(function (key) {
+    return '<option value="' + key + '">' + METRIC_DEFS[key].label + '</option>';
+  }).join("");
+  function updateGoalMetricHint() {
+    var def = METRIC_DEFS[goalMetricSelect.value];
+    if (!def) { goalMetricHint.textContent = ""; return; }
+    goalMetricHint.textContent = def.kind === "rate"
+      ? "Enter as a percentage, e.g. 3.5 for 3.5% " + def.unit + "."
+      : def.kind === "stock"
+        ? "Total " + def.unit + " to reach by the target date."
+        : "Cumulative " + def.unit + " to reach by the target date (summed across all days).";
+  }
+  goalMetricSelect.addEventListener("change", updateGoalMetricHint);
+
   function closeGoalModal() {
     goalBackdrop.classList.remove("open");
     if (goalLastFocused && typeof goalLastFocused.focus === "function") goalLastFocused.focus();
   }
   document.getElementById("editGoalBtn").addEventListener("click", function () {
     goalLastFocused = document.activeElement;
-    document.getElementById("goal-target-followers").value = currentGoal && currentGoal.targetFollowers ? currentGoal.targetFollowers : "";
-    document.getElementById("goal-target-date").value = currentGoal && currentGoal.targetDate ? currentGoal.targetDate : "";
+    var goal = normalizedGoal(currentGoal);
+    var metric = goal ? goal.metric : "followers";
+    goalMetricSelect.value = metric;
+    var def = METRIC_DEFS[metric];
+    var rawValue = goal ? goal.targetValue : "";
+    goalTargetValueInput.value = rawValue === "" ? "" : (def && def.kind === "rate" ? (rawValue * 100) : rawValue);
+    document.getElementById("goal-target-date").value = goal ? goal.targetDate : "";
+    updateGoalMetricHint();
     goalBackdrop.classList.add("open");
     goalBackdrop.setAttribute("aria-hidden", "false");
   });
@@ -4076,10 +3812,13 @@ import {
   document.getElementById("goalCancelBtn").addEventListener("click", closeGoalModal);
   document.getElementById("goalForm").addEventListener("submit", function (e) {
     e.preventDefault();
-    var target = parseInt(document.getElementById("goal-target-followers").value, 10);
+    var metric = goalMetricSelect.value;
+    var def = METRIC_DEFS[metric];
+    var rawInput = parseFloat(goalTargetValueInput.value);
     var date = document.getElementById("goal-target-date").value;
-    if (!target || !date) return;
-    setDoc(goalDocRef, { targetFollowers: target, targetDate: date }).then(function () {
+    if (!metric || isNaN(rawInput) || !rawInput || !date) return;
+    var targetValue = def && def.kind === "rate" ? rawInput / 100 : rawInput;
+    setDoc(goalDocRef, { metric: metric, targetValue: targetValue, targetDate: date }).then(function () {
       closeGoalModal();
     }).catch(function (err) { alert("Couldn't save goal: " + err.message); });
   });
