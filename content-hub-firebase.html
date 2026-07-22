@@ -573,6 +573,7 @@
 
   #postForm, #ideaForm { display: flex; flex-direction: column; gap: 0.9rem; }
   #postForm label, #ideaForm label { display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.78rem; font-weight: 600; color: var(--text-soft); }
+  #postForm .field-col, #ideaForm .field-col { display: flex; flex-direction: column; gap: 0.35rem; }
   .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
   input, select, textarea {
     border: 1px solid var(--border); border-radius: 8px; padding: 0.55rem 0.65rem;
@@ -1068,7 +1069,7 @@
         <label>Content Bucket
           <select id="i-bucket" required></select>
         </label>
-        <div>
+        <div class="field-col">
           <label for="i-owner-input">Owners</label>
           <div class="owner-input-row">
             <input type="text" id="i-owner-input" placeholder="Add an owner..." list="ownerNamesList">
