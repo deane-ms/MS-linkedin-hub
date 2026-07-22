@@ -476,6 +476,9 @@
 
   /* ---------- chart cards ---------- */
   .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem 1.2rem 0.9rem; margin-bottom: 1rem; box-shadow: var(--shadow-sm); }
+  .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: start; margin-bottom: 1rem; }
+  .chart-row .chart-card { margin-bottom: 0; }
+  @media (max-width: 980px) { .chart-row { grid-template-columns: 1fr; } }
   .chart-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.6rem; }
   .chart-head h3 { margin: 0; font-size: 1.1rem; font-weight: 700; }
   .chart-body { position: relative; }
@@ -755,27 +758,29 @@
 
     <div class="kpi-row" id="kpiRow"></div>
 
-    <div class="chart-card">
-      <div class="chart-head"><h3>Trend — <span id="trendMetricLabel">Impressions</span></h3></div>
-      <div class="metric-chips" id="metricChips" role="tablist" aria-label="Trend metric">
-        <button class="metric-chip" data-metric="followers" role="tab" aria-selected="false">Followers</button>
-        <button class="metric-chip active" data-metric="impressions" role="tab" aria-selected="true">Impressions</button>
-        <button class="metric-chip" data-metric="uniqueImpressions" role="tab" aria-selected="false">Unique Impr.</button>
-        <button class="metric-chip" data-metric="pageViews" role="tab" aria-selected="false">Page Views</button>
-        <button class="metric-chip" data-metric="uniqueVisitors" role="tab" aria-selected="false">Unique Visitors</button>
-        <button class="metric-chip" data-metric="clicks" role="tab" aria-selected="false">Clicks</button>
-        <button class="metric-chip" data-metric="ctr" role="tab" aria-selected="false">CTR</button>
-        <button class="metric-chip" data-metric="likes" role="tab" aria-selected="false">Likes</button>
-        <button class="metric-chip" data-metric="comments" role="tab" aria-selected="false">Comments</button>
-        <button class="metric-chip" data-metric="reposts" role="tab" aria-selected="false">Reposts</button>
-        <button class="metric-chip" data-metric="engagementRate" role="tab" aria-selected="false">Engagement Rate</button>
+    <div class="chart-row">
+      <div class="chart-card">
+        <div class="chart-head"><h3>Trend — <span id="trendMetricLabel">Impressions</span></h3></div>
+        <div class="metric-chips" id="metricChips" role="tablist" aria-label="Trend metric">
+          <button class="metric-chip" data-metric="followers" role="tab" aria-selected="false">Followers</button>
+          <button class="metric-chip active" data-metric="impressions" role="tab" aria-selected="true">Impressions</button>
+          <button class="metric-chip" data-metric="uniqueImpressions" role="tab" aria-selected="false">Unique Impr.</button>
+          <button class="metric-chip" data-metric="pageViews" role="tab" aria-selected="false">Page Views</button>
+          <button class="metric-chip" data-metric="uniqueVisitors" role="tab" aria-selected="false">Unique Visitors</button>
+          <button class="metric-chip" data-metric="clicks" role="tab" aria-selected="false">Clicks</button>
+          <button class="metric-chip" data-metric="ctr" role="tab" aria-selected="false">CTR</button>
+          <button class="metric-chip" data-metric="likes" role="tab" aria-selected="false">Likes</button>
+          <button class="metric-chip" data-metric="comments" role="tab" aria-selected="false">Comments</button>
+          <button class="metric-chip" data-metric="reposts" role="tab" aria-selected="false">Reposts</button>
+          <button class="metric-chip" data-metric="engagementRate" role="tab" aria-selected="false">Engagement Rate</button>
+        </div>
+        <div class="chart-body" id="trendChart"></div>
       </div>
-      <div class="chart-body" id="trendChart"></div>
-    </div>
 
-    <div class="chart-card">
-      <div class="chart-head"><h3>Engagement breakdown — <span id="engagementWeekLabel"></span></h3></div>
-      <div class="chart-body" id="engagementChart"></div>
+      <div class="chart-card">
+        <div class="chart-head"><h3>Engagement breakdown — <span id="engagementWeekLabel"></span></h3></div>
+        <div class="chart-body" id="engagementChart"></div>
+      </div>
     </div>
 
     <div class="chart-card">
