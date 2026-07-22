@@ -4,7 +4,7 @@ A shared LinkedIn content calendar, planner, and analytics dashboard for MediaSh
 Runs entirely as a single client-side HTML file (no build step), backed by Firebase
 (Firestore + Authentication) so the whole team can edit it together with live updates.
 
-**Live:** https://deane-ms.github.io/mediashock-linkedin-hub/
+**Live:** https://deane-ms.github.io/MS-linkedin-hub/
 
 ## Access
 
