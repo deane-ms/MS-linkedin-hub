@@ -208,6 +208,8 @@
   /* ---------- filter bar ---------- */
   .filter-bar { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 1rem; }
   .filter-bar input[type="search"] { flex: 1; min-width: 12rem; }
+  .icon-btn.has-badge { position: relative; }
+  .filter-active-dot { position: absolute; top: 0.1rem; right: 0.1rem; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--brand); }
 
   /* ---------- legend ---------- */
   .legend {
@@ -231,6 +233,12 @@
   /* ---------- emoji picker ---------- */
   .field-with-action { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem; }
   .field-with-action label { font-size: 0.78rem; font-weight: 600; color: var(--text-soft); }
+  .avatar-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 1.5rem; height: 1.5rem; border-radius: 50%; flex-shrink: 0;
+    color: #fff; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.01em;
+  }
+  .avatar-icon.small { width: 1.2rem; height: 1.2rem; font-size: 0.54rem; }
   .char-counter { font-size: 0.72rem; color: var(--text-faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .char-counter.warn { color: #b45309; }
   .char-counter.over { color: var(--danger); font-weight: 700; }
@@ -289,7 +297,7 @@
 
   /* ---------- upcoming posts ---------- */
   .upcoming-card { margin-top: 1.4rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem 1.3rem 1.3rem; box-shadow: var(--shadow-sm); }
-  .upcoming-title { font-size: 0.95rem; font-weight: 700; margin: 0 0 0.8rem; }
+  .upcoming-title { font-size: 1.1rem; font-weight: 700; margin: 0 0 0.8rem; }
   .upcoming-list { display: flex; flex-direction: column; gap: 0.4rem; }
   .upcoming-item {
     all: unset; cursor: pointer; display: flex; align-items: center; gap: 0.7rem;
@@ -468,7 +476,7 @@
   /* ---------- chart cards ---------- */
   .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem 1.2rem 0.9rem; margin-bottom: 1rem; box-shadow: var(--shadow-sm); }
   .chart-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.6rem; }
-  .chart-head h3 { margin: 0; font-size: 0.92rem; font-weight: 700; }
+  .chart-head h3 { margin: 0; font-size: 1.1rem; font-weight: 700; }
   .chart-body { position: relative; }
   .chart-body svg { display: block; width: 100%; height: auto; overflow: visible; }
   .chart-gridline { stroke: var(--border); stroke-width: 0.75; }
@@ -662,10 +670,13 @@
         <button class="btn btn-ghost small" id="todayBtn">Today</button>
         <button class="icon-btn" id="nextBtn" aria-label="Next">›</button>
         <h2 id="periodLabel"></h2>
+        <button type="button" class="icon-btn has-badge" id="filterToggleBtn" aria-label="Search and filter posts" aria-expanded="false" title="Search and filter posts">
+          🔍<span class="filter-active-dot" id="filterActiveDot" hidden></span>
+        </button>
       </div>
     </div>
 
-    <div class="filter-bar">
+    <div class="filter-bar" id="filterBar" hidden>
       <input type="search" id="postSearchInput" placeholder="Search posts by title or copy...">
       <select id="filterBucketSelect"><option value="all">All buckets</option></select>
       <select id="filterStatusSelect">
@@ -926,6 +937,9 @@
           </select>
         </label>
       </div>
+      <label>Owner (optional)
+        <input type="text" id="f-owner" placeholder="Who's this assigned to?">
+      </label>
       <div class="field-row">
         <label>Scheduled Date
           <input type="date" id="f-date" required>
@@ -1465,6 +1479,25 @@ import {
     return h12 + ":" + m + suffix;
   }
 
+  // ---------- user avatars (initials, from an owner name) ----------
+  var AVATAR_PALETTE = ["#6366f1", "#2563eb", "#0891b2", "#475569", "#b45309", "#7c3aed", "#059669", "#dc2626", "#0d9488", "#c026d3", "#65a30d", "#ea580c"];
+  function getInitials(name) {
+    var parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return "";
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+  function avatarColorFor(name) {
+    var str = String(name || "");
+    var hash = 0;
+    for (var i = 0; i < str.length; i++) { hash = (hash * 31 + str.charCodeAt(i)) >>> 0; }
+    return AVATAR_PALETTE[hash % AVATAR_PALETTE.length];
+  }
+  function avatarHtml(name, sizeClass) {
+    if (!name) return "";
+    return '<span class="avatar-icon' + (sizeClass ? " " + sizeClass : "") + '" style="background:' + avatarColorFor(name) + '" title="' + escapeHtml(name) + '">' + escapeHtml(getInitials(name)) + '</span>';
+  }
+
   // ---------- calendar: rendering ----------
   var weekdayRow = document.getElementById("weekdayRow");
   var calendarRoot = document.getElementById("calendarRoot");
@@ -1473,22 +1506,40 @@ import {
   var filterBucketSelect = document.getElementById("filterBucketSelect");
   var filterStatusSelect = document.getElementById("filterStatusSelect");
   var clearFiltersBtn = document.getElementById("clearFiltersBtn");
+  var filterToggleBtn = document.getElementById("filterToggleBtn");
+  var filterBar = document.getElementById("filterBar");
+  var filterActiveDot = document.getElementById("filterActiveDot");
+
+  function updateFilterActiveDot() {
+    filterActiveDot.hidden = !(filterSearch || filterBucket !== "all" || filterStatus !== "all");
+  }
+
+  filterToggleBtn.addEventListener("click", function () {
+    var willOpen = filterBar.hidden;
+    filterBar.hidden = !willOpen;
+    filterToggleBtn.setAttribute("aria-expanded", willOpen ? "true" : "false");
+    if (willOpen) postSearchInput.focus();
+  });
 
   postSearchInput.addEventListener("input", function () {
     filterSearch = postSearchInput.value.trim().toLowerCase();
+    updateFilterActiveDot();
     render();
   });
   filterBucketSelect.addEventListener("change", function () {
     filterBucket = filterBucketSelect.value;
+    updateFilterActiveDot();
     render();
   });
   filterStatusSelect.addEventListener("change", function () {
     filterStatus = filterStatusSelect.value;
+    updateFilterActiveDot();
     render();
   });
   clearFiltersBtn.addEventListener("click", function () {
     filterSearch = ""; filterBucket = "all"; filterStatus = "all";
     postSearchInput.value = ""; filterBucketSelect.value = "all"; filterStatusSelect.value = "all";
+    updateFilterActiveDot();
     render();
   });
 
@@ -1669,6 +1720,7 @@ import {
       '<span class="pc-title">' + escapeHtml(post.title) + '</span>' +
       '<span class="pc-meta"><span class="pc-time">' + formatTime12(post.time) + '</span>' +
       imgBadge +
+      avatarHtml(post.owner, "small") +
       '<span class="status-pill status-' + post.status + '">' + post.status + '</span></span>';
     btn.addEventListener("click", function () { openModal(post.id); });
     btn.addEventListener("dragstart", function (e) {
@@ -1685,6 +1737,7 @@ import {
   var fTitle = document.getElementById("f-title");
   var fBucket = document.getElementById("f-bucket");
   var fStatus = document.getElementById("f-status");
+  var fOwner = document.getElementById("f-owner");
   var fDate = document.getElementById("f-date");
   var fTime = document.getElementById("f-time");
   var fCopy = document.getElementById("f-copy");
@@ -1859,6 +1912,7 @@ import {
       fTitle.value = post.title;
       fBucket.value = post.bucket;
       fStatus.value = post.status;
+      fOwner.value = post.owner || "";
       fDate.value = post.date;
       fTime.value = post.time;
       fCopy.value = post.copy;
@@ -1880,6 +1934,7 @@ import {
       if (prefillData) {
         fTitle.value = prefillData.title || "";
         fCopy.value = prefillData.copy || "";
+        fOwner.value = prefillData.owner || "";
       }
       currentImages = [];
       deleteBtn.hidden = true;
@@ -1943,6 +1998,7 @@ import {
       title: title,
       bucket: fBucket.value,
       status: fStatus.value,
+      owner: fOwner.value.trim(),
       date: date,
       time: fTime.value || "09:00",
       copy: fCopy.value,
@@ -2273,7 +2329,7 @@ import {
     if (!idea) return;
     closeIdeaModal();
     document.querySelector('.tab-btn[data-tab="calendar"]').click();
-    openModal(null, null, { title: idea.title, bucket: idea.bucket, copy: idea.notes });
+    openModal(null, null, { title: idea.title, bucket: idea.bucket, copy: idea.notes, owner: idea.owner });
   });
 
   iStage.addEventListener("change", function () {
