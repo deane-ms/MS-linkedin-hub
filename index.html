@@ -556,8 +556,17 @@
   .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
   input, select, textarea {
     border: 1px solid var(--border); border-radius: 8px; padding: 0.55rem 0.65rem;
-    background: var(--surface-alt); color: var(--text); font-weight: 500;
+    background: var(--surface-alt); color: var(--text); font-weight: 400; font-size: 0.85rem;
   }
+  /* the native date/time picker icon renders dark-on-dark and disappears -- flip it visible */
+  @media (prefers-color-scheme: dark) {
+    input[type="date"]::-webkit-calendar-picker-indicator,
+    input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1); }
+  }
+  :root[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
+  :root[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1); }
+  :root[data-theme="light"] input[type="date"]::-webkit-calendar-picker-indicator,
+  :root[data-theme="light"] input[type="time"]::-webkit-calendar-picker-indicator { filter: none; }
   input:focus, select:focus, textarea:focus { outline: 2px solid var(--brand); outline-offset: 1px; background: var(--surface); }
   textarea { resize: vertical; min-height: 6.5rem; line-height: 1.45; }
   #i-notes { min-height: 9.5rem; }
