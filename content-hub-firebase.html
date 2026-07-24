@@ -246,7 +246,7 @@
   .char-counter { font-size: 0.72rem; color: var(--text-faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .char-counter.warn { color: #b45309; }
   .char-counter.over { color: var(--danger); font-weight: 700; }
-  .last-edited-note { margin: -0.3rem 0 0; font-size: 0.72rem; color: var(--text-faint); }
+  .last-edited-note { margin: -0.7rem 0 0.9rem; font-size: 0.72rem; color: var(--text-faint); }
   .li-preview { border: 1px solid var(--border); border-radius: 10px; background: var(--surface); padding: 0.9rem 1rem; }
   .li-preview-head { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.6rem; }
   .li-preview-head .logo-mark { width: 2.2rem; height: 2.2rem; font-size: 0.8rem; }
@@ -333,10 +333,19 @@
     display: inline-flex; align-items: center; justify-content: center;
     color: var(--text-faint); flex-shrink: 0; line-height: 1;
   }
+  .pc-asset-folder {
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--text-soft); flex-shrink: 0; line-height: 1; cursor: pointer;
+  }
+  .pc-asset-folder:hover { color: var(--brand); }
 
   /* ---------- upcoming posts ---------- */
   .upcoming-card { margin-top: 1.4rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem 1.3rem 1.3rem; box-shadow: var(--shadow-sm); }
   .upcoming-title { font-size: 1.1rem; font-weight: 700; margin: 0 0 0.8rem; }
+  .upcoming-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.4rem; }
+  .upcoming-col { min-width: 0; }
+  .upcoming-col + .upcoming-col { border-left: 1px solid var(--border); margin-left: -1.4rem; padding-left: 1.4rem; }
+  .upcoming-col-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-faint); margin: 0 0 0.5rem; }
   .upcoming-list { display: flex; flex-direction: column; gap: 0.4rem; }
   .upcoming-item {
     all: unset; cursor: pointer; display: flex; align-items: center; gap: 0.7rem;
@@ -369,6 +378,15 @@
   .status-draft { color: var(--s-draft-fg); background: var(--s-draft-bg); border-color: var(--s-draft-line); }
   .status-approved { color: var(--s-approved-fg); background: var(--s-approved-bg); border-color: var(--s-approved-line); }
   .status-scheduled { color: var(--s-scheduled-fg); background: var(--brand-gradient); border-color: var(--s-scheduled-line); }
+
+  /* Status field styled to match the pill badges shown on calendar cards */
+  select.status-select {
+    border-radius: 999px; font-weight: 700; text-transform: uppercase;
+    font-size: 0.72rem; letter-spacing: 0.03em; text-align: center; text-align-last: center;
+  }
+  select.status-select.status-draft { color: var(--s-draft-fg); background-color: var(--s-draft-bg); border-color: var(--s-draft-line); }
+  select.status-select.status-approved { color: var(--s-approved-fg); background-color: var(--s-approved-bg); border-color: var(--s-approved-line); }
+  select.status-select.status-scheduled { color: var(--s-scheduled-fg); background-color: var(--s-scheduled-bg); border-color: var(--s-scheduled-line); }
 
   /* ---------- top-level tabs ---------- */
   .tabs { display: flex; gap: 0.4rem; margin-bottom: 1.1rem; border-bottom: 1px solid var(--border); }
@@ -599,6 +617,8 @@
   @media (max-width: 720px) {
     .kpi-row { grid-template-columns: repeat(2, 1fr); }
     .kanban-board { grid-template-columns: 1fr; }
+    .upcoming-columns { grid-template-columns: 1fr; gap: 1.1rem 0; }
+    .upcoming-col + .upcoming-col { border-left: none; margin-left: 0; padding-left: 0; border-top: 1px solid var(--border); padding-top: 1.1rem; }
   }
 
   /* ---------- modal ---------- */
@@ -848,7 +868,16 @@
 
     <div class="upcoming-card">
       <h3 class="upcoming-title">Upcoming posts</h3>
-      <div id="upcomingList" class="upcoming-list"></div>
+      <div class="upcoming-columns">
+        <div class="upcoming-col">
+          <h4 class="upcoming-col-title">Scheduled</h4>
+          <div id="upcomingScheduledList" class="upcoming-list"></div>
+        </div>
+        <div class="upcoming-col">
+          <h4 class="upcoming-col-title">Drafts</h4>
+          <div id="upcomingDraftList" class="upcoming-list"></div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1093,7 +1122,7 @@
             <select id="f-bucket" required></select>
           </label>
           <label>Status
-            <select id="f-status">
+            <select id="f-status" class="status-select">
               <option value="draft">Draft</option>
               <option value="approved">Approved</option>
               <option value="scheduled">Scheduled</option>
@@ -1118,15 +1147,6 @@
             <button type="button" class="btn btn-ghost small" id="addPostOwnerBtn">Add</button>
           </div>
           <div class="owner-chip-list" id="postOwnerChips"></div>
-        </div>
-        <div class="field-col">
-          <label>Tasks</label>
-          <div class="task-list" id="postTaskList"></div>
-          <div class="task-add-row">
-            <input type="text" id="f-task-input" placeholder="Add a task...">
-            <select id="f-task-assignee"><option value="">Assign to...</option></select>
-            <button type="button" class="btn btn-ghost small" id="addPostTaskBtn">Add</button>
-          </div>
         </div>
       </div>
 
@@ -1192,6 +1212,11 @@
           </div>
           <div class="image-link-grid" id="postImageGrid"></div>
         </div>
+        <div class="field-col">
+          <label for="f-asset-folder">Asset Folder (optional — a Google Drive folder link where the creative uploads final images/files)</label>
+          <input type="url" id="f-asset-folder" placeholder="https://drive.google.com/drive/folders/...">
+          <div class="notes-links" id="postAssetFolderLink"></div>
+        </div>
       </div>
 
       <div class="modal-actions">
@@ -1227,18 +1252,6 @@
               <button type="button" class="btn btn-ghost small" id="addIdeaOwnerBtn">Add</button>
             </div>
             <div class="owner-chip-list" id="ideaOwnerChips"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <div class="field-col">
-          <label>Tasks</label>
-          <div class="task-list" id="ideaTaskList"></div>
-          <div class="task-add-row">
-            <input type="text" id="i-task-input" placeholder="Add a task...">
-            <select id="i-task-assignee"><option value="">Assign to...</option></select>
-            <button type="button" class="btn btn-ghost small" id="addIdeaTaskBtn">Add</button>
           </div>
         </div>
       </div>
@@ -2057,20 +2070,12 @@ import {
     renderUpcomingPosts();
   }
 
-  function renderUpcomingPosts() {
-    var el = document.getElementById("upcomingList");
-    var todayKey = dateKey(new Date());
-    var upcoming = posts
-      .filter(function (p) { return p.date >= todayKey && matchesFilters(p); })
-      .sort(function (a, b) { return (a.date + a.time).localeCompare(b.date + b.time); })
-      .slice(0, 10);
-
-    if (!upcoming.length) {
-      el.innerHTML = '<p class="upcoming-empty">No upcoming posts scheduled.</p>';
+  function renderUpcomingList(el, items, emptyText) {
+    if (!items.length) {
+      el.innerHTML = '<p class="upcoming-empty">' + emptyText + '</p>';
       return;
     }
-
-    el.innerHTML = upcoming.map(function (p) {
+    el.innerHTML = items.map(function (p) {
       return '<button type="button" class="upcoming-item" data-id="' + p.id + '">' +
         '<span class="upcoming-dot" style="background:' + bucketColorFor(p.bucket) + '"></span>' +
         '<span class="upcoming-date">' + formatDateShort(p.date) + ' · ' + formatTime12(p.time) + '</span>' +
@@ -2078,10 +2083,22 @@ import {
         '<span class="status-pill status-' + p.status + '">' + p.status + '</span>' +
         '</button>';
     }).join("");
-
     el.querySelectorAll(".upcoming-item").forEach(function (btn) {
       btn.addEventListener("click", function () { openModal(btn.dataset.id); });
     });
+  }
+
+  function renderUpcomingPosts() {
+    var todayKey = dateKey(new Date());
+    var upcoming = posts
+      .filter(function (p) { return p.date >= todayKey && matchesFilters(p); })
+      .sort(function (a, b) { return (a.date + a.time).localeCompare(b.date + b.time); });
+
+    var scheduled = upcoming.filter(function (p) { return p.status !== "draft"; }).slice(0, 8);
+    var drafts = upcoming.filter(function (p) { return p.status === "draft"; }).slice(0, 8);
+
+    renderUpcomingList(document.getElementById("upcomingScheduledList"), scheduled, "Nothing scheduled or approved yet.");
+    renderUpcomingList(document.getElementById("upcomingDraftList"), drafts, "No drafts waiting.");
   }
 
   function renderWeekdayRow() {
@@ -2247,6 +2264,12 @@ import {
         '<path d="M21 15l-5-5L5 21"></path>' +
         '</svg></span>'
       : '';
+    var assetFolderBadge = post.assetFolderUrl
+      ? '<span class="pc-asset-folder" data-url="' + escapeHtml(post.assetFolderUrl) + '" title="Open asset folder (Google Drive)">' +
+        '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"></path>' +
+        '</svg></span>'
+      : '';
     var postOwners = post.owners || (post.owner ? [post.owner] : []);
     var attentionBadge = isPostNeedsAttention(post)
       ? '<span class="pc-attention" title="Still a draft and scheduled within 2 days">' +
@@ -2262,10 +2285,19 @@ import {
       '<span class="pc-meta"><span class="pc-time">' + formatTime12(post.time) + '</span>' +
       imgBadge +
       legacyImgBadge +
+      assetFolderBadge +
       attentionBadge +
       postOwners.map(function (o) { return avatarHtml(o, "small"); }).join("") +
       '<span class="status-pill status-' + post.status + '">' + post.status + '</span></span>';
-    btn.addEventListener("click", function () { openModal(post.id); });
+    btn.addEventListener("click", function (e) {
+      var folderEl = e.target.closest(".pc-asset-folder");
+      if (folderEl) {
+        e.stopPropagation();
+        window.open(folderEl.dataset.url, "_blank", "noopener,noreferrer");
+        return;
+      }
+      openModal(post.id);
+    });
     btn.addEventListener("dragstart", function (e) {
       e.dataTransfer.setData("text/plain", post.id);
       e.dataTransfer.effectAllowed = "move";
@@ -2280,10 +2312,16 @@ import {
   var fTitle = document.getElementById("f-title");
   var fBucket = document.getElementById("f-bucket");
   var fStatus = document.getElementById("f-status");
-  var postOwnersCtrl = createOwnerChipInput(document.getElementById("f-owner-input"), document.getElementById("postOwnerChips"), function () { postTasksCtrl.refreshAssignees(); });
+  function updateStatusSelectStyle() {
+    fStatus.classList.remove("status-draft", "status-approved", "status-scheduled");
+    fStatus.classList.add("status-" + fStatus.value);
+  }
+  fStatus.addEventListener("change", updateStatusSelectStyle);
+  var postOwnersCtrl = createOwnerChipInput(document.getElementById("f-owner-input"), document.getElementById("postOwnerChips"), null);
   document.getElementById("addPostOwnerBtn").addEventListener("click", function () { postOwnersCtrl.add(); });
-  var postTasksCtrl = createTaskListInput(document.getElementById("postTaskList"), document.getElementById("f-task-input"), document.getElementById("f-task-assignee"), function () { return postOwnersCtrl.get(); });
-  document.getElementById("addPostTaskBtn").addEventListener("click", function () { postTasksCtrl.add(); });
+  // Tasks UI is removed for now (kept in the data model -- see currentPostTasks below -- so
+  // existing posts don't lose their saved tasks even though there's no editor for them here).
+  var currentPostTasks = [];
   var fDate = document.getElementById("f-date");
   var fTime = document.getElementById("f-time");
   var fCopy = document.getElementById("f-copy");
@@ -2342,6 +2380,19 @@ import {
     currentImages.splice(parseInt(btn.dataset.i, 10), 1);
     renderPostImageGrid();
   });
+
+  // ---------- calendar: asset folder link ----------
+  // A single Google Drive folder link (not the per-image list above) where the creative uploads
+  // the final images/files, so the content manager can open it directly when it's time to post.
+  var fAssetFolder = document.getElementById("f-asset-folder");
+  var postAssetFolderLinkEl = document.getElementById("postAssetFolderLink");
+  function renderPostAssetFolderLink() {
+    var url = fAssetFolder.value.trim();
+    postAssetFolderLinkEl.innerHTML = url
+      ? '<a class="notes-link-chip" href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer" title="' + escapeHtml(url) + '">🔗 Open asset folder ↗</a>'
+      : '';
+  }
+  fAssetFolder.addEventListener("input", renderPostAssetFolderLink);
 
   // ---------- LinkedIn post preview ----------
   var postPreviewToggleBtn = document.getElementById("postPreviewToggleBtn");
@@ -2515,11 +2566,12 @@ import {
       fBucket.value = post.bucket;
       fStatus.value = post.status;
       postOwnersCtrl.set(post.owners || (post.owner ? [post.owner] : []));
-      postTasksCtrl.set(post.tasks || []);
+      currentPostTasks = post.tasks || [];
       fDate.value = post.date;
       fTime.value = post.time;
       fCopy.value = post.copy;
       currentImages = (post.images || []).slice();
+      fAssetFolder.value = post.assetFolderUrl || "";
       deleteBtn.hidden = false;
       if (post.lastEditedBy) {
         postLastEditedNote.hidden = false;
@@ -2535,17 +2587,20 @@ import {
       fDate.value = prefillDate || dateKey(new Date());
       fTime.value = "09:00";
       postOwnersCtrl.set((prefillData && prefillData.owners) || []);
-      postTasksCtrl.set([]);
+      currentPostTasks = [];
       if (prefillData) {
         fTitle.value = prefillData.title || "";
         fCopy.value = prefillData.copy || "";
       }
       currentImages = [];
+      fAssetFolder.value = "";
       deleteBtn.hidden = true;
       postLastEditedNote.hidden = true;
     }
     updateCopyCharCount();
+    updateStatusSelectStyle();
     renderPostImageGrid();
+    renderPostAssetFolderLink();
     postEmojiCtrl.close();
     postPreviewPanel.hidden = true;
     postPreviewToggleBtn.setAttribute("aria-expanded", "false");
@@ -2594,11 +2649,12 @@ import {
       bucket: fBucket.value,
       status: fStatus.value,
       owners: postOwnersCtrl.get(),
-      tasks: postTasksCtrl.get(),
+      tasks: currentPostTasks,
       date: date,
       time: fTime.value || "09:00",
       copy: fCopy.value,
       images: images,
+      assetFolderUrl: fAssetFolder.value.trim(),
       lastEditedBy: auth.currentUser ? auth.currentUser.email : null,
       lastEditedAt: new Date().toISOString()
     }).then(function () {
@@ -2640,10 +2696,11 @@ import {
   var ideaForm = document.getElementById("ideaForm");
   var iTitle = document.getElementById("i-title");
   var iBucket = document.getElementById("i-bucket");
-  var ideaOwnersCtrl = createOwnerChipInput(document.getElementById("i-owner-input"), document.getElementById("ideaOwnerChips"), function () { ideaTasksCtrl.refreshAssignees(); });
+  var ideaOwnersCtrl = createOwnerChipInput(document.getElementById("i-owner-input"), document.getElementById("ideaOwnerChips"), null);
   document.getElementById("addIdeaOwnerBtn").addEventListener("click", function () { ideaOwnersCtrl.add(); });
-  var ideaTasksCtrl = createTaskListInput(document.getElementById("ideaTaskList"), document.getElementById("i-task-input"), document.getElementById("i-task-assignee"), function () { return ideaOwnersCtrl.get(); });
-  document.getElementById("addIdeaTaskBtn").addEventListener("click", function () { ideaTasksCtrl.add(); });
+  // Tasks UI is removed for now (kept in the data model -- see currentIdeaTasks below -- so
+  // existing ideas don't lose their saved tasks even though there's no editor for them here).
+  var currentIdeaTasks = [];
   var iNotes = document.getElementById("i-notes");
   var ideaEmojiCtrl = createEmojiPicker(
     document.getElementById("ideaEmojiToggleBtn"),
@@ -2844,7 +2901,7 @@ import {
       iTitle.value = idea.title;
       iBucket.value = idea.bucket;
       ideaOwnersCtrl.set(idea.owners || (idea.owner ? [idea.owner] : []));
-      ideaTasksCtrl.set(idea.tasks || []);
+      currentIdeaTasks = idea.tasks || [];
       iNotes.value = idea.notes || "";
       iStage.value = idea.stage;
       renderFeedbackLog(idea.feedback);
@@ -2863,7 +2920,7 @@ import {
       iBucket.value = buckets[0] ? buckets[0].key : "";
       iStage.value = "idea";
       ideaOwnersCtrl.set([]);
-      ideaTasksCtrl.set([]);
+      currentIdeaTasks = [];
       renderFeedbackLog([]);
       currentIdeaImages = [];
       deleteIdeaBtn.hidden = true;
@@ -2906,7 +2963,7 @@ import {
       title: title,
       bucket: iBucket.value,
       owners: ideaOwnersCtrl.get(),
-      tasks: ideaTasksCtrl.get(),
+      tasks: currentIdeaTasks,
       notes: iNotes.value,
       stage: iStage.value,
       images: currentIdeaImages.slice(),
