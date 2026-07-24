@@ -28,6 +28,10 @@
 
     --good: #15803d;
     --bad: #dc2626;
+    /* Fixed (not theme-dependent) vivid red for small icons that need to read as unambiguously
+       "delete" even next to the brand orange -- --bad softens to a coral in dark mode for body
+       text legibility, which reads too close to --brand at icon size. */
+    --icon-danger: #ef4444;
 
     --brand-gradient: linear-gradient(135deg, var(--brand) 0%, var(--brand-hover) 100%);
     --brand-gradient-h: linear-gradient(90deg, var(--brand) 0%, var(--brand-hover) 100%);
@@ -379,10 +383,25 @@
   .status-approved { color: var(--s-approved-fg); background: var(--s-approved-bg); border-color: var(--s-approved-line); }
   .status-scheduled { color: var(--s-scheduled-fg); background: var(--brand-gradient); border-color: var(--s-scheduled-line); }
 
-  /* Status field keeps the normal select shape, just colored to match the calendar's status pills */
-  select.status-select.status-draft { color: var(--s-draft-fg); background-color: var(--s-draft-bg); border-color: var(--s-draft-line); }
-  select.status-select.status-approved { color: var(--s-approved-fg); background-color: var(--s-approved-bg); border-color: var(--s-approved-line); }
-  select.status-select.status-scheduled { color: var(--s-scheduled-fg); background-color: var(--s-scheduled-bg); border-color: var(--s-scheduled-line); }
+  /* Custom Status dropdown -- a real <select>'s options can't be styled as pills in any browser,
+     so this is a button + popup listbox instead, with the current/each option shown as an actual
+     .status-pill (same markup as the calendar's status badges). The real value lives in a hidden
+     #f-status input so the rest of the code can keep reading/writing fStatus.value unchanged. */
+  .status-picker { position: relative; }
+  .status-picker-trigger {
+    width: 100%; display: flex; align-items: center; justify-content: space-between;
+    border: 1px solid var(--border); border-radius: 8px; background: var(--surface-alt);
+    padding: 0.5rem 0.65rem; cursor: pointer; color: var(--text-faint);
+  }
+  .status-picker-trigger:hover { border-color: var(--text-faint); }
+  .status-picker-trigger:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+  .status-picker-list {
+    position: absolute; top: calc(100% + 0.3rem); left: 0; right: 0; z-index: 20;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    box-shadow: var(--shadow); padding: 0.35rem; display: flex; flex-direction: column; gap: 0.2rem;
+  }
+  .status-picker-option { all: unset; display: block; cursor: pointer; padding: 0.3rem 0.4rem; border-radius: 6px; }
+  .status-picker-option:hover, .status-picker-option:focus-visible { background: var(--surface-alt); }
 
   /* ---------- top-level tabs ---------- */
   .tabs { display: flex; gap: 0.4rem; margin-bottom: 1.1rem; border-bottom: 1px solid var(--border); }
@@ -433,7 +452,7 @@
   .activity-icon { display: inline-flex; align-items: center; line-height: 1; flex-shrink: 0; color: var(--text-faint); }
   .activity-icon.act-created { color: var(--good); }
   .activity-icon.act-updated { color: var(--brand); }
-  .activity-icon.act-deleted { color: var(--bad); }
+  .activity-icon.act-deleted { color: var(--icon-danger); }
   .activity-icon.act-moved { color: var(--b-case); }
   .activity-icon.act-feedback { color: var(--b-news); }
   .activity-body { flex: 1; min-width: 0; }
@@ -1145,13 +1164,21 @@
           <label>Content Bucket
             <select id="f-bucket" required></select>
           </label>
-          <label>Status
-            <select id="f-status" class="status-select">
-              <option value="draft">Draft</option>
-              <option value="approved">Approved</option>
-              <option value="scheduled">Scheduled</option>
-            </select>
-          </label>
+          <div class="field-col">
+            <label for="statusPickerTrigger">Status</label>
+            <div class="status-picker" id="statusPicker">
+              <button type="button" class="status-picker-trigger" id="statusPickerTrigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="status-pill status-draft" id="statusPickerValue">Draft</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </button>
+              <div class="status-picker-list" id="statusPickerList" role="listbox" aria-label="Status" hidden>
+                <button type="button" class="status-picker-option" role="option" data-value="draft"><span class="status-pill status-draft">Draft</span></button>
+                <button type="button" class="status-picker-option" role="option" data-value="approved"><span class="status-pill status-approved">Approved</span></button>
+                <button type="button" class="status-picker-option" role="option" data-value="scheduled"><span class="status-pill status-scheduled">Scheduled</span></button>
+              </div>
+              <input type="hidden" id="f-status" value="draft">
+            </div>
+          </div>
         </div>
         <div class="field-row">
           <label>Scheduled Date
@@ -2388,11 +2415,39 @@ import {
   var fTitle = document.getElementById("f-title");
   var fBucket = document.getElementById("f-bucket");
   var fStatus = document.getElementById("f-status");
+  var STATUS_LABELS = { draft: "Draft", approved: "Approved", scheduled: "Scheduled" };
+  var statusPicker = document.getElementById("statusPicker");
+  var statusPickerTrigger = document.getElementById("statusPickerTrigger");
+  var statusPickerList = document.getElementById("statusPickerList");
+  var statusPickerValueEl = document.getElementById("statusPickerValue");
   function updateStatusSelectStyle() {
-    fStatus.classList.remove("status-draft", "status-approved", "status-scheduled");
-    fStatus.classList.add("status-" + fStatus.value);
+    var val = fStatus.value;
+    statusPickerValueEl.textContent = STATUS_LABELS[val] || val;
+    statusPickerValueEl.className = "status-pill status-" + val;
+    statusPickerList.querySelectorAll(".status-picker-option").forEach(function (opt) {
+      opt.setAttribute("aria-selected", opt.dataset.value === val ? "true" : "false");
+    });
   }
-  fStatus.addEventListener("change", updateStatusSelectStyle);
+  function closeStatusPicker() {
+    statusPickerList.hidden = true;
+    statusPickerTrigger.setAttribute("aria-expanded", "false");
+  }
+  statusPickerTrigger.addEventListener("click", function (e) {
+    e.stopPropagation();
+    var willOpen = statusPickerList.hidden;
+    if (willOpen) { statusPickerList.hidden = false; statusPickerTrigger.setAttribute("aria-expanded", "true"); }
+    else closeStatusPicker();
+  });
+  statusPickerList.addEventListener("click", function (e) {
+    var opt = e.target.closest(".status-picker-option");
+    if (!opt) return;
+    fStatus.value = opt.dataset.value;
+    updateStatusSelectStyle();
+    closeStatusPicker();
+  });
+  document.addEventListener("click", function (e) {
+    if (!statusPicker.contains(e.target)) closeStatusPicker();
+  });
   var postOwnersCtrl = createOwnerChipInput(document.getElementById("f-owner-input"), document.getElementById("postOwnerChips"), null);
   document.getElementById("addPostOwnerBtn").addEventListener("click", function () { postOwnersCtrl.add(); });
   // Tasks UI is removed for now (kept in the data model -- see currentPostTasks below -- so
@@ -2706,6 +2761,7 @@ import {
     }
     updateCopyCharCount();
     updateStatusSelectStyle();
+    closeStatusPicker();
     renderPostImageGrid();
     postEmojiCtrl.close();
     postPreviewPanel.hidden = true;
