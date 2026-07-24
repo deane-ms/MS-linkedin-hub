@@ -265,8 +265,9 @@
   .li-preview-body .li-hashtag { color: #0a66c2; font-weight: 600; }
   .li-preview-seemore { all: unset; display: block; cursor: pointer; font-size: 0.83rem; font-weight: 600; color: var(--text-faint); margin: -0.4rem 0 0.7rem; }
   .li-preview-seemore:hover { color: var(--text-soft); text-decoration: underline; }
-  .li-preview-images { display: grid; grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr)); gap: 0.4rem; margin-bottom: 0.7rem; }
-  .li-preview-images img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 6px; }
+  .li-preview-media { margin-bottom: 0.7rem; }
+  .li-preview-single-img { display: block; width: 100%; height: auto; max-height: 24rem; object-fit: contain; border-radius: 8px; background: #14181a; }
+  .li-preview-media .carousel-dots { margin-top: 0.5rem; }
   .li-preview-actions { display: flex; justify-content: space-between; padding-top: 0.6rem; border-top: 1px solid var(--border); font-size: 0.76rem; color: var(--text-soft); font-weight: 600; }
   .goal-empty { font-size: 0.85rem; color: var(--text-faint); }
   .goal-stats { display: flex; gap: 2rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
@@ -1171,7 +1172,16 @@
           </div>
           <div class="li-preview-body" id="postPreviewCopy"></div>
           <button type="button" class="li-preview-seemore" id="postPreviewSeeMoreBtn" hidden>...see more</button>
-          <div class="li-preview-images" id="postPreviewImages"></div>
+          <div class="li-preview-media" id="postPreviewMedia" hidden>
+            <img class="li-preview-single-img" id="postPreviewSingleImg" alt="" hidden>
+            <div class="carousel-viewport" id="postPreviewCarousel" hidden>
+              <button type="button" class="carousel-nav prev" id="postPreviewCarPrev" aria-label="Previous image">‹</button>
+              <img id="postPreviewCarImg" alt="">
+              <button type="button" class="carousel-nav next" id="postPreviewCarNext" aria-label="Next image">›</button>
+              <span class="carousel-count" id="postPreviewCarCount"></span>
+            </div>
+            <div class="carousel-dots" id="postPreviewCarDots"></div>
+          </div>
           <div class="li-preview-actions">
             <span>👍 Like</span><span>💬 Comment</span><span>🔁 Repost</span><span>✈️ Send</span>
           </div>
@@ -2338,7 +2348,54 @@ import {
   var postPreviewPanel = document.getElementById("postPreviewPanel");
   var postPreviewCopyEl = document.getElementById("postPreviewCopy");
   var postPreviewSeeMoreBtn = document.getElementById("postPreviewSeeMoreBtn");
-  var postPreviewImagesEl = document.getElementById("postPreviewImages");
+  var postPreviewMediaEl = document.getElementById("postPreviewMedia");
+  var postPreviewSingleImg = document.getElementById("postPreviewSingleImg");
+  var postPreviewCarousel = document.getElementById("postPreviewCarousel");
+  var postPreviewCarImg = document.getElementById("postPreviewCarImg");
+  var postPreviewCarCount = document.getElementById("postPreviewCarCount");
+  var postPreviewCarDots = document.getElementById("postPreviewCarDots");
+  var postPreviewCarouselIndex = 0;
+
+  function renderPostPreviewMedia() {
+    if (!currentImages.length) {
+      postPreviewMediaEl.hidden = true;
+      return;
+    }
+    postPreviewMediaEl.hidden = false;
+    if (currentImages.length === 1) {
+      // A single image spans the post at its own aspect ratio -- LinkedIn never crops it square.
+      postPreviewSingleImg.hidden = false;
+      postPreviewCarousel.hidden = true;
+      postPreviewCarDots.innerHTML = "";
+      postPreviewSingleImg.src = currentImages[0];
+      return;
+    }
+    // 2+ images render as a swipeable one-at-a-time gallery, matching LinkedIn's real multi-photo posts
+    // (and the same carousel pattern already used by the image editor above).
+    postPreviewSingleImg.hidden = true;
+    postPreviewCarousel.hidden = false;
+    postPreviewCarouselIndex = Math.max(0, Math.min(postPreviewCarouselIndex, currentImages.length - 1));
+    postPreviewCarImg.src = currentImages[postPreviewCarouselIndex];
+    postPreviewCarCount.textContent = (postPreviewCarouselIndex + 1) + " / " + currentImages.length;
+    postPreviewCarDots.innerHTML = currentImages.map(function (_, i) {
+      return '<button type="button" class="dot' + (i === postPreviewCarouselIndex ? " active" : "") +
+        '" data-i="' + i + '" aria-label="Slide ' + (i + 1) + '"></button>';
+    }).join("");
+  }
+  document.getElementById("postPreviewCarPrev").addEventListener("click", function () {
+    postPreviewCarouselIndex = (postPreviewCarouselIndex - 1 + currentImages.length) % currentImages.length;
+    renderPostPreviewMedia();
+  });
+  document.getElementById("postPreviewCarNext").addEventListener("click", function () {
+    postPreviewCarouselIndex = (postPreviewCarouselIndex + 1) % currentImages.length;
+    renderPostPreviewMedia();
+  });
+  postPreviewCarDots.addEventListener("click", function (e) {
+    var dot = e.target.closest(".dot");
+    if (!dot) return;
+    postPreviewCarouselIndex = parseInt(dot.dataset.i, 10);
+    renderPostPreviewMedia();
+  });
 
   function renderPostPreview() {
     var text = fCopy.value || "Your post copy will appear here...";
@@ -2349,9 +2406,7 @@ import {
     // re-check on every render since edits can push it past (or back under) that threshold.
     postPreviewCopyEl.classList.add("clamped");
     postPreviewSeeMoreBtn.hidden = postPreviewCopyEl.scrollHeight <= postPreviewCopyEl.clientHeight + 1;
-    postPreviewImagesEl.innerHTML = currentImages.map(function (src) {
-      return '<img src="' + src + '" alt="">';
-    }).join("");
+    renderPostPreviewMedia();
   }
   postPreviewSeeMoreBtn.addEventListener("click", function () {
     postPreviewCopyEl.classList.remove("clamped");
@@ -2361,7 +2416,7 @@ import {
     var willOpen = postPreviewPanel.hidden;
     postPreviewPanel.hidden = !willOpen;
     postPreviewToggleBtn.setAttribute("aria-expanded", willOpen ? "true" : "false");
-    if (willOpen) renderPostPreview();
+    if (willOpen) { postPreviewCarouselIndex = 0; renderPostPreview(); }
   });
   fCopy.addEventListener("input", function () {
     if (!postPreviewPanel.hidden) renderPostPreview();
