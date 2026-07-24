@@ -717,11 +717,6 @@
     display: flex; align-items: center; justify-content: center; line-height: 1;
   }
   .image-remove:hover { background: var(--danger); }
-  .image-legacy-tag {
-    position: absolute; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); color: #fff;
-    font-size: 0.5rem; font-weight: 600; text-align: center; padding: 0.1rem 0; line-height: 1.2;
-    text-transform: uppercase; letter-spacing: 0.03em;
-  }
 
   #exportText {
     width: 100%; font-family: var(--font-mono); font-size: 0.76rem; min-height: 18rem;
@@ -2252,7 +2247,7 @@ import {
     btn.draggable = true;
     btn.style.setProperty("--dot", bucketColorFor(post.bucket));
     var imgBadge = post.images && post.images.length ? '<span class="pc-img-badge">🖼️ ' + post.images.length + '</span>' : '';
-    var legacyImgBadge = hasLegacyEmbeddedImage(post)
+    var legacyImgBadge = hasLegacyEmbeddedImage(post) && isPostNeedsAttention(post)
       ? '<span class="pc-legacy-img" title="Includes an old embedded image saved before links were supported -- quality is reduced. Open the post and replace it with a link for full quality.">' +
         '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
         '<rect x="3" y="3" width="18" height="18" rx="2"></rect>' +
@@ -2331,7 +2326,6 @@ import {
       return '<div class="image-thumb' + (legacy ? " legacy" : "") + '" data-i="' + i + '"' +
         (legacy ? ' title="Saved before links were supported -- quality is reduced. Remove and re-add as a link for full quality."' : '') + '>' +
         '<img src="' + escapeHtml(url) + '" alt="Post image">' +
-        (legacy ? '<span class="image-legacy-tag">low-res</span>' : '') +
         '<button type="button" class="image-remove" data-i="' + i + '" aria-label="Remove image">✕</button>' +
         '</div>';
     }).join("");
