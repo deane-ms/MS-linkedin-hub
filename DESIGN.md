@@ -22,7 +22,7 @@ Three tiers, used consistently everywhere a label sits above a field or a group 
 
 ## Form sections
 
-The Post and Idea modals are each broken into `.form-section` blocks, each with a `.form-section-label` (small uppercase eyebrow, `0.68rem`, `--text-faint`, `letter-spacing: 0.05em`) naming the group: e.g. Details, People & Tasks, Content (Post) / Details, Tasks, Brief, Stage & Feedback (Idea). When adding a new field to one of these modals, put it in the section it semantically belongs to rather than appending it to the end — that's what keeps the form scannable as it grows. If a new concern doesn't fit an existing section, give it its own `.form-section` with a short (1-2 word) label rather than leaving it bare.
+The Post and Idea modals are each broken into `.form-section` blocks (Details / People & Tasks / Content for Post; Details / Tasks / Brief / Stage & Feedback for Idea). Sections are separated by whitespace and a hairline divider only (`.form-section + .form-section`) — **no heading text on the section itself.** An earlier version added an uppercase eyebrow label per section, but that was redundant with the fields' own labels and read as clutter; it was removed. When adding a new field, put it in the section it semantically belongs to (or give it its own `.form-section` if none fit), but every field/group still needs its *own* `<label>` — don't rely on the section boundary alone to convey what a block is for. (Fixed one regression from the original section-label removal: Idea's Tasks block had no field label of its own, only the section heading — it now has `<label>Tasks</label>` matching Post's.)
 
 ## Icons
 

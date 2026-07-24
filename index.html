@@ -337,6 +337,10 @@
     display: inline-flex; align-items: center; justify-content: center;
     color: var(--brand); flex-shrink: 0; line-height: 1;
   }
+  .pc-legacy-img {
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--text-faint); flex-shrink: 0; line-height: 1;
+  }
 
   /* ---------- upcoming posts ---------- */
   .upcoming-card { margin-top: 1.4rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem 1.3rem 1.3rem; box-shadow: var(--shadow-sm); }
@@ -628,10 +632,6 @@
   #postForm .field-col, #ideaForm .field-col { display: flex; flex-direction: column; gap: 0.35rem; }
   .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
   .form-section { display: flex; flex-direction: column; gap: 0.9rem; }
-  .form-section-label {
-    margin: 0; font-size: 0.68rem; font-weight: 700; color: var(--text-faint);
-    text-transform: uppercase; letter-spacing: 0.05em;
-  }
   .form-section + .form-section, .form-section + .modal-actions {
     margin-top: 1.3rem; padding-top: 1.1rem; border-top: 1px solid var(--border);
   }
@@ -717,6 +717,11 @@
     display: flex; align-items: center; justify-content: center; line-height: 1;
   }
   .image-remove:hover { background: var(--danger); }
+  .image-legacy-tag {
+    position: absolute; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); color: #fff;
+    font-size: 0.5rem; font-weight: 600; text-align: center; padding: 0.1rem 0; line-height: 1.2;
+    text-transform: uppercase; letter-spacing: 0.03em;
+  }
 
   #exportText {
     width: 100%; font-family: var(--font-mono); font-size: 0.76rem; min-height: 18rem;
@@ -1093,7 +1098,6 @@
     <p class="last-edited-note" id="postLastEdited" hidden></p>
     <form id="postForm">
       <div class="form-section">
-        <p class="form-section-label">Details</p>
         <label>Post Title / Working Headline
           <input type="text" id="f-title" placeholder="e.g. How we choreographed a 3-market product launch" required>
         </label>
@@ -1120,7 +1124,6 @@
       </div>
 
       <div class="form-section">
-        <p class="form-section-label">People &amp; Tasks</p>
         <div class="field-col">
           <label for="f-owner-input">Owners (optional)</label>
           <div class="owner-input-row">
@@ -1141,7 +1144,6 @@
       </div>
 
       <div class="form-section">
-        <p class="form-section-label">Content</p>
         <div class="field-col">
           <div class="field-with-action">
             <label for="f-copy">Post Copy / Draft Text</label>
@@ -1224,7 +1226,6 @@
     <p class="last-edited-note" id="ideaLastEdited" hidden></p>
     <form id="ideaForm">
       <div class="form-section">
-        <p class="form-section-label">Details</p>
         <label>Idea Title
           <input type="text" id="i-title" placeholder="e.g. Behind the scenes of our Q3 flagship shoot" required>
         </label>
@@ -1244,8 +1245,8 @@
       </div>
 
       <div class="form-section">
-        <p class="form-section-label">Tasks</p>
         <div class="field-col">
+          <label>Tasks</label>
           <div class="task-list" id="ideaTaskList"></div>
           <div class="task-add-row">
             <input type="text" id="i-task-input" placeholder="Add a task...">
@@ -1256,7 +1257,6 @@
       </div>
 
       <div class="form-section">
-        <p class="form-section-label">Brief</p>
         <div class="field-col">
           <label for="i-notes">Idea / Brief</label>
           <div class="textarea-emoji-wrap">
@@ -1287,7 +1287,6 @@
       </div>
 
       <div class="form-section">
-        <p class="form-section-label">Stage &amp; Feedback</p>
         <div class="idea-stage-row">
           <label>Stage
             <select id="i-stage"></select>
@@ -2122,6 +2121,15 @@ import {
     return post.date >= todayKey && post.date <= soonKey;
   }
 
+  // Posts saved before images switched from uploaded/embedded to link-based still carry their
+  // old base64 image data, which was heavily compressed to fit Firestore's 1MiB document limit.
+  function isLegacyEmbeddedImage(url) {
+    return !!(url && url.indexOf("data:") === 0);
+  }
+  function hasLegacyEmbeddedImage(post) {
+    return !!(post.images && post.images.some(isLegacyEmbeddedImage));
+  }
+
   function postsOn(key) {
     return posts.filter(function (p) { return p.date === key && matchesFilters(p); })
       .sort(function (a, b) { return a.time.localeCompare(b.time); });
@@ -2244,6 +2252,14 @@ import {
     btn.draggable = true;
     btn.style.setProperty("--dot", bucketColorFor(post.bucket));
     var imgBadge = post.images && post.images.length ? '<span class="pc-img-badge">🖼️ ' + post.images.length + '</span>' : '';
+    var legacyImgBadge = hasLegacyEmbeddedImage(post)
+      ? '<span class="pc-legacy-img" title="Includes an old embedded image saved before links were supported -- quality is reduced. Open the post and replace it with a link for full quality.">' +
+        '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<rect x="3" y="3" width="18" height="18" rx="2"></rect>' +
+        '<circle cx="8.5" cy="8.5" r="1.5"></circle>' +
+        '<path d="M21 15l-5-5L5 21"></path>' +
+        '</svg></span>'
+      : '';
     var postOwners = post.owners || (post.owner ? [post.owner] : []);
     var attentionBadge = isPostNeedsAttention(post)
       ? '<span class="pc-attention" title="Still a draft and scheduled within 2 days">' +
@@ -2258,6 +2274,7 @@ import {
       '<span class="pc-title">' + escapeHtml(post.title) + '</span>' +
       '<span class="pc-meta"><span class="pc-time">' + formatTime12(post.time) + '</span>' +
       imgBadge +
+      legacyImgBadge +
       attentionBadge +
       postOwners.map(function (o) { return avatarHtml(o, "small"); }).join("") +
       '<span class="status-pill status-' + post.status + '">' + post.status + '</span></span>';
@@ -2310,8 +2327,11 @@ import {
 
   function renderPostImageGrid() {
     postImageGridEl.innerHTML = currentImages.map(function (url, i) {
-      return '<div class="image-thumb" data-i="' + i + '">' +
+      var legacy = isLegacyEmbeddedImage(url);
+      return '<div class="image-thumb' + (legacy ? " legacy" : "") + '" data-i="' + i + '"' +
+        (legacy ? ' title="Saved before links were supported -- quality is reduced. Remove and re-add as a link for full quality."' : '') + '>' +
         '<img src="' + escapeHtml(url) + '" alt="Post image">' +
+        (legacy ? '<span class="image-legacy-tag">low-res</span>' : '') +
         '<button type="button" class="image-remove" data-i="' + i + '" aria-label="Remove image">✕</button>' +
         '</div>';
     }).join("");
