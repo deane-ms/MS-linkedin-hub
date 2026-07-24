@@ -754,10 +754,13 @@
   .image-thumb.broken::after { content: "🖼️"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: var(--text-faint); pointer-events: none; }
   .image-thumb.dragging { opacity: 0.4; }
   .image-thumb.drag-over { outline: 2px solid var(--brand); outline-offset: 2px; }
-  .image-thumb.folder-link { display: flex; }
+  .image-thumb.folder-link { width: 100%; height: auto; flex: 1 1 100%; display: flex; align-items: center; background: var(--surface-alt); }
   .image-folder-open {
-    display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; color: var(--text-soft);
+    display: flex; align-items: center; gap: 0.5rem; width: 100%; min-width: 0; color: var(--text-soft);
+    padding: 0.55rem 2rem 0.55rem 0.65rem;
   }
+  .image-folder-open svg { flex-shrink: 0; }
+  .image-folder-label { font-size: 0.76rem; font-family: var(--font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
   .image-thumb.folder-link:hover .image-folder-open { color: var(--brand); }
   .image-remove {
     position: absolute; top: 0.15rem; right: 0.15rem; width: 1.3rem; height: 1.3rem; border-radius: 50%;
@@ -765,6 +768,8 @@
     display: flex; align-items: center; justify-content: center; line-height: 1;
   }
   .image-remove:hover { background: var(--danger); }
+  .image-thumb.folder-link .image-remove { top: 50%; transform: translateY(-50%); background: var(--surface); color: var(--text-faint); border: 1px solid var(--border); }
+  .image-thumb.folder-link .image-remove:hover { background: var(--danger-soft); color: var(--danger); border-color: var(--danger); }
 
   #exportText {
     width: 100%; font-family: var(--font-mono); font-size: 0.76rem; min-height: 18rem;
@@ -2485,10 +2490,12 @@ import {
     postImageGridEl.innerHTML = currentImages.map(function (url, i) {
       if (isDriveFolderLink(url)) {
         return '<div class="image-thumb folder-link" data-i="' + i + '" draggable="true" title="' + escapeHtml(url) + '">' +
-          '<a class="image-folder-open" href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer" draggable="false" tabindex="-1">' +
-          '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+          '<a class="image-folder-open" href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer" draggable="false">' +
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
           '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"></path>' +
-          '</svg></a>' +
+          '</svg>' +
+          '<span class="image-folder-label">' + escapeHtml(url) + '</span>' +
+          '</a>' +
           '<button type="button" class="image-remove" data-i="' + i + '" aria-label="Remove link">' + ICON_X_SMALL + '</button>' +
           '</div>';
       }
@@ -2915,10 +2922,12 @@ import {
     ideaImageGridEl.innerHTML = currentIdeaImages.map(function (url, i) {
       if (isDriveFolderLink(url)) {
         return '<div class="image-thumb folder-link" data-i="' + i + '" draggable="true" title="' + escapeHtml(url) + '">' +
-          '<a class="image-folder-open" href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer" draggable="false" tabindex="-1">' +
-          '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+          '<a class="image-folder-open" href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer" draggable="false">' +
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
           '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"></path>' +
-          '</svg></a>' +
+          '</svg>' +
+          '<span class="image-folder-label">' + escapeHtml(url) + '</span>' +
+          '</a>' +
           '<button type="button" class="image-remove" data-i="' + i + '" aria-label="Remove link">' + ICON_X_SMALL + '</button>' +
           '</div>';
       }
