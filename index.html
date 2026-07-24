@@ -261,6 +261,10 @@
   .li-preview-name { font-weight: 700; font-size: 0.86rem; color: var(--text); }
   .li-preview-meta { font-size: 0.72rem; color: var(--text-faint); }
   .li-preview-body { font-size: 0.85rem; color: var(--text); white-space: pre-wrap; line-height: 1.5; margin-bottom: 0.7rem; }
+  .li-preview-body.clamped { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .li-preview-body .li-hashtag { color: #0a66c2; font-weight: 600; }
+  .li-preview-seemore { all: unset; display: block; cursor: pointer; font-size: 0.83rem; font-weight: 600; color: var(--text-faint); margin: -0.4rem 0 0.7rem; }
+  .li-preview-seemore:hover { color: var(--text-soft); text-decoration: underline; }
   .li-preview-images { display: grid; grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr)); gap: 0.4rem; margin-bottom: 0.7rem; }
   .li-preview-images img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 6px; }
   .li-preview-actions { display: flex; justify-content: space-between; padding-top: 0.6rem; border-top: 1px solid var(--border); font-size: 0.76rem; color: var(--text-soft); font-weight: 600; }
@@ -1166,6 +1170,7 @@
             </div>
           </div>
           <div class="li-preview-body" id="postPreviewCopy"></div>
+          <button type="button" class="li-preview-seemore" id="postPreviewSeeMoreBtn" hidden>...see more</button>
           <div class="li-preview-images" id="postPreviewImages"></div>
           <div class="li-preview-actions">
             <span>👍 Like</span><span>💬 Comment</span><span>🔁 Repost</span><span>✈️ Send</span>
@@ -2332,14 +2337,26 @@ import {
   var postPreviewToggleBtn = document.getElementById("postPreviewToggleBtn");
   var postPreviewPanel = document.getElementById("postPreviewPanel");
   var postPreviewCopyEl = document.getElementById("postPreviewCopy");
+  var postPreviewSeeMoreBtn = document.getElementById("postPreviewSeeMoreBtn");
   var postPreviewImagesEl = document.getElementById("postPreviewImages");
 
   function renderPostPreview() {
-    postPreviewCopyEl.textContent = fCopy.value || "Your post copy will appear here...";
+    var text = fCopy.value || "Your post copy will appear here...";
+    postPreviewCopyEl.innerHTML = escapeHtml(text).replace(/#[a-zA-Z0-9_]+/g, function (tag) {
+      return '<span class="li-hashtag">' + tag + '</span>';
+    });
+    // LinkedIn's feed clamps post text to ~3 lines behind a "...see more" toggle --
+    // re-check on every render since edits can push it past (or back under) that threshold.
+    postPreviewCopyEl.classList.add("clamped");
+    postPreviewSeeMoreBtn.hidden = postPreviewCopyEl.scrollHeight <= postPreviewCopyEl.clientHeight + 1;
     postPreviewImagesEl.innerHTML = currentImages.map(function (src) {
       return '<img src="' + src + '" alt="">';
     }).join("");
   }
+  postPreviewSeeMoreBtn.addEventListener("click", function () {
+    postPreviewCopyEl.classList.remove("clamped");
+    postPreviewSeeMoreBtn.hidden = true;
+  });
   postPreviewToggleBtn.addEventListener("click", function () {
     var willOpen = postPreviewPanel.hidden;
     postPreviewPanel.hidden = !willOpen;
