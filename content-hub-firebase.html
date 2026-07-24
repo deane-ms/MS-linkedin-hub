@@ -491,17 +491,6 @@
   .task-add-row { display: flex; gap: 0.5rem; }
   .task-add-row input { flex: 1; }
   .task-add-row select { max-width: 9rem; }
-  .idea-image-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.5rem 0 0.2rem; }
-  .idea-image-thumb { position: relative; width: 4.2rem; height: 4.2rem; border-radius: 6px; overflow: hidden; background: var(--surface-alt); border: 1px solid var(--border); }
-  .idea-image-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .idea-image-thumb.broken img { display: none; }
-  .idea-image-thumb.broken::after { content: "🖼️"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: var(--text-faint); pointer-events: none; }
-  .idea-image-remove {
-    position: absolute; top: 0.15rem; right: 0.15rem; width: 1.3rem; height: 1.3rem; border-radius: 50%;
-    border: none; background: rgba(0, 0, 0, 0.55); color: #fff; cursor: pointer; font-size: 0.65rem;
-    display: flex; align-items: center; justify-content: center; line-height: 1;
-  }
-  .idea-image-remove:hover { background: var(--danger); }
   .feedback-log { display: flex; flex-direction: column; gap: 0.6rem; max-height: 12rem; overflow-y: auto; margin: 0.6rem 0; padding-right: 0.2rem; }
   .feedback-item { background: var(--surface-alt); border-radius: 8px; padding: 0.5rem 0.65rem; font-size: 0.8rem; }
   .feedback-item .fb-head { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.25rem; }
@@ -1323,12 +1312,12 @@
           <div class="notes-links" id="notesLinks"></div>
         </div>
         <div class="field-col">
-          <label for="i-image-link">Image links (optional — paste a URL to a reference image)</label>
+          <label for="i-image-link">Image links (optional — paste image URLs or a Google Drive folder link, up to 9, drag to reorder)</label>
           <div class="idea-link-row">
             <input type="url" id="i-image-link" placeholder="https://...">
             <button type="button" class="btn btn-ghost small" id="addIdeaImageBtn">Add</button>
           </div>
-          <div class="idea-image-grid" id="ideaImageGrid"></div>
+          <div class="image-link-grid" id="ideaImageGrid"></div>
         </div>
       </div>
 
@@ -2913,28 +2902,61 @@ import {
     });
   }
 
+  var ideaDragFromIndex = null;
   function renderIdeaImageGrid() {
     ideaImageGridEl.innerHTML = currentIdeaImages.map(function (url, i) {
-      return '<div class="idea-image-thumb" data-i="' + i + '">' +
-        '<img src="' + escapeHtml(url) + '" alt="Idea reference image">' +
-        '<button type="button" class="idea-image-remove" data-i="' + i + '" aria-label="Remove image">' + ICON_X_SMALL + '</button>' +
+      if (isDriveFolderLink(url)) {
+        return '<div class="image-thumb folder-link" data-i="' + i + '" draggable="true" title="' + escapeHtml(url) + '">' +
+          '<a class="image-folder-open" href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer" draggable="false" tabindex="-1">' +
+          '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+          '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"></path>' +
+          '</svg></a>' +
+          '<button type="button" class="image-remove" data-i="' + i + '" aria-label="Remove link">' + ICON_X_SMALL + '</button>' +
+          '</div>';
+      }
+      return '<div class="image-thumb" data-i="' + i + '" draggable="true">' +
+        '<img src="' + escapeHtml(url) + '" alt="Idea reference image" draggable="false">' +
+        '<button type="button" class="image-remove" data-i="' + i + '" aria-label="Remove image">' + ICON_X_SMALL + '</button>' +
         '</div>';
     }).join("");
     ideaImageGridEl.querySelectorAll("img").forEach(function (img) {
-      img.addEventListener("error", function () { img.closest(".idea-image-thumb").classList.add("broken"); });
+      img.addEventListener("error", function () { img.closest(".image-thumb").classList.add("broken"); });
+    });
+    ideaImageGridEl.querySelectorAll(".image-thumb").forEach(function (thumb) {
+      thumb.addEventListener("dragstart", function () {
+        ideaDragFromIndex = parseInt(thumb.dataset.i, 10);
+        thumb.classList.add("dragging");
+      });
+      thumb.addEventListener("dragend", function () { thumb.classList.remove("dragging"); });
+      thumb.addEventListener("dragover", function (e) {
+        e.preventDefault();
+        thumb.classList.add("drag-over");
+      });
+      thumb.addEventListener("dragleave", function () { thumb.classList.remove("drag-over"); });
+      thumb.addEventListener("drop", function (e) {
+        e.preventDefault();
+        thumb.classList.remove("drag-over");
+        var toIndex = parseInt(thumb.dataset.i, 10);
+        if (ideaDragFromIndex === null || ideaDragFromIndex === toIndex) return;
+        var moved = currentIdeaImages.splice(ideaDragFromIndex, 1)[0];
+        currentIdeaImages.splice(toIndex, 0, moved);
+        ideaDragFromIndex = null;
+        renderIdeaImageGrid();
+      });
     });
   }
 
   document.getElementById("addIdeaImageBtn").addEventListener("click", function () {
     var url = ideaImageLinkInput.value.trim();
     if (!url) return;
+    if (currentIdeaImages.length >= MAX_IMAGES) { alert("Up to " + MAX_IMAGES + " images per idea."); return; }
     currentIdeaImages.push(url);
     ideaImageLinkInput.value = "";
     renderIdeaImageGrid();
   });
 
   ideaImageGridEl.addEventListener("click", function (e) {
-    var btn = e.target.closest(".idea-image-remove");
+    var btn = e.target.closest(".image-remove");
     if (!btn) return;
     currentIdeaImages.splice(parseInt(btn.dataset.i, 10), 1);
     renderIdeaImageGrid();
