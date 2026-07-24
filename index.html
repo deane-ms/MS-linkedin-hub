@@ -2233,6 +2233,12 @@ import {
   function isDriveFolderLink(url) {
     return !!(url && /drive\.google\.com/i.test(url));
   }
+  // If someone pastes a whole sentence/note that happens to contain a Drive link (rather than
+  // just the bare link), show/link only the actual URL -- not the surrounding text -- as the label.
+  function extractDriveFolderUrl(text) {
+    var match = String(text || "").match(/https?:\/\/\S*drive\.google\.com\S*/i);
+    return match ? match[0].replace(/[)\]"'.,]+$/, "") : text;
+  }
   function findAssetFolderUrl(post) {
     return (post.images || []).find(isDriveFolderLink) || post.assetFolderUrl || null;
   }
@@ -2489,12 +2495,13 @@ import {
   function renderPostImageGrid() {
     postImageGridEl.innerHTML = currentImages.map(function (url, i) {
       if (isDriveFolderLink(url)) {
-        return '<div class="image-thumb folder-link" data-i="' + i + '" draggable="true" title="' + escapeHtml(url) + '">' +
-          '<a class="image-folder-open" href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer" draggable="false">' +
+        var folderUrl = extractDriveFolderUrl(url);
+        return '<div class="image-thumb folder-link" data-i="' + i + '" draggable="true" title="' + escapeHtml(folderUrl) + '">' +
+          '<a class="image-folder-open" href="' + escapeHtml(folderUrl) + '" target="_blank" rel="noopener noreferrer" draggable="false">' +
           '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
           '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"></path>' +
           '</svg>' +
-          '<span class="image-folder-label">' + escapeHtml(url) + '</span>' +
+          '<span class="image-folder-label">' + escapeHtml(folderUrl) + '</span>' +
           '</a>' +
           '<button type="button" class="image-remove" data-i="' + i + '" aria-label="Remove link">' + ICON_X_SMALL + '</button>' +
           '</div>';
@@ -2921,12 +2928,13 @@ import {
   function renderIdeaImageGrid() {
     ideaImageGridEl.innerHTML = currentIdeaImages.map(function (url, i) {
       if (isDriveFolderLink(url)) {
-        return '<div class="image-thumb folder-link" data-i="' + i + '" draggable="true" title="' + escapeHtml(url) + '">' +
-          '<a class="image-folder-open" href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer" draggable="false">' +
+        var folderUrl = extractDriveFolderUrl(url);
+        return '<div class="image-thumb folder-link" data-i="' + i + '" draggable="true" title="' + escapeHtml(folderUrl) + '">' +
+          '<a class="image-folder-open" href="' + escapeHtml(folderUrl) + '" target="_blank" rel="noopener noreferrer" draggable="false">' +
           '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
           '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"></path>' +
           '</svg>' +
-          '<span class="image-folder-label">' + escapeHtml(url) + '</span>' +
+          '<span class="image-folder-label">' + escapeHtml(folderUrl) + '</span>' +
           '</a>' +
           '<button type="button" class="image-remove" data-i="' + i + '" aria-label="Remove link">' + ICON_X_SMALL + '</button>' +
           '</div>';
