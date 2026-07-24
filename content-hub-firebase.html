@@ -325,7 +325,7 @@
   .post-card:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
   .post-card .pc-title { color: var(--text); font-weight: 600; display: block; }
   .post-card .pc-meta { display: flex; align-items: center; gap: 0.35rem; margin-top: 0.15rem; }
-  .post-card .pc-time { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-faint); }
+  .post-card .pc-time { font-size: 0.62rem; color: var(--text-faint); }
   .post-card .pc-img-badge { font-size: 0.62rem; color: var(--text-faint); }
   .post-card.needs-attention, .idea-card.needs-attention { box-shadow: inset 0 0 0 1px var(--brand); }
   .ic-stale { font-size: 0.68rem; }
@@ -358,7 +358,7 @@
   .upcoming-item:hover { background: var(--surface-alt); }
   .upcoming-item:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
   .upcoming-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .upcoming-date { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-soft); width: 6.2rem; flex-shrink: 0; }
+  .upcoming-date { font-size: 0.72rem; color: var(--text-soft); width: 6.2rem; flex-shrink: 0; }
   .upcoming-title-text { flex: 1; min-width: 0; font-size: 0.85rem; color: var(--text); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .upcoming-empty { color: var(--text-faint); font-size: 0.85rem; padding: 0.3rem 0; }
 
@@ -494,7 +494,7 @@
   .feedback-log { display: flex; flex-direction: column; gap: 0.6rem; max-height: 12rem; overflow-y: auto; margin: 0.6rem 0; padding-right: 0.2rem; }
   .feedback-item { background: var(--surface-alt); border-radius: 8px; padding: 0.5rem 0.65rem; font-size: 0.8rem; }
   .feedback-item .fb-head { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.25rem; }
-  .feedback-item .fb-date { font-size: 0.65rem; color: var(--text-faint); font-family: var(--font-mono); }
+  .feedback-item .fb-date { font-size: 0.65rem; color: var(--text-faint); }
   .feedback-empty { color: var(--text-faint); font-size: 0.8rem; }
   .idea-stage-row { display: flex; align-items: center; gap: 0.6rem; }
   .idea-stage-row label { flex: 1; }
@@ -511,7 +511,7 @@
   }
   .sample-badge {
     display: inline-flex; align-items: center; gap: 0.35rem;
-    font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em;
+    font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em;
     color: var(--s-draft-fg); background: var(--s-draft-bg); border: 1px solid var(--s-draft-line);
     border-radius: 999px; padding: 0.15rem 0.55rem; margin-left: 0.5rem;
   }
@@ -533,7 +533,7 @@
   .post-link:hover { color: var(--brand); text-decoration: underline; }
 
   /* ---------- market trends card ---------- */
-  .trends-updated { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-faint); white-space: nowrap; }
+  .trends-updated { font-size: 0.68rem; color: var(--text-faint); white-space: nowrap; }
   .trends-note { margin: 0 0 0.7rem; font-size: 0.82rem; color: var(--text-soft); line-height: 1.55; }
   .takeaways-list li .post-link { display: inline-block; margin-top: 0.15rem; font-size: 0.82rem; }
   .demographics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1.4rem; }
@@ -592,7 +592,7 @@
   .chart-body svg { display: block; width: 100%; height: auto; overflow: visible; }
   .chart-gridline { stroke: var(--border); stroke-width: 0.75; }
   .chart-baseline { stroke: var(--border); stroke-width: 1; }
-  .chart-axis-label { fill: var(--text-faint); font-size: 9px; font-family: var(--font-mono); }
+  .chart-axis-label { fill: var(--text-faint); font-size: 9px; }
   .chart-line { fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
   .chart-area { stroke: none; }
   .chart-end-label { fill: var(--text); font-size: 11px; font-weight: 700; }
@@ -727,7 +727,7 @@
   .carousel-nav.next { right: 0.5rem; }
   .carousel-count {
     position: absolute; bottom: 0.5rem; right: 0.6rem; background: rgba(0, 0, 0, 0.55); color: #fff;
-    font-family: var(--font-mono); font-size: 0.68rem; padding: 0.1rem 0.45rem; border-radius: 999px;
+    font-size: 0.68rem; padding: 0.1rem 0.45rem; border-radius: 999px;
   }
   .carousel-dots { display: flex; justify-content: center; gap: 0.35rem; margin-top: 0.55rem; }
   .carousel-dots .dot {
@@ -752,7 +752,7 @@
     padding: 0.55rem 2rem 0.55rem 0.65rem;
   }
   .image-folder-open svg { flex-shrink: 0; }
-  .image-folder-label { font-size: 0.76rem; font-family: var(--font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .image-folder-label { font-size: 0.76rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
   .image-thumb.folder-link:hover .image-folder-open { color: var(--brand); }
   .image-remove {
     position: absolute; top: 0.15rem; right: 0.15rem; width: 1.3rem; height: 1.3rem; border-radius: 50%;
