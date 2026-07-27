@@ -1897,6 +1897,14 @@ import {
         return;
       }
       analyticsDataCache = snap.data();
+      // Data saved before Follower/Visitor demographics were split into separate fields may still
+      // have the old merged-with-suffix shape (see splitLegacyDemographics()) -- that migration
+      // was previously only applied on explicit Import, so anyone with real data already sitting
+      // in Firestore from before today would never see it, no matter how many times the page
+      // reloads. Apply it here too so it self-heals on every load, not just on manual re-import.
+      var migratedDemo = splitLegacyDemographics(analyticsDataCache);
+      analyticsDataCache.followerDemographics = migratedDemo.followerDemographics;
+      analyticsDataCache.visitorDemographics = migratedDemo.visitorDemographics;
       lastWrittenAnalyticsDataJson = JSON.stringify(analyticsDataCache);
       renderAnalytics();
     }, function (err) { console.error("analytics listener error", err); });
