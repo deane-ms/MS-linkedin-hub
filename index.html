@@ -659,6 +659,14 @@
     .kanban-board { grid-template-columns: 1fr; }
     .upcoming-columns { grid-template-columns: 1fr; gap: 1.1rem 0; }
     .upcoming-col + .upcoming-col { border-left: none; margin-left: 0; padding-left: 0; border-top: 1px solid var(--border); padding-top: 1.1rem; }
+    /* Even stacked to one column, cramming dot+date+title+status-pill onto one line left almost no
+       room for the title (it was ellipsis-truncated to a handful of characters) -- reflow to a
+       compact date/status line on top and the full (wrapping) title below, phones only. */
+    .upcoming-list { gap: 0.65rem; }
+    .upcoming-item { flex-wrap: wrap; row-gap: 0.2rem; }
+    .upcoming-date { order: 1; width: auto; }
+    .upcoming-item .status-pill { order: 2; margin-left: auto; }
+    .upcoming-title-text { order: 3; flex: 1 0 100%; white-space: normal; overflow: visible; text-overflow: clip; }
     /* Phones are viewing-only for Posts/Ideas -- creation entry points are hidden here;
        tapping an existing post/idea card still opens it, just read-only (see isMobileView()). */
     #newPostBtn, #newIdeaBtn, .day-add { display: none; }
