@@ -564,6 +564,7 @@
   .trends-note { margin: 0 0 0.7rem; font-size: 0.82rem; color: var(--text-soft); line-height: 1.55; }
   .takeaways-list li .post-link { display: inline-block; margin-top: 0.15rem; font-size: 0.82rem; }
   .demographics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1.4rem; }
+  #visitorDemographicsCard .analytics-sub { margin-bottom: 0.6rem; }
   .demographic-facet h4 { margin: 0 0 0.5rem; font-size: 0.78rem; font-weight: 700; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.03em; }
   .demo-row { display: grid; grid-template-columns: 7rem 1fr 3rem; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; font-size: 0.78rem; }
   .demo-row .demo-label { color: var(--text-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1151,6 +1152,12 @@
       <div class="demographics-grid" id="demographicsGrid"></div>
     </div>
 
+    <div class="chart-card" id="visitorDemographicsCard">
+      <div class="chart-head"><h3>Visitor demographics</h3></div>
+      <p class="analytics-sub">Who's actually seeing your posts, not just who already follows the page.</p>
+      <div class="demographics-grid" id="visitorDemographicsGrid"></div>
+    </div>
+
     <details class="data-table-toggle">
       <summary>View as table</summary>
       <div class="table-scroll">
@@ -1238,8 +1245,8 @@
       <button class="icon-btn" id="exportAnalyticsClose" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
     </div>
     <p style="margin:0 0 0.7rem;font-size:0.82rem;color:var(--text-soft);">
-      Everything currently loaded in this tab — daily data, top posts, follower demographics, and your
-      current-follower calibration. Paste this into <strong>Import Analytics JSON</strong> on another
+      Everything currently loaded in this tab — daily data, top posts, follower and visitor demographics,
+      and your current-follower calibration. Paste this into <strong>Import Analytics JSON</strong> on another
       computer to carry it over; localStorage doesn't sync across browsers or devices on its own.
     </p>
     <textarea id="exportAnalyticsText" readonly></textarea>
@@ -1775,7 +1782,7 @@ import {
   // open -- Firestore data already updates live via onSnapshot, so the only thing lagging
   // behind is *this page's own code*, and losing an in-progress draft to a surprise reload
   // would be worse than waiting a few seconds for the tab to be idle.
-  var CURRENT_BUILD_VERSION = "2026-07-27T04:57:17Z";
+  var CURRENT_BUILD_VERSION = "2026-07-27T05:33:55Z";
   var pendingBuildVersion = null;
 
   function anyModalOpen() {
@@ -3979,6 +3986,16 @@ import {
     "Industry": [{ category: "Media Production", count: 62 }, { category: "Advertising Services", count: 52 }, { category: "Technology, Information and Internet", count: 38 }],
     "Company size": [{ category: "11-50", count: 82 }, { category: "2-10", count: 71 }, { category: "51-200", count: 44 }]
   };
+  // Visitor demographics answer a different question than follower demographics: who actually saw/
+  // viewed the page (a much larger, more transient audience), not who's already followed it long-term.
+  // Same shape, deliberately larger counts and a slightly different mix to read as a distinct audience.
+  var SAMPLE_VISITOR_DEMOGRAPHICS = {
+    "Location": [{ category: "Singapore", count: 812 }, { category: "Mumbai Metropolitan Region, India", count: 74 }, { category: "Jakarta Metropolitan Area, Indonesia", count: 41 }, { category: "Sydney, Australia", count: 33 }, { category: "Ho Chi Minh City, Vietnam", count: 19 }],
+    "Job function": [{ category: "Media and Communication", count: 301 }, { category: "Marketing", count: 187 }, { category: "Arts and Design", count: 142 }, { category: "Business Development", count: 96 }],
+    "Seniority": [{ category: "Senior", count: 402 }, { category: "Entry", count: 318 }, { category: "Manager", count: 176 }, { category: "Director", count: 58 }],
+    "Industry": [{ category: "Media Production", count: 219 }, { category: "Advertising Services", count: 168 }, { category: "Technology, Information and Internet", count: 121 }],
+    "Company size": [{ category: "11-50", count: 244 }, { category: "2-10", count: 201 }, { category: "51-200", count: 133 }]
+  };
 
   // Analytics DATA (days/topPosts/demographics/follower count) is shared across the whole team via
   // Firestore -- kept in analyticsDataCache, fed by the analytics onSnapshot listener set up earlier.
@@ -3990,7 +4007,8 @@ import {
   function buildDefaultAnalyticsData() {
     return {
       isSample: true, currentFollowers: null, currentFollowersSource: null,
-      days: buildSampleDays(), topPosts: SAMPLE_TOP_POSTS, followerDemographics: SAMPLE_DEMOGRAPHICS
+      days: buildSampleDays(), topPosts: SAMPLE_TOP_POSTS, followerDemographics: SAMPLE_DEMOGRAPHICS,
+      visitorDemographics: SAMPLE_VISITOR_DEMOGRAPHICS
     };
   }
 
@@ -4027,7 +4045,8 @@ import {
       currentFollowersSource: state.currentFollowersSource || null,
       days: state.days || [],
       topPosts: state.topPosts || [],
-      followerDemographics: state.followerDemographics || {}
+      followerDemographics: state.followerDemographics || {},
+      visitorDemographics: state.visitorDemographics || {}
     };
     var dataJson = JSON.stringify(data);
     if (dataJson !== lastWrittenAnalyticsDataJson) {
@@ -4158,18 +4177,24 @@ import {
 
   // ---------- analytics: metric-switchable trend chart ----------
   var METRIC_DEFS = {
-    followers: { label: "Followers", format: formatNumber, unit: "followers", kind: "stock" },
-    impressions: { label: "Impressions", format: formatNumber, unit: "impressions", kind: "flow" },
-    uniqueImpressions: { label: "Unique Impressions", format: formatNumber, unit: "unique impressions", kind: "flow" },
-    pageViews: { label: "Page Views", format: formatNumber, unit: "page views", kind: "flow" },
-    uniqueVisitors: { label: "Unique Visitors", format: formatNumber, unit: "unique visitors", kind: "flow" },
-    clicks: { label: "Clicks", format: formatNumber, unit: "clicks", kind: "flow" },
-    ctr: { label: "CTR", format: formatPercent, unit: "click-through rate", kind: "rate" },
-    likes: { label: "Likes", format: formatNumber, unit: "likes", kind: "flow" },
-    comments: { label: "Comments", format: formatNumber, unit: "comments", kind: "flow" },
-    reposts: { label: "Reposts", format: formatNumber, unit: "reposts", kind: "flow" },
-    engagementRate: { label: "Engagement Rate", format: formatPercent, unit: "engagement rate", kind: "rate" }
+    followers: { label: "Followers", format: formatNumber, unit: "followers", kind: "stock", description: "Total people following your Page as of this date." },
+    impressions: { label: "Impressions", format: formatNumber, unit: "impressions", kind: "flow", description: "How many times your posts were shown, including repeat views by the same person." },
+    uniqueImpressions: { label: "Unique Impressions", format: formatNumber, unit: "unique impressions", kind: "flow", description: "How many distinct people saw at least one of your posts." },
+    pageViews: { label: "Page Views", format: formatNumber, unit: "page views", kind: "flow", description: "How many times your Page itself was viewed, not just individual posts." },
+    uniqueVisitors: { label: "Unique Visitors", format: formatNumber, unit: "unique visitors", kind: "flow", description: "How many distinct people visited your Page." },
+    clicks: { label: "Clicks", format: formatNumber, unit: "clicks", kind: "flow", description: "How many times people clicked on your posts (links, images, or the post itself)." },
+    ctr: { label: "CTR", format: formatPercent, unit: "click-through rate", kind: "rate", description: "Click-through rate: clicks divided by impressions." },
+    likes: { label: "Likes", format: formatNumber, unit: "likes", kind: "flow", description: "Total reactions (likes, celebrates, etc.) across your posts." },
+    comments: { label: "Comments", format: formatNumber, unit: "comments", kind: "flow", description: "Total comments across your posts." },
+    reposts: { label: "Reposts", format: formatNumber, unit: "reposts", kind: "flow", description: "Total reposts (shares) of your posts." },
+    engagementRate: { label: "Engagement Rate", format: formatPercent, unit: "engagement rate", kind: "rate", description: "Likes + comments + reposts + clicks, divided by impressions." }
   };
+  // Hover tooltip per metric chip -- description lives once in METRIC_DEFS rather than being
+  // duplicated as a hardcoded title="" on each button, so the two can never drift apart.
+  document.querySelectorAll("#metricChips .metric-chip[data-metric]").forEach(function (btn) {
+    var def = METRIC_DEFS[btn.dataset.metric];
+    if (def && def.description) btn.title = def.description;
+  });
   var currentMetric = "impressions";
 
   function smoothPath(points) {
@@ -4327,7 +4352,10 @@ import {
     }).slice(0, 10);
 
     document.getElementById("topPostsTableBody").innerHTML = filtered.map(function (p) {
-      var title = p.title.replace(/\n+/g, " ").slice(0, 90);
+      // No length cap here -- the cell itself wraps long titles (max-width + white-space:normal,
+      // see #topPostsTable td:first-child), so slicing text off with no ellipsis would just hide
+      // real content despite there being room to show it.
+      var title = escapeHtml(p.title.replace(/\n+/g, " "));
       var titleHtml = p.link
         ? '<a class="post-link" href="' + p.link + '" target="_blank" rel="noopener noreferrer">' + title + '</a>'
         : title;
@@ -4341,11 +4369,14 @@ import {
     }).join("") || '<tr><td colspan="5" style="text-align:center;color:var(--text-faint);">No post data imported yet.</td></tr>';
   }
 
-  // ---------- analytics: follower demographics ----------
-  function renderDemographics(demographics) {
+  // ---------- analytics: follower + visitor demographics ----------
+  // Shared renderer -- called once for the follower panel and once for the visitor panel (see
+  // renderAnalytics()). Purely a display concern: which underlying data goes in which panel is
+  // decided by the caller, not here.
+  function renderDemographics(demographics, gridId, cardId) {
     var facets = Object.keys(demographics);
-    var grid = document.getElementById("demographicsGrid");
-    var card = document.getElementById("demographicsCard");
+    var grid = document.getElementById(gridId);
+    var card = document.getElementById(cardId);
     if (!facets.length) { card.hidden = true; return; }
     card.hidden = false;
 
@@ -4507,7 +4538,8 @@ import {
       : "No data yet — import a JSON export to get started.";
 
     renderTopPosts(state.topPosts || [], state);
-    renderDemographics(state.followerDemographics || {});
+    renderDemographics(state.followerDemographics || {}, "demographicsGrid", "demographicsCard");
+    renderDemographics(state.visitorDemographics || {}, "visitorDemographicsGrid", "visitorDemographicsCard");
     renderGoalCards();
 
     if (!filtered.length) { currentPeriods = []; return; }
@@ -4749,7 +4781,8 @@ import {
       currentFollowersSource: state.currentFollowersSource || null,
       days: state.days || [],
       topPosts: state.topPosts || [],
-      followerDemographics: state.followerDemographics || {}
+      followerDemographics: state.followerDemographics || {},
+      visitorDemographics: state.visitorDemographics || {}
     };
     exportAnalyticsText.value = JSON.stringify(bundle, null, 2);
     exportAnalyticsBackdrop.classList.add("open");
@@ -4795,6 +4828,30 @@ import {
   var analyticsLastFocused = null;
   var DAY_FIELDS = ["date", "followers", "followerGain", "impressions", "uniqueImpressions", "clicks", "ctr", "likes", "comments", "reposts", "engagementRate", "pageViews", "uniqueVisitors"];
 
+  // Exports made before the Python importer split Followers/Visitors into two separate dicts
+  // merged both into one followerDemographics object, disambiguated by a "(Followers)"/"(Visitors)"
+  // suffix on the key (e.g. "Location (Visitors)"). Split those back apart on import so an old
+  // export file still lands each facet in the right panel instead of all piling into Follower.
+  function splitLegacyDemographics(bundle) {
+    var followerDemographics = bundle.followerDemographics || {};
+    var visitorDemographics = bundle.visitorDemographics || {};
+    if (Object.keys(visitorDemographics).length) return { followerDemographics: followerDemographics, visitorDemographics: visitorDemographics };
+
+    var splitFollowers = {}, splitVisitors = {}, hadSuffixedKeys = false;
+    Object.keys(followerDemographics).forEach(function (key) {
+      var m = key.match(/^(.*) \((Followers|Visitors)\)$/);
+      if (m) {
+        hadSuffixedKeys = true;
+        (m[2] === "Visitors" ? splitVisitors : splitFollowers)[m[1]] = followerDemographics[key];
+      } else {
+        splitFollowers[key] = followerDemographics[key];
+      }
+    });
+    return hadSuffixedKeys
+      ? { followerDemographics: splitFollowers, visitorDemographics: splitVisitors }
+      : { followerDemographics: followerDemographics, visitorDemographics: visitorDemographics };
+  }
+
   document.getElementById("importAnalyticsBtn").addEventListener("click", function () {
     analyticsLastFocused = document.activeElement;
     importAnalyticsText.value = ""; importAnalyticsFile.value = ""; importAnalyticsError.style.display = "none";
@@ -4832,7 +4889,7 @@ import {
     var bundle;
     if (Array.isArray(parsed)) {
       // backward-compatible: a bare weekly array from the old export shape
-      bundle = { days: parsed.map(function (row) { return Object.assign({ uniqueImpressions: 0, ctr: 0 }, row); }), topPosts: [], followerDemographics: {}, currentFollowers: null, currentFollowersSource: null };
+      bundle = { days: parsed.map(function (row) { return Object.assign({ uniqueImpressions: 0, ctr: 0 }, row); }), topPosts: [], followerDemographics: {}, visitorDemographics: {}, currentFollowers: null, currentFollowersSource: null };
     } else if (parsed && Array.isArray(parsed.days)) {
       bundle = parsed;
     } else {
@@ -4840,6 +4897,7 @@ import {
       importAnalyticsError.style.display = "block";
       return;
     }
+    var demo = splitLegacyDemographics(bundle);
 
     var normalized = bundle.days.map(function (row) {
       var out = {};
@@ -4858,7 +4916,8 @@ import {
       isSample: false,
       days: normalized,
       topPosts: bundle.topPosts || [],
-      followerDemographics: bundle.followerDemographics || {},
+      followerDemographics: demo.followerDemographics,
+      visitorDemographics: demo.visitorDemographics,
       currentFollowers: bundle.currentFollowers !== undefined ? bundle.currentFollowers : null,
       currentFollowersSource: bundle.currentFollowersSource || null,
       rangePreset: prevState.rangePreset || "90d",
@@ -4868,7 +4927,9 @@ import {
     });
     renderAnalytics();
     importAnalyticsError.style.color = "var(--good)";
-    importAnalyticsError.textContent = "Imported " + normalized.length + " day(s), " + (bundle.topPosts || []).length + " post(s).";
+    importAnalyticsError.textContent = "Imported " + normalized.length + " day(s), " + (bundle.topPosts || []).length + " post(s), " +
+      Object.keys(demo.followerDemographics).length + " follower demographic facet(s), " +
+      Object.keys(demo.visitorDemographics).length + " visitor demographic facet(s).";
     importAnalyticsError.style.display = "block";
   });
 
