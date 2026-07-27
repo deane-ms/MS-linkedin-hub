@@ -5,7 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MediaShock APAC - LinkedIn Content Hub</title>
 <link rel="icon" type="image/png" href="favicon.png">
-<link rel="apple-touch-icon" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff4e20">
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
@@ -34,6 +36,7 @@
     --s-draft-fg: #64748b;    --s-draft-bg: #f1f5f9;    --s-draft-line: #cbd5e1;
     --s-approved-fg: #15803d; --s-approved-bg: #f0fdf4; --s-approved-line: #bbf7d0;
     --s-scheduled-fg: #ffffff; --s-scheduled-bg: #ff4e20; --s-scheduled-line: #ff4e20;
+    --s-posted-fg: #1d4ed8;   --s-posted-bg: #eff6ff;   --s-posted-line: #bfdbfe;
 
     --good: #15803d;
     --bad: #dc2626;
@@ -75,6 +78,7 @@
       --s-draft-fg: #94a3b8;    --s-draft-bg: #1e293b;    --s-draft-line: #334155;
       --s-approved-fg: #4ade80; --s-approved-bg: #14251a; --s-approved-line: #14532d;
       --s-scheduled-fg: #0f172a; --s-scheduled-bg: #ff7a52; --s-scheduled-line: #ff7a52;
+      --s-posted-fg: #60a5fa;   --s-posted-bg: #152238;   --s-posted-line: #1e3a5f;
       --good: #4ade80;
       --bad: #f87171;
     }
@@ -89,6 +93,7 @@
     --s-draft-fg: #94a3b8; --s-draft-bg: #1e293b; --s-draft-line: #334155;
     --s-approved-fg: #4ade80; --s-approved-bg: #14251a; --s-approved-line: #14532d;
     --s-scheduled-fg: #0f172a; --s-scheduled-bg: #ff7a52; --s-scheduled-line: #ff7a52;
+    --s-posted-fg: #60a5fa; --s-posted-bg: #152238; --s-posted-line: #1e3a5f;
     --good: #4ade80; --bad: #f87171;
   }
   :root[data-theme="light"] {
@@ -101,6 +106,7 @@
     --s-draft-fg: #64748b; --s-draft-bg: #f1f5f9; --s-draft-line: #cbd5e1;
     --s-approved-fg: #15803d; --s-approved-bg: #f0fdf4; --s-approved-line: #bbf7d0;
     --s-scheduled-fg: #ffffff; --s-scheduled-bg: #ff4e20; --s-scheduled-line: #ff4e20;
+    --s-posted-fg: #1d4ed8; --s-posted-bg: #eff6ff; --s-posted-line: #bfdbfe;
     --good: #15803d; --bad: #dc2626;
   }
 
@@ -396,6 +402,7 @@
   .status-draft { color: var(--s-draft-fg); background: var(--s-draft-bg); border-color: var(--s-draft-line); }
   .status-approved { color: var(--s-approved-fg); background: var(--s-approved-bg); border-color: var(--s-approved-line); }
   .status-scheduled { color: var(--s-scheduled-fg); background: var(--brand-gradient); border-color: var(--s-scheduled-line); }
+  .status-posted { color: var(--s-posted-fg); background: var(--s-posted-bg); border-color: var(--s-posted-line); }
 
   /* Custom Status dropdown -- a real <select>'s options can't be styled as pills in any browser,
      so this is a button + popup listbox instead, with the current/each option shown as an actual
@@ -523,8 +530,8 @@
 
   /* ---------- analytics: header + sample badge ---------- */
   .analytics-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
-  .analytics-head h2 { margin: 0; font-size: 1.15rem; font-weight: 700; }
   .analytics-sub { margin: 0.25rem 0 0; font-size: 0.82rem; color: var(--text-soft); }
+  .analytics-headline-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
   #analyticsRange {
     font-size: 1.15rem; font-weight: 700;
     color: var(--text); margin: 0.4rem 0 0.2rem;
@@ -533,7 +540,7 @@
     display: inline-flex; align-items: center; gap: 0.35rem;
     font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em;
     color: var(--s-draft-fg); background: var(--s-draft-bg); border: 1px solid var(--s-draft-line);
-    border-radius: 999px; padding: 0.15rem 0.55rem; margin-left: 0.5rem;
+    border-radius: 999px; padding: 0.15rem 0.55rem;
   }
 
   /* ---------- date range + granularity ---------- */
@@ -946,6 +953,13 @@
     </div>
     <div class="topbar-actions">
       <span class="user-chip" id="userChip" hidden></span>
+      <button type="button" class="icon-btn" id="installAppBtn" aria-label="Install as an app" title="Install as an app" hidden>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 3v12"></path>
+          <path d="M7 10l5 5 5-5"></path>
+          <path d="M4 19h16"></path>
+        </svg>
+      </button>
       <button type="button" class="icon-btn" id="themeToggleBtn" aria-label="Toggle color theme" title="Toggle color theme"></button>
       <button class="btn btn-ghost" id="importBtn">Import JSON</button>
       <button class="btn btn-ghost" id="exportBtn">Export Calendar (JSON)</button>
@@ -1047,8 +1061,10 @@
   <section class="tab-panel" id="analyticsView" hidden>
     <div class="analytics-head">
       <div>
-        <h2>LinkedIn Page Performance<span class="sample-badge" id="sampleBadge" hidden>Sample data</span></h2>
-        <p class="analytics-sub" id="analyticsRange"></p>
+        <div class="analytics-headline-row">
+          <p class="analytics-sub" id="analyticsRange"></p>
+          <span class="sample-badge" id="sampleBadge" hidden>Sample data</span>
+        </div>
         <p class="analytics-sub" id="followerSourceNote"></p>
       </div>
       <div style="display:flex;gap:0.6rem;flex-wrap:wrap;">
@@ -1700,6 +1716,52 @@ import {
     applyTheme(next);
   });
 
+  // ---------- install as an app (PWA) ----------
+  // Chrome/Edge (desktop + Android) support a real install prompt via beforeinstallprompt. iOS
+  // Safari has no such API at all -- Apple only allows "Add to Home Screen" as a manual Share-sheet
+  // action, so the button there just shows instructions instead of doing anything automatic.
+  var installAppBtn = document.getElementById("installAppBtn");
+  var deferredInstallPrompt = null;
+
+  function isStandaloneDisplay() {
+    return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+  }
+  function isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  }
+
+  if (!isStandaloneDisplay()) {
+    if (isIOS()) {
+      installAppBtn.hidden = false;
+      installAppBtn.addEventListener("click", function () {
+        alert('To add the Content Hub to your Home Screen: tap the Share icon, then "Add to Home Screen".');
+      });
+    } else {
+      window.addEventListener("beforeinstallprompt", function (e) {
+        e.preventDefault();
+        deferredInstallPrompt = e;
+        installAppBtn.hidden = false;
+      });
+      installAppBtn.addEventListener("click", function () {
+        if (!deferredInstallPrompt) return;
+        installAppBtn.disabled = true;
+        deferredInstallPrompt.prompt();
+        deferredInstallPrompt.userChoice.finally(function () {
+          deferredInstallPrompt = null;
+          installAppBtn.hidden = true;
+          installAppBtn.disabled = false;
+        });
+      });
+    }
+  }
+  window.addEventListener("appinstalled", function () { installAppBtn.hidden = true; });
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("sw.js").catch(function () {});
+    });
+  }
+
   signInBtn.addEventListener("click", function () {
     signInBtn.disabled = true;
     authStatus.textContent = "Opening Google sign-in...";
@@ -2294,7 +2356,7 @@ import {
         '<span class="upcoming-dot" style="background:' + bucketColorFor(p.bucket) + '"></span>' +
         '<span class="upcoming-date">' + formatDateShort(p.date) + ' · ' + formatTime12(p.time) + '</span>' +
         '<span class="upcoming-title-text">' + escapeHtml(p.title) + '</span>' +
-        '<span class="status-pill status-' + p.status + '">' + p.status + '</span>' +
+        '<span class="status-pill status-' + displayStatus(p) + '">' + displayStatus(p) + '</span>' +
         '</button>';
     }).join("");
     el.querySelectorAll(".upcoming-item").forEach(function (btn) {
@@ -2337,6 +2399,17 @@ import {
     var todayKey = dateKey(new Date());
     var soonKey = dateKey(addDays(new Date(), 2));
     return post.date >= todayKey && post.date <= soonKey;
+  }
+
+  // Display-only, derived from the date -- doesn't touch the stored status field. An approved or
+  // scheduled post whose date has passed should have gone out already, so it reads as "posted"
+  // rather than sitting at "approved"/"scheduled" forever. Drafts are excluded on purpose: a
+  // past-due draft was never confirmed to go out, so it stays "draft" (arguably overdue, not posted).
+  function displayStatus(post) {
+    if ((post.status === "approved" || post.status === "scheduled") && post.date < dateKey(new Date())) {
+      return "posted";
+    }
+    return post.status;
   }
 
   // Posts saved before images switched from uploaded/embedded to link-based still carry their
@@ -2575,7 +2648,7 @@ import {
       assetFolderBadge +
       attentionBadge +
       postOwners.map(function (o) { return avatarHtml(o, "small"); }).join("") +
-      '<span class="status-pill status-' + post.status + '">' + post.status + '</span></span>';
+      '<span class="status-pill status-' + displayStatus(post) + '">' + displayStatus(post) + '</span></span>';
     btn.addEventListener("click", function (e) {
       var folderEl = e.target.closest(".pc-asset-folder");
       if (folderEl) {

@@ -14,7 +14,9 @@ HEAD_OPEN = (
     '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n'
     + SOURCE_TITLE + '\n'
     '<link rel="icon" type="image/png" href="favicon.png">\n'
-    '<link rel="apple-touch-icon" href="favicon.png">\n'
+    '<link rel="apple-touch-icon" href="apple-touch-icon.png">\n'
+    '<link rel="manifest" href="manifest.json">\n'
+    '<meta name="theme-color" content="#ff4e20">\n'
 )
 BODY_MARKER = '.modal-backdrop, .modal, .chart-tooltip { transition: none; }\n  }\n</style>\n'
 BODY_OPEN = BODY_MARKER + '</head>\n<body>\n'
