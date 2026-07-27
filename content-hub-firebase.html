@@ -649,6 +649,11 @@
   #analyticsTable th, #analyticsTable td, #topPostsTable th, #topPostsTable td { text-align: right; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
   #analyticsTable th:first-child, #analyticsTable td:first-child, #topPostsTable th:first-child, #topPostsTable td:first-child { text-align: left; font-variant-numeric: normal; }
   #analyticsTable th, #topPostsTable th { color: var(--text-soft); font-weight: 700; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.03em; }
+  .sortable-th { cursor: pointer; user-select: none; }
+  .sortable-th:hover { color: var(--text); }
+  .sortable-th::after { content: "↕"; display: inline-block; margin-left: 0.3rem; opacity: 0.35; font-size: 0.9em; }
+  .sortable-th.sorted-asc::after { content: "▲"; opacity: 1; color: var(--brand); }
+  .sortable-th.sorted-desc::after { content: "▼"; opacity: 1; color: var(--brand); }
   /* Desktop keeps the plain numeric cell -- these labels only earn their keep once the table
      collapses into stacked cards on mobile (see the 720px block for #topPostsTable). */
   .tp-stat-label { display: none; }
@@ -1129,6 +1134,32 @@
       </div>
     </div>
 
+    <details class="data-table-toggle">
+      <summary>View as table</summary>
+      <div class="table-scroll">
+        <table id="analyticsTable">
+          <thead>
+            <tr>
+              <th class="sortable-th" data-sort-key="date">Period</th>
+              <th class="sortable-th" data-sort-key="followers">Followers</th>
+              <th class="sortable-th" data-sort-key="followerGain">Gain</th>
+              <th class="sortable-th" data-sort-key="impressions">Impressions</th>
+              <th class="sortable-th" data-sort-key="uniqueImpressions">Unique</th>
+              <th class="sortable-th" data-sort-key="pageViews">Page Views</th>
+              <th class="sortable-th" data-sort-key="uniqueVisitors">Visitors</th>
+              <th class="sortable-th" data-sort-key="clicks">Clicks</th>
+              <th class="sortable-th" data-sort-key="ctr">CTR</th>
+              <th class="sortable-th" data-sort-key="likes">Likes</th>
+              <th class="sortable-th" data-sort-key="comments">Comments</th>
+              <th class="sortable-th" data-sort-key="reposts">Reposts</th>
+              <th class="sortable-th" data-sort-key="engagementRate">Eng. rate</th>
+            </tr>
+          </thead>
+          <tbody id="analyticsTableBody"></tbody>
+        </table>
+      </div>
+    </details>
+
     <div class="chart-card">
       <div class="chart-head"><h3>Top performing posts</h3></div>
       <div class="table-scroll">
@@ -1152,17 +1183,6 @@
       <div class="demographics-grid" id="visitorDemographicsGrid"></div>
     </div>
 
-    <details class="data-table-toggle">
-      <summary>View as table</summary>
-      <div class="table-scroll">
-        <table id="analyticsTable">
-          <thead>
-            <tr><th>Period</th><th>Followers</th><th>Gain</th><th>Impressions</th><th>Unique</th><th>Page Views</th><th>Visitors</th><th>Clicks</th><th>CTR</th><th>Likes</th><th>Comments</th><th>Reposts</th><th>Eng. rate</th></tr>
-          </thead>
-          <tbody id="analyticsTableBody"></tbody>
-        </table>
-      </div>
-    </details>
     <div class="chart-card">
       <div class="chart-head"><h3>Key takeaways</h3></div>
       <ul class="takeaways-list" id="takeawaysList"></ul>
@@ -4482,16 +4502,65 @@ import {
       out.push("Average CTR is " + formatPercent(avgCtr) + ", on the low side — stronger hooks or more explicit calls-to-action in the first two lines of a post tend to lift click-through.");
     }
 
-    var typeCounts = {};
-    topPosts.slice(0, 10).forEach(function (p) {
-      if (p.contentType) typeCounts[p.contentType] = (typeCounts[p.contentType] || 0) + 1;
+    // Average engagement rate *per content type* (across all posts, not just the leaderboard) --
+    // more actionable than counting which format shows up most in the top 10, which could just
+    // mean you post that format more often, not that it actually performs better.
+    var byType = {};
+    topPosts.forEach(function (p) {
+      if (!p.contentType) return;
+      if (!byType[p.contentType]) byType[p.contentType] = [];
+      byType[p.contentType].push(p.engagementRate || 0);
     });
-    var topType = Object.keys(typeCounts).sort(function (a, b) { return typeCounts[b] - typeCounts[a]; })[0];
-    if (topType && typeCounts[topType] >= 3) {
-      out.push('"' + topType + '" content dominates your top 10 posts (' + typeCounts[topType] + ' of them) — lean further into that format.');
+    var typeStats = Object.keys(byType)
+      .filter(function (t) { return byType[t].length >= 3; })
+      .map(function (t) { return { type: t, avgEng: avg(byType[t]), count: byType[t].length }; })
+      .sort(function (a, b) { return b.avgEng - a.avgEng; });
+    if (typeStats.length >= 2 && typeStats[0].avgEng > typeStats[typeStats.length - 1].avgEng * 1.2) {
+      var worstType = typeStats[typeStats.length - 1];
+      out.push('"' + escapeHtml(typeStats[0].type) + '" posts average ' + formatPercent(typeStats[0].avgEng) + ' engagement across ' + typeStats[0].count +
+        ' posts, notably higher than "' + escapeHtml(worstType.type) + '" (' + formatPercent(worstType.avgEng) + ', ' + worstType.count + ' posts) — lean further into ' + escapeHtml(typeStats[0].type.toLowerCase()) + '.');
     }
 
-    out.push("Check the Top Performing Posts table below and the Key Takeaways above together — replicate the topic/format/timing of whatever's outperforming, rather than posting on a fixed schedule alone.");
+    // Day-of-week pattern, if there are enough dated posts to say anything meaningful about it.
+    var datedPosts = topPosts.filter(function (p) { return p.createdDate; });
+    if (datedPosts.length >= 6) {
+      var DOW_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      var byDow = {};
+      datedPosts.forEach(function (p) {
+        var dow = new Date(p.createdDate + "T00:00:00Z").getUTCDay();
+        if (!byDow[dow]) byDow[dow] = [];
+        byDow[dow].push(p.engagementRate || 0);
+      });
+      var dowStats = Object.keys(byDow)
+        .filter(function (d) { return byDow[d].length >= 2; })
+        .map(function (d) { return { dow: Number(d), avgEng: avg(byDow[d]), count: byDow[d].length }; })
+        .sort(function (a, b) { return b.avgEng - a.avgEng; });
+      if (dowStats.length >= 2 && dowStats[0].avgEng > dowStats[dowStats.length - 1].avgEng * 1.2) {
+        out.push("Posts published on " + DOW_NAMES[dowStats[0].dow] + "s average " + formatPercent(dowStats[0].avgEng) + " engagement (" + dowStats[0].count +
+          " posts) — your best day-of-week so far. Worth weighting your posting schedule toward it.");
+      }
+    }
+
+    // Name the single best-performing post specifically, instead of a generic "go check the
+    // table" pointer -- something concrete to actually study rather than a homework assignment.
+    // Require at least half the median impressions among topPosts, so a post with a handful of
+    // views and one lucky like doesn't get crowned "highest engagement" over posts that actually
+    // reached a real audience.
+    var impressionsSorted = topPosts.map(function (p) { return p.impressions || 0; }).sort(function (a, b) { return a - b; });
+    var medianImpressions = impressionsSorted.length ? impressionsSorted[Math.floor(impressionsSorted.length / 2)] : 0;
+    var byEngagement = topPosts
+      .filter(function (p) { return p.engagementRate > 0 && p.impressions >= medianImpressions * 0.5; })
+      .sort(function (a, b) { return b.engagementRate - a.engagementRate; });
+    if (byEngagement.length) {
+      var best = byEngagement[0];
+      var titleFlat = (best.title || "").replace(/\s+/g, " ").trim();
+      var titleShort = escapeHtml(titleFlat.length > 70 ? titleFlat.slice(0, 70) + "…" : (titleFlat || "this post"));
+      out.push('Your highest-engagement post (among those with a real audience) was "' + titleShort + '"' + (best.contentType ? " (" + escapeHtml(best.contentType) + ")" : "") + " at " + formatPercent(best.engagementRate) +
+        " engagement and " + formatNumber(best.impressions) + " impressions — look at what made it distinct (topic, hook, format) and try repeating that pattern, rather than posting on a fixed schedule alone.");
+    } else {
+      out.push("Check the Top Performing Posts table below and the Key Takeaways above together — replicate the topic/format/timing of whatever's outperforming, rather than posting on a fixed schedule alone.");
+    }
+
     return out;
   }
 
@@ -4500,8 +4569,20 @@ import {
   }
 
   // ---------- analytics: data table ----------
+  // Defaults to ascending by date, matching periods' natural chronological order -- so nothing
+  // visually changes until a header is actually clicked. Persists across re-renders (new imports,
+  // range/granularity changes) since it lives outside renderAnalyticsTable itself.
+  var analyticsTableSort = { key: "date", direction: 1 };
+
   function renderAnalyticsTable(periods) {
-    document.getElementById("analyticsTableBody").innerHTML = periods.map(function (w) {
+    var key = analyticsTableSort.key, dir = analyticsTableSort.direction;
+    var sorted = periods.slice().sort(function (a, b) {
+      var av = a[key], bv = b[key];
+      if (av < bv) return -1 * dir;
+      if (av > bv) return 1 * dir;
+      return 0;
+    });
+    document.getElementById("analyticsTableBody").innerHTML = sorted.map(function (w) {
       return '<tr>' +
         '<td>' + formatDateShort(w.date) + '</td>' +
         '<td>' + formatNumber(w.followers) + '</td>' +
@@ -4518,7 +4599,25 @@ import {
         '<td>' + formatPercent(w.engagementRate) + '</td>' +
         '</tr>';
     }).join("");
+    document.querySelectorAll("#analyticsTable .sortable-th").forEach(function (th) {
+      th.classList.toggle("sorted-asc", th.dataset.sortKey === key && dir === 1);
+      th.classList.toggle("sorted-desc", th.dataset.sortKey === key && dir === -1);
+    });
   }
+
+  // The <thead> is static (only #analyticsTableBody gets replaced on re-render), so these
+  // listeners are attached once and never need re-binding.
+  document.querySelectorAll("#analyticsTable .sortable-th").forEach(function (th) {
+    th.addEventListener("click", function () {
+      if (analyticsTableSort.key === th.dataset.sortKey) {
+        analyticsTableSort.direction *= -1;
+      } else {
+        analyticsTableSort.key = th.dataset.sortKey;
+        analyticsTableSort.direction = 1;
+      }
+      renderAnalyticsTable(currentPeriods);
+    });
+  });
 
   // ---------- analytics: master render ----------
   var currentPeriods = [];

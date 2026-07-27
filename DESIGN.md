@@ -111,6 +111,23 @@ The Analytics tab has two separate demographic panels, not one — "Follower dem
 
 The bug this replaced: the code used to just `return` early when `filtered.length` was `0`, leaving the KPI row/trend chart/etc. showing whatever they'd last rendered. A real, successful Import in that state looked exactly like "the import didn't work" — the numbers on screen genuinely didn't change, because nothing re-rendered them at all, while `#analyticsRange` (computed *before* that early return) correctly said "No data yet." Anyone hitting this would have no way to tell the difference between "import failed" and "import worked, but your date filter is hiding it" without being told explicitly. If you add a new range-dependent section to this tab, it needs its own reset in this same block, or it'll silently reintroduce this bug for that one section.
 
+## Analytics tab layout order
+
+"View as table" (the `#analyticsTable` toggle) sits directly after the Trend/Engagement chart row, *before* Top performing posts and either demographics panel — it's the tabular equivalent of the same chart data, not a general-purpose data dump, so it belongs next to the chart it mirrors rather than stranded after unrelated sections. If you add a new chart-adjacent view like this, place it next to what it's a view *of*, not at the end of the tab by default.
+
+## Suggested next steps (data-driven, not generic advice)
+
+`generateSuggestions()` used to always end with one hardcoded, always-shown bullet ("check the Top Performing Posts table and Key Takeaways together...") regardless of what the data actually said — on accounts where the other rule-based checks didn't fire (engagement/CTR/follower-growth thresholds not met), that boilerplate bullet was often the *only* thing shown, which is exactly as unhelpful as it sounds.
+
+- **Every bullet should name something specific from the actual data** — a real percentage, a real post title, a real day of the week — not generic advice that would apply to any account. The generic "check the table" bullet is now a last-resort fallback, only shown if there's truly no post with `engagementRate > 0` to point to.
+- **Content-type comparison uses average engagement rate across all posts, not raw counts in the top 10.** Counting which format appears most in the leaderboard just measures how often you post that format, not whether it actually performs better — comparing per-type averages (with a `>= 3` posts-per-type minimum, and requiring the best average to beat the worst by 20%+) answers the real question.
+- **Day-of-week and "best single post" picks both guard against thin/misleading samples.** Day-of-week needs `>= 2` posts for a given day before its average counts, and the same 20%+ gap threshold applies. The single best-performing post is chosen among posts with `impressions >= 50% of the median` — without that floor, a post with one lucky like and almost no reach can out-rank everything else on raw engagement rate percentage and get crowned "your best post," which is misleading rather than useful.
+- **Post titles get `.replace(/\s+/g, " ").trim()` before truncating**, not just a length cap — LinkedIn's per-post export titles can contain literal newlines (multi-paragraph posts), and without flattening whitespace first, a title-in-a-sentence reads as several disconnected quoted fragments jammed together instead of one clean snippet. Also goes through `escapeHtml()`, same as the Top Performing Posts table — any post title is untrusted content the moment it's placed in `innerHTML`.
+
+## Sortable data table
+
+`#analyticsTable`'s headers (`.sortable-th`, each with a `data-sort-key` matching a field on the aggregated period objects — `date`, `followers`, `impressions`, etc.) are click-to-sort, toggling ascending/descending on repeat clicks of the same header and resetting to ascending on a new one. `analyticsTableSort` is a module-level var (not local to `renderAnalyticsTable`) specifically so the chosen sort persists across re-renders — a new import, a range/granularity change, anything that calls `renderAnalyticsTable(currentPeriods)` again — rather than silently resetting to date-ascending every time the underlying data changes. The click listeners are attached once at load, not re-bound on every render, since only `#analyticsTableBody` (not the `<thead>`) ever gets replaced via `innerHTML`.
+
 ## Schema changes
 
 Any new field on `posts`/`ideas` must be additive and read with a fallback (`post.newField || defaultValue`) — existing documents without it should degrade gracefully, never break. See `normalizedGoal()` for the pattern used when a field's *shape* changes, not just its presence.
