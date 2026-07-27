@@ -649,6 +649,9 @@
   #analyticsTable th, #analyticsTable td, #topPostsTable th, #topPostsTable td { text-align: right; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
   #analyticsTable th:first-child, #analyticsTable td:first-child, #topPostsTable th:first-child, #topPostsTable td:first-child { text-align: left; font-variant-numeric: normal; }
   #analyticsTable th, #topPostsTable th { color: var(--text-soft); font-weight: 700; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.03em; }
+  /* Desktop keeps the plain numeric cell -- these labels only earn their keep once the table
+     collapses into stacked cards on mobile (see the 720px block for #topPostsTable). */
+  .tp-stat-label { display: none; }
 
   @media (max-width: 980px) {
     .kpi-row { grid-template-columns: repeat(3, 1fr); }
@@ -667,6 +670,29 @@
     .upcoming-date { order: 1; width: auto; }
     .upcoming-item .status-pill { order: 2; margin-left: auto; }
     .upcoming-title-text { order: 3; flex: 1 0 100%; white-space: normal; overflow: visible; text-overflow: clip; }
+
+    /* "Top performing posts" was a 5-column table forcing sideways scrolling on a phone (the title
+       cell alone had max-width:26rem, wider than most phone screens) -- collapse it into one card
+       per post instead, title/date up top and impressions/eng.rate/reposts as a small stat row
+       below, reusing the .tp-stat-label/-value spans that are invisible on desktop's real table. */
+    #topPostsTable, #topPostsTable thead, #topPostsTable tbody, #topPostsTable tr, #topPostsTable th, #topPostsTable td {
+      display: block;
+    }
+    #topPostsTable thead { display: none; }
+    #topPostsTable tr { border: 1px solid var(--border); border-radius: 10px; padding: 0.75rem 0.85rem; margin-bottom: 0.6rem; }
+    #topPostsTable tr:last-child { margin-bottom: 0; }
+    #topPostsTable td { border-bottom: none; padding: 0; text-align: left; font-variant-numeric: normal; }
+    #topPostsTable td:first-child { max-width: none; white-space: normal; font-weight: 600; }
+    #topPostsTable td:nth-child(2) { color: var(--text-faint); font-size: 0.72rem; margin-top: 0.2rem; }
+    #topPostsTable td:nth-child(3), #topPostsTable td:nth-child(4), #topPostsTable td:nth-child(5) {
+      display: inline-flex; flex-direction: column; gap: 0.15rem; margin: 0.6rem 1.2rem 0 0;
+    }
+    .tp-stat-label {
+      display: block; font-size: 0.62rem; color: var(--text-faint); font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.03em;
+    }
+    .tp-stat-value { font-size: 0.95rem; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+
     /* Phones are viewing-only for Posts/Ideas -- creation entry points are hidden here;
        tapping an existing post/idea card still opens it, just read-only (see isMobileView()). */
     #newPostBtn, #newIdeaBtn, .day-add { display: none; }
@@ -4185,9 +4211,9 @@ import {
       return '<tr>' +
         '<td>' + titleHtml + (p.contentType ? ' <span style="color:var(--text-faint);font-size:0.7rem;">· ' + p.contentType + '</span>' : '') + '</td>' +
         '<td>' + (p.createdDate ? formatDateShort(p.createdDate) : '—') + '</td>' +
-        '<td>' + formatNumber(p.impressions) + '</td>' +
-        '<td>' + formatPercent(p.engagementRate) + '</td>' +
-        '<td>' + formatNumber(p.reposts) + '</td>' +
+        '<td><span class="tp-stat-label">Impressions</span><span class="tp-stat-value">' + formatNumber(p.impressions) + '</span></td>' +
+        '<td><span class="tp-stat-label">Eng. rate</span><span class="tp-stat-value">' + formatPercent(p.engagementRate) + '</span></td>' +
+        '<td><span class="tp-stat-label">Reposts</span><span class="tp-stat-value">' + formatNumber(p.reposts) + '</span></td>' +
         '</tr>';
     }).join("") || '<tr><td colspan="5" style="text-align:center;color:var(--text-faint);">No post data imported yet.</td></tr>';
   }
