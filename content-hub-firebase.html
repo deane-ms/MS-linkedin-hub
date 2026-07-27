@@ -561,6 +561,7 @@
   .demo-row .demo-track { background: var(--surface-alt); border-radius: 4px; height: 0.6rem; overflow: hidden; display: block; }
   .demo-row .demo-fill { background: var(--brand-gradient-h); height: 100%; border-radius: 4px; display: block; }
   .demo-row .demo-value { text-align: right; color: var(--text); font-variant-numeric: tabular-nums; }
+  .demographics-empty { color: var(--text-faint); font-size: 0.85rem; padding: 0.4rem 0.2rem; grid-column: 1 / -1; }
 
   /* ---------- KPI tiles ---------- */
   .kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.8rem; margin-bottom: 1.4rem; }
@@ -1144,7 +1145,9 @@
 
     <div class="chart-card" id="visitorDemographicsCard">
       <div class="chart-head"><h3>Visitor demographics</h3></div>
-      <p class="analytics-sub">Who's actually seeing your posts, not just who already follows the page.</p>
+      <p class="analytics-sub">The closest answer LinkedIn's data gives to "who's seeing my posts" — a breakdown of page
+        visitors (the audience behind Impressions/Page Views above), not just people who already follow the page
+        long-term. LinkedIn doesn't report impressions broken down by category directly, so this is it.</p>
       <div class="demographics-grid" id="visitorDemographicsGrid"></div>
     </div>
 
@@ -4176,10 +4179,10 @@ import {
   // ---------- analytics: metric-switchable trend chart ----------
   var METRIC_DEFS = {
     followers: { label: "Followers", format: formatNumber, unit: "followers", kind: "stock", description: "Total people following your Page as of this date." },
-    impressions: { label: "Impressions", format: formatNumber, unit: "impressions", kind: "flow", description: "How many times your posts were shown, including repeat views by the same person." },
-    uniqueImpressions: { label: "Unique Impressions", format: formatNumber, unit: "unique impressions", kind: "flow", description: "How many distinct people saw at least one of your posts." },
-    pageViews: { label: "Page Views", format: formatNumber, unit: "page views", kind: "flow", description: "How many times your Page itself was viewed, not just individual posts." },
-    uniqueVisitors: { label: "Unique Visitors", format: formatNumber, unit: "unique visitors", kind: "flow", description: "How many distinct people visited your Page." },
+    impressions: { label: "Impressions", format: formatNumber, unit: "impressions", kind: "flow", description: "How many times your posts were shown, including repeat views by the same person. For who these views actually are, see Visitor demographics below." },
+    uniqueImpressions: { label: "Unique Impressions", format: formatNumber, unit: "unique impressions", kind: "flow", description: "How many distinct people saw at least one of your posts. LinkedIn doesn't break this down by category directly -- Visitor demographics below is the closest real answer to who they are." },
+    pageViews: { label: "Page Views", format: formatNumber, unit: "page views", kind: "flow", description: "How many times your Page itself was viewed, not just individual posts. Visitor demographics below breaks this same audience down by location/industry/etc." },
+    uniqueVisitors: { label: "Unique Visitors", format: formatNumber, unit: "unique visitors", kind: "flow", description: "How many distinct people visited your Page -- see Visitor demographics below for who they are." },
     clicks: { label: "Clicks", format: formatNumber, unit: "clicks", kind: "flow", description: "How many times people clicked on your posts (links, images, or the post itself)." },
     ctr: { label: "CTR", format: formatPercent, unit: "click-through rate", kind: "rate", description: "Click-through rate: clicks divided by impressions." },
     likes: { label: "Likes", format: formatNumber, unit: "likes", kind: "flow", description: "Total reactions (likes, celebrates, etc.) across your posts." },
@@ -4371,11 +4374,23 @@ import {
   // Shared renderer -- called once for the follower panel and once for the visitor panel (see
   // renderAnalytics()). Purely a display concern: which underlying data goes in which panel is
   // decided by the caller, not here.
-  function renderDemographics(demographics, gridId, cardId) {
+  function renderDemographics(demographics, gridId, cardId, emptyMessage) {
     var facets = Object.keys(demographics);
     var grid = document.getElementById(gridId);
     var card = document.getElementById(cardId);
-    if (!facets.length) { card.hidden = true; return; }
+    if (!facets.length) {
+      // Follower demographics (no emptyMessage passed) hides entirely when empty -- it's
+      // essentially always populated (sample data or a basic Followers-only import covers it).
+      // Visitor demographics is a genuinely optional extra step (a separate LinkedIn export),
+      // so hiding it silently just makes the feature undiscoverable -- show why it's empty instead.
+      if (emptyMessage) {
+        card.hidden = false;
+        grid.innerHTML = '<p class="demographics-empty">' + emptyMessage + '</p>';
+      } else {
+        card.hidden = true;
+      }
+      return;
+    }
     card.hidden = false;
 
     grid.innerHTML = facets.map(function (facet) {
@@ -4537,7 +4552,8 @@ import {
 
     renderTopPosts(state.topPosts || [], state);
     renderDemographics(state.followerDemographics || {}, "demographicsGrid", "demographicsCard");
-    renderDemographics(state.visitorDemographics || {}, "visitorDemographicsGrid", "visitorDemographicsCard");
+    renderDemographics(state.visitorDemographics || {}, "visitorDemographicsGrid", "visitorDemographicsCard",
+      "No visitor data imported yet -- this comes from LinkedIn's separate Visitors export (Page Admin → Analytics → Visitors → Export), a different download than the Followers export. Run it through the importer or paste/upload it via Import Analytics JSON.");
     renderGoalCards();
 
     if (!filtered.length) { currentPeriods = []; return; }
