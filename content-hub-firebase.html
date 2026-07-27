@@ -566,6 +566,7 @@
   /* ---------- KPI tiles ---------- */
   .kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.8rem; margin-bottom: 1.4rem; }
   .kpi-tile { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.1rem; box-shadow: var(--shadow-sm); }
+  .chart-empty { color: var(--text-faint); font-size: 0.85rem; text-align: center; padding: 3rem 1rem; }
   .kpi-label { font-size: 0.72rem; font-weight: 700; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.04em; }
   .kpi-value { font-size: 1.7rem; font-weight: 700; margin-top: 0.3rem; color: var(--text); font-variant-numeric: tabular-nums; }
   .kpi-delta { font-size: 0.78rem; font-weight: 600; margin-top: 0.25rem; display: flex; align-items: center; gap: 0.25rem; }
@@ -4556,7 +4557,23 @@ import {
       "No visitor data imported yet -- this comes from LinkedIn's separate Visitors export (Page Admin → Analytics → Visitors → Export), a different download than the Followers export. Run it through the importer or paste/upload it via Import Analytics JSON.");
     renderGoalCards();
 
-    if (!filtered.length) { currentPeriods = []; return; }
+    if (!filtered.length) {
+      // Previously just returned here, leaving the KPI row/trend chart/etc. showing whatever was
+      // last rendered -- e.g. after importing genuinely new data that happens to fall outside the
+      // active date-range filter (a stale "Custom" range from an earlier session is the easiest way
+      // to hit this), the import visibly succeeds but every number on screen looks unchanged, which
+      // reads exactly like "the import didn't work" even though it did. Clear everything to an
+      // explicit empty state instead, matching #analyticsRange's "No data yet" text above.
+      currentPeriods = [];
+      document.getElementById("kpiRow").innerHTML = '<p class="chart-empty" style="grid-column:1/-1;">No data in this date range -- try a wider range, or check the imported data actually covers it.</p>';
+      document.getElementById("trendChart").innerHTML = '<p class="chart-empty">No data in this date range.</p>';
+      document.getElementById("engagementWeekLabel").textContent = "";
+      document.getElementById("engagementChart").innerHTML = '<p class="chart-empty">No data in this date range.</p>';
+      document.getElementById("takeawaysList").innerHTML = "";
+      document.getElementById("suggestionsList").innerHTML = "";
+      document.getElementById("analyticsTableBody").innerHTML = '<tr><td colspan="13" style="text-align:center;color:var(--text-faint);">No data in this date range.</td></tr>';
+      return;
+    }
 
     currentPeriods = aggregateDays(filtered, state.granularity);
     renderKpis(currentPeriods, state.granularity);
