@@ -128,6 +128,34 @@ The bug this replaced: the code used to just `return` early when `filtered.lengt
 
 `#analyticsTable`'s headers (`.sortable-th`, each with a `data-sort-key` matching a field on the aggregated period objects — `date`, `followers`, `impressions`, etc.) are click-to-sort, toggling ascending/descending on repeat clicks of the same header and resetting to ascending on a new one. `analyticsTableSort` is a module-level var (not local to `renderAnalyticsTable`) specifically so the chosen sort persists across re-renders — a new import, a range/granularity change, anything that calls `renderAnalyticsTable(currentPeriods)` again — rather than silently resetting to date-ascending every time the underlying data changes. The click listeners are attached once at load, not re-bound on every render, since only `#analyticsTableBody` (not the `<thead>`) ever gets replaced via `innerHTML`.
 
+## Post feedback log (mirrors Idea feedback)
+
+Posts now have the same `feedback` array (`{text, date, author}`, add via `.fb-remove`-backed removal) that Ideas have had all along — `renderFeedbackLog(feedback, logEl)` takes the target element as a parameter (same pattern as `renderDemographics`'s gridId/cardId) so one function drives both `#feedbackLog` (Idea) and `#postFeedbackLog` (Post), each with their own add/remove handlers wired to `ideasCol`/`postsCol` respectively.
+
+**The load-bearing fix this required**: the Post form's save was a full-replace `setDoc(doc(postsCol, postId), data)` with no merge flag — unlike the Idea form, which already used `{merge:true}`. Without merge, saving a post through the normal "Save Post" button would silently wipe out `feedback` (and `approvedBy`/`approvedAt`, see below) on every single edit, since neither field is listed in that literal save payload — they're only ever written via their own dedicated `updateDoc()` actions. This was a real, verified bug during QA before the fix (feedback disappeared after a routine title edit) — if you ever add another field to posts that's written via `updateDoc()` outside the main form, confirm it survives a normal Save, or it'll quietter reintroduce this same class of bug.
+
+## Approval trail (approvedBy/approvedAt)
+
+Stamped automatically in the Post form's submit handler, not user-editable directly — comparing the post's *previous* stored status (looked up from the local `posts` cache before saving) against the new status being saved:
+
+- Draft → Approved/Scheduled: stamps `approvedBy` (display name, falling back to email) and `approvedAt` (now).
+- Approved/Scheduled → Draft: clears both back to `null` — an old approval doesn't carry over once someone un-approves it.
+- Any other transition (Approved ↔ Scheduled, or re-saving with no status change): touches neither field at all, relying on `{merge:true}` to leave whatever's already in Firestore untouched — a routine content edit or moving between the two "already approved" states isn't a new approval event and shouldn't overwrite who actually approved it originally.
+
+Shown as `#postApprovedNote` (styled with the approved-green token, `.approved-note`) next to the existing "Last edited by" note — same visual language, different color so the two don't blur together.
+
+## "Only mine" filtering
+
+`isOwnedByCurrentUser(item)` is a best-effort match, not a guaranteed one: it does a case-insensitive *exact* comparison between an entry in `item.owners` and `auth.currentUser.displayName` (falling back to email). Owners are free-typed names, not real user IDs — there's no user-account system tying an "owner" string to a specific Google account — so this only works if someone's been consistently entered as an owner with text that matches their own signed-in display name. It's wired into `matchesFilters()` for the Calendar tab (`#filterMineCheckbox`, inside the existing collapsible `#filterBar`) and directly into `renderKanbanBoard()`'s per-stage filter for the Content Planner (`#filterMineIdeasCheckbox`) — two separate checkboxes, since Calendar and Kanban had no shared filter mechanism to begin with.
+
+## Global search (topbar)
+
+`#globalSearchInput` sits in the topbar itself, not inside any tab panel, so it's reachable regardless of which tab is active — unlike the Calendar tab's own search (which only ever filtered posts already scoped to that tab), this searches posts *and* ideas together and can jump you to either. Clicking a result reuses the existing tab-switch idiom (`document.querySelector('.tab-btn[data-tab="..."]').click()`, the same trick used elsewhere in this file) before calling `openModal()`/`openIdeaModal()`, rather than a new tab-switching function — the click naturally re-runs the exact same active/hidden toggling logic the real tab buttons use, so there's no second code path to keep in sync.
+
+## One-time onboarding banner
+
+`#onboardingBanner` sits right after `</header>`, inside `#appRoot` (so it never shows before sign-in) but outside every `.tab-panel` (so it's visible no matter which tab loads first, and doesn't disappear on a tab switch). Dismissal is a single `localStorage` flag (`mediashock-content-hub-onboarding-dismissed`) checked once at load — there's no per-account/server-side tracking of who's seen it, so it's "once per browser," not "once per person" (a new browser or a cleared localStorage will show it again).
+
 ## Schema changes
 
 Any new field on `posts`/`ideas` must be additive and read with a fallback (`post.newField || defaultValue`) — existing documents without it should degrade gracefully, never break. See `normalizedGoal()` for the pattern used when a field's *shape* changes, not just its presence.

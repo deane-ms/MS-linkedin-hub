@@ -158,6 +158,15 @@
   .topbar-actions { display: flex; align-items: center; gap: 0.6rem; }
   .user-chip { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.78rem; color: var(--text-soft); padding: 0 0.4rem; }
 
+  /* ---------- one-time onboarding banner ---------- */
+  .onboarding-banner {
+    display: flex; align-items: flex-start; gap: 0.8rem; margin-bottom: 1.1rem;
+    background: var(--brand-soft); border: 1px solid var(--s-draft-line); border-left: 3px solid var(--brand);
+    border-radius: 10px; padding: 0.8rem 0.9rem;
+  }
+  .onboarding-banner p { margin: 0; font-size: 0.85rem; color: var(--text); line-height: 1.5; }
+  .onboarding-banner .icon-btn { flex-shrink: 0; }
+
   /* ---------- auth gate ---------- */
   .auth-gate {
     position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center;
@@ -266,6 +275,7 @@
   .char-counter.warn { color: #b45309; }
   .char-counter.over { color: var(--danger); font-weight: 700; }
   .last-edited-note { margin: -0.7rem 0 0.9rem; font-size: 0.72rem; color: var(--text-faint); }
+  .last-edited-note.approved-note { color: var(--s-approved-fg); margin-top: -0.4rem; }
   .li-preview { border: 1px solid var(--border); border-radius: 10px; background: var(--surface); padding: 0.9rem 1rem; }
   .li-preview-head { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.6rem; }
   .li-preview-head .logo-mark { width: 2.2rem; height: 2.2rem; font-size: 0.8rem; }
@@ -424,6 +434,28 @@
   .status-picker-option { all: unset; display: block; cursor: pointer; padding: 0.3rem 0.4rem; border-radius: 6px; }
   .status-picker-option:hover, .status-picker-option:focus-visible { background: var(--surface-alt); }
 
+  /* ---------- global search (topbar) ---------- */
+  .global-search { position: relative; width: 15rem; }
+  .global-search input {
+    width: 100%; box-sizing: border-box; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface-alt); color: var(--text); padding: 0.5rem 0.65rem; font-size: 0.85rem;
+  }
+  .global-search input:focus { outline: 2px solid var(--brand); outline-offset: 1px; background: var(--surface); }
+  .global-search-results {
+    position: absolute; top: calc(100% + 0.3rem); left: 0; right: 0; z-index: 30;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    box-shadow: var(--shadow); padding: 0.35rem; display: flex; flex-direction: column; gap: 0.15rem;
+    max-height: 20rem; overflow-y: auto;
+  }
+  .global-search-result {
+    all: unset; display: flex; flex-direction: column; gap: 0.1rem; cursor: pointer;
+    padding: 0.4rem 0.55rem; border-radius: 6px; box-sizing: border-box; width: 100%;
+  }
+  .global-search-result:hover, .global-search-result:focus-visible { background: var(--surface-alt); }
+  .gsr-title { font-size: 0.83rem; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .gsr-sub { font-size: 0.7rem; color: var(--text-faint); }
+  .global-search-empty { color: var(--text-faint); font-size: 0.82rem; padding: 0.4rem 0.55rem; }
+
   /* ---------- top-level tabs ---------- */
   .tabs { display: flex; gap: 0.4rem; margin-bottom: 1.1rem; border-bottom: 1px solid var(--border); }
   .tab-btn {
@@ -435,6 +467,12 @@
   .tab-btn.active { color: var(--brand); border-color: var(--brand); }
   .tab-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
   .tab-panel[hidden] { display: none; }
+
+  .filter-mine-toggle {
+    display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; color: var(--text-soft);
+    cursor: pointer; user-select: none; white-space: nowrap;
+  }
+  .filter-mine-toggle input { cursor: pointer; }
 
   /* ---------- content planner (kanban) ---------- */
   .planner-sub { margin: 0; font-size: 0.85rem; color: var(--text-soft); }
@@ -961,6 +999,10 @@
     </div>
     <div class="topbar-actions">
       <span class="user-chip" id="userChip" hidden></span>
+      <div class="global-search" id="globalSearch">
+        <input type="search" id="globalSearchInput" placeholder="Search posts &amp; ideas..." aria-label="Search posts and ideas">
+        <div class="global-search-results" id="globalSearchResults" hidden></div>
+      </div>
       <button type="button" class="icon-btn" id="installAppBtn" aria-label="Install as an app" title="Install as an app" hidden>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M12 3v12"></path>
@@ -975,6 +1017,16 @@
       <button class="btn btn-ghost" id="signOutBtn" hidden>Sign out</button>
     </div>
   </header>
+
+  <div class="onboarding-banner" id="onboardingBanner" hidden>
+    <p><strong>Welcome to the Content Hub!</strong> The Calendar and Content Planner start with a few
+      sample posts and ideas so you can see how everything works (drag-and-drop scheduling, the
+      feedback log, buckets, statuses) — feel free to edit or delete them once you're ready to add
+      your own. This won't show again once dismissed.</p>
+    <button type="button" class="icon-btn" id="dismissOnboardingBtn" aria-label="Dismiss">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+  </div>
 
   <div class="tabs" role="tablist" aria-label="Content Hub sections">
     <button class="tab-btn active" data-tab="calendar" role="tab" aria-selected="true">Calendar</button>
@@ -1020,6 +1072,7 @@
         <option value="approved">Approved</option>
         <option value="scheduled">Scheduled</option>
       </select>
+      <label class="filter-mine-toggle"><input type="checkbox" id="filterMineCheckbox"> Only mine</label>
       <button type="button" class="btn btn-ghost small" id="clearFiltersBtn">Clear</button>
     </div>
 
@@ -1054,6 +1107,7 @@
   <section class="tab-panel" id="plannerView" hidden>
     <div class="toolbar">
       <p class="planner-sub">Drop in raw ideas, gather feedback, and iterate until they're ready to schedule.</p>
+      <label class="filter-mine-toggle"><input type="checkbox" id="filterMineIdeasCheckbox"> Only mine</label>
       <button type="button" class="btn btn-primary" id="newIdeaBtn">+ New Idea</button>
     </div>
     <div class="kanban-board" id="kanbanBoard"></div>
@@ -1320,6 +1374,7 @@
       <button class="icon-btn" id="modalClose" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
     </div>
     <p class="last-edited-note" id="postLastEdited" hidden></p>
+    <p class="last-edited-note approved-note" id="postApprovedNote" hidden></p>
     <form id="postForm">
       <div class="form-section">
         <label>Post Title / Working Headline
@@ -1427,6 +1482,14 @@
             <button type="button" class="btn btn-ghost small" id="addPostImageBtn">Add</button>
           </div>
           <div class="image-link-grid" id="postImageGrid"></div>
+        </div>
+        <div class="field-col">
+          <label>Feedback &amp; iteration log</label>
+          <div class="feedback-log" id="postFeedbackLog"></div>
+        </div>
+        <div class="feedback-input-row">
+          <textarea id="f-feedback-input" placeholder="Add a round of feedback or a note for next revision..." rows="2"></textarea>
+          <button type="button" class="btn btn-ghost small" id="addPostFeedbackBtn">Add</button>
         </div>
       </div>
 
@@ -1753,6 +1816,17 @@ import {
     applyTheme(next);
   });
 
+  // ---------- one-time onboarding banner ----------
+  var ONBOARDING_DISMISSED_KEY = "mediashock-content-hub-onboarding-dismissed";
+  var onboardingBanner = document.getElementById("onboardingBanner");
+  try {
+    if (!localStorage.getItem(ONBOARDING_DISMISSED_KEY)) onboardingBanner.hidden = false;
+  } catch (e) {}
+  document.getElementById("dismissOnboardingBtn").addEventListener("click", function () {
+    onboardingBanner.hidden = true;
+    try { localStorage.setItem(ONBOARDING_DISMISSED_KEY, "1"); } catch (e) {}
+  });
+
   // ---------- install as an app (PWA) ----------
   // Chrome/Edge (desktop + Android) support a real install prompt via beforeinstallprompt. iOS
   // Safari has no such API at all -- Apple only allows "Add to Home Screen" as a manual Share-sheet
@@ -1806,7 +1880,7 @@ import {
   // open -- Firestore data already updates live via onSnapshot, so the only thing lagging
   // behind is *this page's own code*, and losing an in-progress draft to a surprise reload
   // would be worse than waiting a few seconds for the tab to be idle.
-  var CURRENT_BUILD_VERSION = "2026-07-27T09:07:25Z";
+  var CURRENT_BUILD_VERSION = "2026-07-27T09:56:09Z";
   var pendingBuildVersion = null;
 
   function anyModalOpen() {
@@ -1879,6 +1953,10 @@ import {
       posts = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
       render();
       renderOwnerNamesList();
+      if (modalBackdrop.classList.contains("open") && editingId) {
+        var openPost = posts.find(function (p) { return p.id === editingId; });
+        if (openPost) renderFeedbackLog(openPost.feedback, postFeedbackLogEl);
+      }
     }, function (err) { console.error("posts listener error", err); });
 
     unsubBuckets = onSnapshot(bucketsCol, function (snap) {
@@ -1917,7 +1995,7 @@ import {
       renderOwnerNamesList();
       if (ideaBackdrop.classList.contains("open") && editingIdeaId) {
         var openIdea = ideas.find(function (i) { return i.id === editingIdeaId; });
-        if (openIdea) renderFeedbackLog(openIdea.feedback);
+        if (openIdea) renderFeedbackLog(openIdea.feedback, feedbackLogEl);
       }
     }, function (err) { console.error("ideas listener error", err); });
 
@@ -2039,10 +2117,24 @@ import {
     return key;
   }
 
+  // "Only mine" (Calendar filter + Content Planner toggle) relies on the owner text matching your
+  // signed-in Google account's display name exactly (case-insensitive) -- owners are free-typed
+  // names, not real user IDs, so this is a best-effort match, not a guaranteed one. If a post/idea
+  // was ever owned under a slightly different spelling of your name, it won't match.
+  function isOwnedByCurrentUser(item) {
+    if (!auth.currentUser) return false;
+    var owners = item.owners || (item.owner ? [item.owner] : []);
+    if (!owners.length) return false;
+    var myName = (auth.currentUser.displayName || auth.currentUser.email || "").trim().toLowerCase();
+    if (!myName) return false;
+    return owners.some(function (o) { return String(o).trim().toLowerCase() === myName; });
+  }
+
   // ---------- calendar: search/filter ----------
   var filterSearch = "";
   var filterBucket = "all";
   var filterStatus = "all";
+  var filterMine = false;
 
   document.getElementById("printCalendarBtn").addEventListener("click", function () {
     window.print();
@@ -2051,6 +2143,7 @@ import {
   function matchesFilters(post) {
     if (filterBucket !== "all" && post.bucket !== filterBucket) return false;
     if (filterStatus !== "all" && post.status !== filterStatus) return false;
+    if (filterMine && !isOwnedByCurrentUser(post)) return false;
     if (filterSearch) {
       var haystack = (post.title + " " + (post.copy || "")).toLowerCase();
       if (haystack.indexOf(filterSearch) === -1) return false;
@@ -2149,6 +2242,62 @@ import {
     });
   });
 
+  // ---------- global search (topbar, across posts + ideas) ----------
+  var globalSearchInput = document.getElementById("globalSearchInput");
+  var globalSearchResults = document.getElementById("globalSearchResults");
+
+  function renderGlobalSearchResults() {
+    var query = globalSearchInput.value.trim().toLowerCase();
+    if (!query) { globalSearchResults.hidden = true; globalSearchResults.innerHTML = ""; return; }
+
+    var postMatches = posts.filter(function (p) {
+      return (p.title + " " + (p.copy || "")).toLowerCase().indexOf(query) !== -1;
+    }).map(function (p) {
+      return { type: "post", id: p.id, title: p.title, sub: formatDateShort(p.date) + " · " + displayStatus(p) };
+    });
+    var ideaMatches = ideas.filter(function (i) {
+      return (i.title + " " + (i.notes || "")).toLowerCase().indexOf(query) !== -1;
+    }).map(function (i) {
+      var stage = IDEA_STAGES.find(function (s) { return s.key === i.stage; });
+      return { type: "idea", id: i.id, title: i.title, sub: "Idea · " + (stage ? stage.label : i.stage) };
+    });
+    var results = postMatches.concat(ideaMatches).slice(0, 8);
+
+    globalSearchResults.innerHTML = results.length
+      ? results.map(function (r) {
+          return '<button type="button" class="global-search-result" data-type="' + r.type + '" data-id="' + r.id + '">' +
+            '<span class="gsr-title">' + escapeHtml(r.title) + '</span>' +
+            '<span class="gsr-sub">' + escapeHtml(r.sub) + '</span>' +
+            '</button>';
+        }).join("")
+      : '<p class="global-search-empty">No matching posts or ideas.</p>';
+    globalSearchResults.hidden = false;
+  }
+
+  globalSearchInput.addEventListener("input", renderGlobalSearchResults);
+  globalSearchInput.addEventListener("focus", function () {
+    if (globalSearchInput.value.trim()) renderGlobalSearchResults();
+  });
+
+  globalSearchResults.addEventListener("click", function (e) {
+    var btn = e.target.closest(".global-search-result");
+    if (!btn) return;
+    var id = btn.dataset.id;
+    globalSearchInput.value = "";
+    globalSearchResults.hidden = true;
+    if (btn.dataset.type === "post") {
+      document.querySelector('.tab-btn[data-tab="calendar"]').click();
+      openModal(id);
+    } else {
+      document.querySelector('.tab-btn[data-tab="planner"]').click();
+      openIdeaModal(id);
+    }
+  });
+
+  document.addEventListener("click", function (e) {
+    if (!document.getElementById("globalSearch").contains(e.target)) globalSearchResults.hidden = true;
+  });
+
   // ---------- shared inline icons ----------
   // Per the icon guideline: every icon in this app is inline monotone SVG (stroke="currentColor",
   // fill="none"), never emoji or an icon font. Reuse these constants for any new status icon
@@ -2175,14 +2324,14 @@ import {
   var ACTIVITY_ICONS = {
     post_created: ICON_CALENDAR, post_updated: ICON_EDIT, post_deleted: ICON_TRASH,
     idea_created: ICON_LIGHTBULB, idea_updated: ICON_EDIT, idea_deleted: ICON_TRASH,
-    idea_moved: ICON_ARROW_RIGHT, idea_feedback: ICON_MESSAGE
+    idea_moved: ICON_ARROW_RIGHT, idea_feedback: ICON_MESSAGE, post_feedback: ICON_MESSAGE
   };
   // Color-codes each icon by action type (not by post-vs-idea) so the feed reads at a glance:
   // green = created, brand orange = updated, red = deleted, blue = stage moved, indigo = feedback.
   var ACTIVITY_ICON_CLASS = {
     post_created: "act-created", post_updated: "act-updated", post_deleted: "act-deleted",
     idea_created: "act-created", idea_updated: "act-updated", idea_deleted: "act-deleted",
-    idea_moved: "act-moved", idea_feedback: "act-feedback"
+    idea_moved: "act-moved", idea_feedback: "act-feedback", post_feedback: "act-feedback"
   };
   function activityDateHeader(iso) {
     var d = new Date(iso);
@@ -2395,7 +2544,7 @@ import {
   var filterActiveDot = document.getElementById("filterActiveDot");
 
   function updateFilterActiveDot() {
-    filterActiveDot.hidden = !(filterSearch || filterBucket !== "all" || filterStatus !== "all");
+    filterActiveDot.hidden = !(filterSearch || filterBucket !== "all" || filterStatus !== "all" || filterMine);
   }
 
   filterToggleBtn.addEventListener("click", function () {
@@ -2420,9 +2569,15 @@ import {
     updateFilterActiveDot();
     render();
   });
+  var filterMineCheckbox = document.getElementById("filterMineCheckbox");
+  filterMineCheckbox.addEventListener("change", function () {
+    filterMine = filterMineCheckbox.checked;
+    updateFilterActiveDot();
+    render();
+  });
   clearFiltersBtn.addEventListener("click", function () {
-    filterSearch = ""; filterBucket = "all"; filterStatus = "all";
-    postSearchInput.value = ""; filterBucketSelect.value = "all"; filterStatusSelect.value = "all";
+    filterSearch = ""; filterBucket = "all"; filterStatus = "all"; filterMine = false;
+    postSearchInput.value = ""; filterBucketSelect.value = "all"; filterStatusSelect.value = "all"; filterMineCheckbox.checked = false;
     updateFilterActiveDot();
     render();
   });
@@ -2809,6 +2964,7 @@ import {
   var deleteArmed = false;
   var lastFocused = null;
   var postLastEditedNote = document.getElementById("postLastEdited");
+  var postApprovedNote = document.getElementById("postApprovedNote");
 
   // ---------- calendar: character counter ----------
   var POST_CHAR_LIMIT = 3000; // LinkedIn's approximate post length cap
@@ -3100,12 +3256,19 @@ import {
       // No editor for this anymore -- a Drive link now just goes in the Images list above --
       // but preserve it unchanged on save if an older post still has one set separately.
       currentAssetFolderUrl = post.assetFolderUrl || "";
+      renderFeedbackLog(post.feedback, postFeedbackLogEl);
       deleteBtn.hidden = false;
       if (post.lastEditedBy) {
         postLastEditedNote.hidden = false;
         postLastEditedNote.textContent = "Last edited by " + post.lastEditedBy + (post.lastEditedAt ? " · " + formatDateTime(post.lastEditedAt) : "");
       } else {
         postLastEditedNote.hidden = true;
+      }
+      if (post.approvedBy) {
+        postApprovedNote.hidden = false;
+        postApprovedNote.textContent = "Approved by " + post.approvedBy + (post.approvedAt ? " · " + formatDateTime(post.approvedAt) : "");
+      } else {
+        postApprovedNote.hidden = true;
       }
     } else {
       modalTitle.textContent = "New Post";
@@ -3122,8 +3285,10 @@ import {
       }
       currentImages = [];
       currentAssetFolderUrl = "";
+      renderFeedbackLog([], postFeedbackLogEl);
       deleteBtn.hidden = true;
       postLastEditedNote.hidden = true;
+      postApprovedNote.hidden = true;
     }
     updateCopyCharCount();
     updateStatusSelectStyle();
@@ -3173,7 +3338,18 @@ import {
     submitBtn.disabled = true;
     submitBtn.textContent = "Saving...";
 
-    setDoc(doc(postsCol, postId), {
+    // Approval trail: stamp approvedBy/approvedAt the moment a post first becomes Approved or
+    // Scheduled (both count as "approved" here -- Scheduled is just Approved-and-locked-in, not a
+    // separate approval event). Reverting to Draft clears the stamp, since the old approval no
+    // longer applies. Saving again while already in an approved-kind state (including toggling
+    // between Approved and Scheduled) leaves the existing stamp untouched -- it's not re-approved
+    // on every routine content edit, and {merge:true} means simply omitting these two fields here
+    // preserves whatever's already in Firestore.
+    var previousPost = wasEditing ? posts.find(function (p) { return p.id === editingId; }) : null;
+    var wasApproved = previousPost && (previousPost.status === "approved" || previousPost.status === "scheduled");
+    var isApproved = fStatus.value === "approved" || fStatus.value === "scheduled";
+
+    var postData = {
       title: title,
       bucket: fBucket.value,
       status: fStatus.value,
@@ -3186,7 +3362,19 @@ import {
       assetFolderUrl: currentAssetFolderUrl,
       lastEditedBy: auth.currentUser ? auth.currentUser.email : null,
       lastEditedAt: new Date().toISOString()
-    }).then(function () {
+    };
+    if (!wasEditing) postData.feedback = [];
+    if (isApproved && !wasApproved) {
+      postData.approvedBy = auth.currentUser ? (auth.currentUser.displayName || auth.currentUser.email) : null;
+      postData.approvedAt = new Date().toISOString();
+    } else if (!isApproved && wasApproved) {
+      postData.approvedBy = null;
+      postData.approvedAt = null;
+    }
+    // {merge:true} is load-bearing, not cosmetic -- without it this setDoc replaces the whole
+    // document on every save, silently wiping feedback (only ever appended via updateDoc, not
+    // listed here) and approvedBy/approvedAt on any save where neither condition above fires.
+    setDoc(doc(postsCol, postId), postData, { merge: true }).then(function () {
       logActivity(wasEditing ? "post_updated" : "post_created", (wasEditing ? "Updated" : "Added") + ' post "' + title + '"');
       if (sourceIdeaId) {
         deleteDoc(doc(ideasCol, sourceIdeaId)).then(function () {
@@ -3216,6 +3404,41 @@ import {
       closeModal();
     }).catch(function (err) {
       alert("Couldn't delete this post: " + err.message);
+    });
+  });
+
+  // ---------- post feedback log (mirrors the Idea feedback log exactly) ----------
+  var postFeedbackLogEl = document.getElementById("postFeedbackLog");
+  var fFeedbackInput = document.getElementById("f-feedback-input");
+  var addPostFeedbackBtn = document.getElementById("addPostFeedbackBtn");
+
+  addPostFeedbackBtn.addEventListener("click", function () {
+    var text = fFeedbackInput.value.trim();
+    if (!text || !editingId) return;
+    var feedbackPost = posts.find(function (p) { return p.id === editingId; });
+    updateDoc(doc(postsCol, editingId), {
+      feedback: arrayUnion({ text: text, date: new Date().toISOString(), author: auth.currentUser ? (auth.currentUser.displayName || auth.currentUser.email) : null })
+    }).then(function () {
+      logActivity("post_feedback", 'Added feedback on "' + (feedbackPost ? feedbackPost.title : editingId) + '"');
+      fFeedbackInput.value = "";
+    }).catch(function (err) {
+      alert("Couldn't add feedback: " + err.message);
+    });
+  });
+
+  postFeedbackLogEl.addEventListener("click", function (e) {
+    var btn = e.target.closest(".fb-remove");
+    if (!btn || !editingId) return;
+    var idx = parseInt(btn.dataset.i, 10);
+    var feedbackPost = posts.find(function (p) { return p.id === editingId; });
+    if (!feedbackPost) return;
+    var list = (feedbackPost.feedback || []).slice();
+    if (idx < 0 || idx >= list.length) return;
+    list.splice(idx, 1);
+    updateDoc(doc(postsCol, editingId), { feedback: list }).then(function () {
+      logActivity("post_feedback", 'Removed feedback on "' + feedbackPost.title + '"');
+    }).catch(function (err) {
+      alert("Couldn't remove feedback: " + err.message);
     });
   });
 
@@ -3366,10 +3589,12 @@ import {
   }
   iNotes.addEventListener("input", renderNotesLinks);
 
+  var filterMineIdeas = false;
+
   function renderKanbanBoard() {
     var board = document.getElementById("kanbanBoard");
     board.innerHTML = IDEA_STAGES.map(function (stage) {
-      var inStage = ideas.filter(function (idea) { return idea.stage === stage.key; });
+      var inStage = ideas.filter(function (idea) { return idea.stage === stage.key && (!filterMineIdeas || isOwnedByCurrentUser(idea)); });
       var cards = inStage.length
         ? inStage.map(function (idea) {
             var fb = idea.feedback || [];
@@ -3441,9 +3666,11 @@ import {
     }).join("");
   }
 
-  function renderFeedbackLog(feedback) {
+  // Shared between the Idea and Post feedback logs -- which element to render into is entirely
+  // the caller's concern, same pattern as renderDemographics()'s gridId/cardId parameters.
+  function renderFeedbackLog(feedback, logEl) {
     var list = feedback || [];
-    feedbackLogEl.innerHTML = list.length
+    logEl.innerHTML = list.length
       ? list.map(function (f, i) {
           return '<div class="feedback-item"><div class="fb-head">' +
             avatarHtml(f.author, "small") +
@@ -3452,7 +3679,7 @@ import {
             escapeHtml(f.text) + '</div>';
         }).join("")
       : '<p class="feedback-empty">No feedback logged yet.</p>';
-    feedbackLogEl.scrollTop = feedbackLogEl.scrollHeight;
+    logEl.scrollTop = logEl.scrollHeight;
   }
 
   function setIdeaReadOnly(readOnly) {
@@ -3489,7 +3716,7 @@ import {
       currentIdeaTasks = idea.tasks || [];
       iNotes.value = idea.notes || "";
       iStage.value = idea.stage;
-      renderFeedbackLog(idea.feedback);
+      renderFeedbackLog(idea.feedback, feedbackLogEl);
       currentIdeaImages = (idea.images || []).slice();
       deleteIdeaBtn.hidden = false;
       sendToCalendarBtn.hidden = idea.stage !== "approved";
@@ -3506,7 +3733,7 @@ import {
       iStage.value = "idea";
       ideaOwnersCtrl.set([]);
       currentIdeaTasks = [];
-      renderFeedbackLog([]);
+      renderFeedbackLog([], feedbackLogEl);
       currentIdeaImages = [];
       deleteIdeaBtn.hidden = true;
       sendToCalendarBtn.hidden = true;
@@ -3535,6 +3762,10 @@ import {
   }
 
   document.getElementById("newIdeaBtn").addEventListener("click", function () { openIdeaModal(null); });
+  document.getElementById("filterMineIdeasCheckbox").addEventListener("change", function (e) {
+    filterMineIdeas = e.target.checked;
+    renderKanbanBoard();
+  });
   document.getElementById("ideaModalClose").addEventListener("click", closeIdeaModal);
   ideaCancelBtn.addEventListener("click", closeIdeaModal);
   // Deliberately no click-outside-to-close here -- see the note on modalBackdrop above.
