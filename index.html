@@ -337,7 +337,10 @@
   .pc-meta .avatar-icon { border: 1.5px solid var(--surface); }
   .pc-meta .avatar-icon + .avatar-icon { margin-left: -0.5rem; }
   .post-card .pc-time { font-size: 0.62rem; color: var(--text-faint); }
-  .post-card .pc-img-badge { font-size: 0.62rem; color: var(--text-faint); }
+  .post-card .pc-img-badge {
+    font-size: 0.62rem; color: var(--text-faint);
+    display: inline-flex; align-items: center; flex-shrink: 0; white-space: nowrap; line-height: 1;
+  }
   .post-card.needs-attention, .idea-card.needs-attention { box-shadow: inset 0 0 0 1px var(--brand); }
   .ic-stale { font-size: 0.68rem; }
   .pc-attention {
