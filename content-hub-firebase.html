@@ -496,6 +496,12 @@
   .feedback-item { background: var(--surface-alt); border-radius: 8px; padding: 0.5rem 0.65rem; font-size: 0.8rem; }
   .feedback-item .fb-head { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.25rem; }
   .feedback-item .fb-date { font-size: 0.65rem; color: var(--text-faint); }
+  .fb-remove {
+    all: unset; cursor: pointer; margin-left: auto; width: 1rem; height: 1rem; display: flex;
+    align-items: center; justify-content: center; color: var(--text-faint); font-size: 0.7rem;
+    line-height: 1; flex-shrink: 0;
+  }
+  .fb-remove:hover { color: var(--danger); }
   .feedback-empty { color: var(--text-faint); font-size: 0.8rem; }
   .idea-stage-row { display: flex; align-items: center; gap: 0.6rem; }
   .idea-stage-row label { flex: 1; }
@@ -675,6 +681,7 @@
   .modal.view-only .idea-link-row,
   .modal.view-only .owner-chip-remove,
   .modal.view-only .image-remove,
+  .modal.view-only .fb-remove,
   .modal.view-only #emojiToggleBtn,
   .modal.view-only #ideaEmojiToggleBtn {
     display: none;
@@ -3149,10 +3156,11 @@ import {
   function renderFeedbackLog(feedback) {
     var list = feedback || [];
     feedbackLogEl.innerHTML = list.length
-      ? list.map(function (f) {
+      ? list.map(function (f, i) {
           return '<div class="feedback-item"><div class="fb-head">' +
             avatarHtml(f.author, "small") +
-            '<span class="fb-date">' + formatDateShort(f.date.slice(0, 10)) + '</span></div>' +
+            '<span class="fb-date">' + formatDateShort(f.date.slice(0, 10)) + '</span>' +
+            '<button type="button" class="fb-remove" data-i="' + i + '" aria-label="Remove this feedback">' + ICON_X_SMALL + '</button></div>' +
             escapeHtml(f.text) + '</div>';
         }).join("")
       : '<p class="feedback-empty">No feedback logged yet.</p>';
@@ -3289,6 +3297,22 @@ import {
       iFeedbackInput.value = "";
     }).catch(function (err) {
       alert("Couldn't add feedback: " + err.message);
+    });
+  });
+
+  feedbackLogEl.addEventListener("click", function (e) {
+    var btn = e.target.closest(".fb-remove");
+    if (!btn || !editingIdeaId) return;
+    var idx = parseInt(btn.dataset.i, 10);
+    var feedbackIdea = ideas.find(function (i) { return i.id === editingIdeaId; });
+    if (!feedbackIdea) return;
+    var list = (feedbackIdea.feedback || []).slice();
+    if (idx < 0 || idx >= list.length) return;
+    list.splice(idx, 1);
+    updateDoc(doc(ideasCol, editingIdeaId), { feedback: list }).then(function () {
+      logActivity("idea_feedback", 'Removed feedback on "' + feedbackIdea.title + '"');
+    }).catch(function (err) {
+      alert("Couldn't remove feedback: " + err.message);
     });
   });
 
