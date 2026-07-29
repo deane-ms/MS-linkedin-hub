@@ -1013,10 +1013,9 @@
   </header>
 
   <div class="onboarding-banner" id="onboardingBanner" hidden>
-    <p><strong>Welcome to the Content Hub!</strong> The Calendar and Content Planner start with a few
-      sample posts and ideas so you can see how everything works (drag-and-drop scheduling, the
-      feedback log, buckets, statuses) — feel free to edit or delete them once you're ready to add
-      your own. This won't show again once dismissed.</p>
+    <p><strong>Welcome to the Content Hub!</strong> Use <strong>+ New Post</strong> on the Calendar or add an
+      idea in the Content Planner to get started — drag-and-drop scheduling, the feedback log, buckets,
+      and statuses are all ready to go. This won't show again once dismissed.</p>
     <button type="button" class="icon-btn" id="dismissOnboardingBtn" aria-label="Dismiss">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
     </button>
@@ -1872,7 +1871,7 @@ import {
   // open -- Firestore data already updates live via onSnapshot, so the only thing lagging
   // behind is *this page's own code*, and losing an in-progress draft to a surprise reload
   // would be worse than waiting a few seconds for the tab to be idle.
-  var CURRENT_BUILD_VERSION = "2026-07-27T10:27:22Z";
+  var CURRENT_BUILD_VERSION = "2026-07-29T07:50:40Z";
   var pendingBuildVersion = null;
 
   function anyModalOpen() {
@@ -1924,24 +1923,12 @@ import {
   var unsubPosts = null, unsubBuckets = null, unsubIdeas = null, unsubAnalytics = null, unsubActivity = null, unsubQuickLink = null, unsubGoal = null;
   var currentGoals = [];
   var goalsMigrationChecked = false;
-  var ideasSeeded = false, postsSeeded = false;
   var activityLog = [];
 
   function startListeners() {
     if (unsubPosts) return;
 
     unsubPosts = onSnapshot(postsCol, function (snap) {
-      if (snap.empty && !postsSeeded) {
-        postsSeeded = true;
-        var postBatch = writeBatch(db);
-        SEED_POSTS.forEach(function (post) {
-          var copy = Object.assign({}, post);
-          delete copy.id;
-          postBatch.set(doc(postsCol, post.id), copy);
-        });
-        postBatch.commit().catch(function (e) { console.error("Failed to seed posts", e); });
-        return;
-      }
       posts = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
       render();
       renderOwnerNamesList();
@@ -1971,17 +1958,6 @@ import {
     }, function (err) { console.error("buckets listener error", err); });
 
     unsubIdeas = onSnapshot(ideasCol, function (snap) {
-      if (snap.empty && !ideasSeeded) {
-        ideasSeeded = true;
-        var ideaBatch = writeBatch(db);
-        SEED_IDEAS.forEach(function (idea) {
-          var copy = Object.assign({}, idea);
-          delete copy.id;
-          ideaBatch.set(doc(ideasCol, idea.id), copy);
-        });
-        ideaBatch.commit().catch(function (e) { console.error("Failed to seed ideas", e); });
-        return;
-      }
       ideas = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
       renderKanbanBoard();
       renderOwnerNamesList();
@@ -2138,34 +2114,6 @@ import {
   var WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   var MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
-  var SEED_POSTS = [
-    {
-      id: "seed-1", title: "8K renders, 2am calls, and the kopi that keeps us going",
-      bucket: "bts", date: "2026-07-14", time: "09:00", status: "approved",
-      copy: "Behind every polished keynote reel: a production team running on adrenaline and kopi.\n\nThis week our crew wrapped a 3-day flagship event — juggling 8K renders, last-minute speaker coaching, and a run-of-show that changed twice before doors opened.\n\nNobody sees this part. The client sees a highlight reel. We see the 2am Slack messages that made it possible."
-    },
-    {
-      id: "seed-2", title: "How we turned dense technical content into a keynote that converted",
-      bucket: "case", date: "2026-07-16", time: "14:00", status: "scheduled",
-      copy: "A recent keynote for one of our APAC tech clients meant translating deeply technical IP into a story non-technical stakeholders could connect with.\n\nThe choreography: align comms + technical teams pre-event, capture keynote and candid reactions on-site, then repurpose into multi-channel content post-event.\n\nThis is the part of our job we love most — making technical brilliance legible to the people who write the checks."
-    },
-    {
-      id: "seed-3", title: "Welcome to the newest choreographers on our production team",
-      bucket: "news", date: "2026-07-18", time: "09:30", status: "approved",
-      copy: "Big team update — please help us welcome the newest faces on the MediaShock crew.\n\nWe hire for fluency in technical subject matter, calm under live-event pressure, and the instinct to find the story inside the jargon. Excited to see what this crew choreographs next."
-    },
-    {
-      id: "seed-4", title: "B2B video budgets are shifting across APAC",
-      bucket: "industry", date: "2026-07-21", time: "10:00", status: "draft",
-      copy: "Across the 9 markets we work in, we're seeing the same pattern: B2B budgets are moving away from one-off event highlight reels and toward always-on, multi-format content systems.\n\nWhat's changed in your content planning this year?"
-    },
-    {
-      id: "seed-5", title: "Booking Q4 flagship events now — here's how Content Choreography works",
-      bucket: "promo", date: "2026-07-24", time: "11:00", status: "draft",
-      copy: "Q4 event season books up fast. If your flagship event needs a content strategy that turns attendees into followers (not just a folder of footage), let's talk before the calendar fills up.\n\nDM us or drop a comment and we'll walk you through how Content Choreography works."
-    }
-  ];
-
   // ---------- content planner ----------
   var IDEA_STAGES = [
     { key: "idea", label: "New Idea" },
@@ -2173,32 +2121,6 @@ import {
     { key: "revise", label: "Needs Changes" },
     { key: "approved", label: "Approved" }
   ];
-  var SEED_IDEAS = [
-    {
-      id: "idea-seed-1", title: "Why we still shoot on-site instead of remote-only",
-      bucket: "industry", stage: "idea", createdAt: "2026-07-10T09:00:00.000Z",
-      notes: "A hot take on why flagship events still need boots-on-the-ground crews, even as remote/AI production tools improve. Tie back to Content Choreography — you can't choreograph a room's energy from a Zoom feed.",
-      feedback: []
-    },
-    {
-      id: "idea-seed-2", title: "Client onboarding: what we ask for in week one",
-      bucket: "case", stage: "review", createdAt: "2026-07-08T09:00:00.000Z",
-      notes: "Walk through the questions we ask new clients before any filming starts — positions us as consultants, not just a camera crew.",
-      feedback: [
-        { text: "Good angle — can we anonymize and pull from a real recent onboarding instead of speaking generally?", date: "2026-07-11T10:20:00.000Z" }
-      ]
-    },
-    {
-      id: "idea-seed-3", title: "Team spotlight: our new colourist", stage: "revise",
-      bucket: "news", createdAt: "2026-07-05T09:00:00.000Z",
-      notes: "Introduce the newest hire on the post-production side.",
-      feedback: [
-        { text: "Needs a quote from them directly, feels generic right now.", date: "2026-07-09T14:00:00.000Z" },
-        { text: "Also add a before/after grade example if we can share one.", date: "2026-07-12T11:30:00.000Z" }
-      ]
-    }
-  ];
-
   var posts = [];
   var ideas = [];
   var editingIdeaId = null;

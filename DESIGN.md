@@ -154,6 +154,8 @@ Shown as `#postApprovedNote` (styled with the approved-green token, `.approved-n
 
 `#onboardingBanner` sits right after `</header>`, inside `#appRoot` (so it never shows before sign-in) but outside every `.tab-panel` (so it's visible no matter which tab loads first, and doesn't disappear on a tab switch). Dismissal is a single `localStorage` flag (`mediashock-content-hub-onboarding-dismissed`) checked once at load — there's no per-account/server-side tracking of who's seen it, so it's "once per browser," not "once per person" (a new browser or a cleared localStorage will show it again).
 
+Posts/ideas collections used to auto-seed a handful of fictional example posts/ideas (`SEED_POSTS`/`SEED_IDEAS`) the first time `postsCol`/`ideasCol` came back empty, as an onboarding aid. That was removed once real content started being entered — the seeded docs were indistinguishable from real ones once created, which made the Calendar/Planner confusing to read at a glance. Don't re-add automatic mock-content seeding; if a similar onboarding aid is wanted again, prefer something that's visibly marked as an example (the way the analytics tab's `.sample-badge` labels its placeholder chart data) rather than real-looking documents mixed into `posts`/`ideas`.
+
 ## Schema changes
 
 Any new field on `posts`/`ideas` must be additive and read with a fallback (`post.newField || defaultValue`) — existing documents without it should degrade gracefully, never break. See `normalizedGoal()` for the pattern used when a field's *shape* changes, not just its presence.
