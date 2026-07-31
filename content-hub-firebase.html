@@ -525,7 +525,7 @@
   .task-list { display: flex; flex-direction: column; gap: 0.4rem; }
   .task-list:not(:empty) { margin-bottom: 0.1rem; }
   .task-item { display: flex; align-items: center; gap: 0.55rem; background: var(--surface-alt); border: 1px solid var(--border); border-radius: 8px; padding: 0.4rem 0.6rem; }
-  .task-item .task-done-checkbox { flex-shrink: 0; }
+  .task-item .task-done-checkbox { flex-shrink: 0; accent-color: var(--brand); }
   .task-item .task-text { flex: 1; font-size: 0.8rem; color: var(--text); }
   .task-item .task-text.done { text-decoration: line-through; color: var(--text-faint); }
   .task-item .task-remove { all: unset; cursor: pointer; color: var(--text-faint); font-size: 0.72rem; padding: 0.2rem; flex-shrink: 0; }
@@ -3184,7 +3184,24 @@ import {
     setPostReadOnly(isMobileView());
     modalBackdrop.classList.add("open");
     modalBackdrop.setAttribute("aria-hidden", "false");
+    postOpenSnapshot = postFormSnapshot();
     if (!isMobileView()) setTimeout(function () { fTitle.focus(); }, 10);
+  }
+
+  var postOpenSnapshot = "";
+  function postFormSnapshot() {
+    return JSON.stringify({
+      title: fTitle.value, bucket: fBucket.value, status: fStatus.value,
+      date: fDate.value, time: fTime.value, copy: fCopy.value,
+      images: currentImages, owners: postOwnersCtrl.get()
+    });
+  }
+  function isPostFormDirty() {
+    return modalBackdrop.classList.contains("open") && postFormSnapshot() !== postOpenSnapshot;
+  }
+  function requestCloseModal() {
+    if (isPostFormDirty() && !confirm("Discard unsaved changes to this post?")) return;
+    closeModal();
   }
 
   function closeModal() {
@@ -3201,8 +3218,8 @@ import {
   }
 
   document.getElementById("newPostBtn").addEventListener("click", function () { openModal(null); });
-  document.getElementById("modalClose").addEventListener("click", closeModal);
-  cancelBtn.addEventListener("click", closeModal);
+  document.getElementById("modalClose").addEventListener("click", requestCloseModal);
+  cancelBtn.addEventListener("click", requestCloseModal);
   // Deliberately no click-outside-to-close here -- accidental clicks off a long
   // post draft shouldn't discard it. Use Cancel/close button or Escape instead.
 
@@ -3556,7 +3573,7 @@ import {
       ? list.map(function (f, i) {
           return '<div class="feedback-item"><div class="fb-head">' +
             avatarHtml(f.author, "small") +
-            '<span class="fb-date">' + formatDateShort(f.date.slice(0, 10)) + '</span>' +
+            '<span class="fb-date">' + formatDateShort(localDateOf(f.date)) + '</span>' +
             '<button type="button" class="fb-remove" data-i="' + i + '" aria-label="Remove this feedback">' + ICON_X_SMALL + '</button></div>' +
             escapeHtml(f.text) + '</div>';
         }).join("")
@@ -3628,7 +3645,23 @@ import {
     setIdeaReadOnly(isMobileView());
     ideaBackdrop.classList.add("open");
     ideaBackdrop.setAttribute("aria-hidden", "false");
+    ideaOpenSnapshot = ideaFormSnapshot();
     if (!isMobileView()) setTimeout(function () { iTitle.focus(); }, 10);
+  }
+
+  var ideaOpenSnapshot = "";
+  function ideaFormSnapshot() {
+    return JSON.stringify({
+      title: iTitle.value, bucket: iBucket.value, notes: iNotes.value, stage: iStage.value,
+      images: currentIdeaImages, owners: ideaOwnersCtrl.get()
+    });
+  }
+  function isIdeaFormDirty() {
+    return ideaBackdrop.classList.contains("open") && ideaFormSnapshot() !== ideaOpenSnapshot;
+  }
+  function requestCloseIdeaModal() {
+    if (isIdeaFormDirty() && !confirm("Discard unsaved changes to this idea?")) return;
+    closeIdeaModal();
   }
 
   function closeIdeaModal() {
@@ -3644,8 +3677,8 @@ import {
   }
 
   document.getElementById("newIdeaBtn").addEventListener("click", function () { openIdeaModal(null); });
-  document.getElementById("ideaModalClose").addEventListener("click", closeIdeaModal);
-  ideaCancelBtn.addEventListener("click", closeIdeaModal);
+  document.getElementById("ideaModalClose").addEventListener("click", requestCloseIdeaModal);
+  ideaCancelBtn.addEventListener("click", requestCloseIdeaModal);
   // Deliberately no click-outside-to-close here -- see the note on modalBackdrop above.
 
   ideaForm.addEventListener("submit", function (e) {
@@ -3969,9 +4002,10 @@ import {
     if (!date) return null;
     var bucket = bucketByKey(raw.bucket) ? raw.bucket : (buckets[0] ? buckets[0].key : "");
     var status = STATUS_ALIASES[raw.status] || "draft";
-    var id = raw.id !== undefined && raw.id !== null && String(raw.id) !== ""
-      ? String(raw.id)
-      : "import-" + Date.now() + "-" + idx;
+    // Ids get written unescaped into data-id="..." attributes elsewhere and used
+    // directly as Firestore doc ids, so strip anything that isn't safe in either context.
+    var cleanId = raw.id !== undefined && raw.id !== null ? String(raw.id).replace(/[^A-Za-z0-9_.-]/g, "") : "";
+    var id = cleanId !== "" ? cleanId : "import-" + Date.now() + "-" + idx;
     return {
       id: id,
       title: raw.title || "(untitled)",
@@ -4260,6 +4294,15 @@ import {
     var d = new Date(iso);
     if (isNaN(d.getTime())) return "";
     return d.toLocaleString("en-SG", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  }
+  // Feedback/activity entries store a full timestamp; slicing its ISO string would read the
+  // UTC calendar date, which lands a day early for anything logged before ~8am SGT (UTC+8).
+  // Read the local calendar date off the Date object instead.
+  function localDateOf(iso) {
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    var m = d.getMonth() + 1, day = d.getDate();
+    return d.getFullYear() + "-" + (m < 10 ? "0" + m : m) + "-" + (day < 10 ? "0" + day : day);
   }
 
   function ensureTooltip(container) {
@@ -5184,8 +5227,8 @@ import {
 
   document.addEventListener("keydown", function (e) {
     if (e.key !== "Escape") return;
-    if (modalBackdrop.classList.contains("open")) closeModal();
-    if (ideaBackdrop.classList.contains("open")) closeIdeaModal();
+    if (modalBackdrop.classList.contains("open")) requestCloseModal();
+    if (ideaBackdrop.classList.contains("open")) requestCloseIdeaModal();
     if (bucketsBackdrop.classList.contains("open")) closeBucketsModal();
     if (exportBackdrop.classList.contains("open")) closeExport();
     if (importBackdrop.classList.contains("open")) closeImport();
