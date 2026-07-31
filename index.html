@@ -12,20 +12,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   :root {
-    --bg: #f4f6f8;
+    --bg: #f4f4f5;
     --surface: #ffffff;
-    --surface-alt: #f8fafc;
-    --border: #e2e8f0;
-    --text: #1e293b;
-    --text-soft: #64748b;
-    --text-faint: #94a3b8;
+    --surface-alt: #fafafa;
+    --border: #e4e4e7;
+    --text: #27272a;
+    --text-soft: #71717a;
+    --text-faint: #a1a1aa;
     --brand: #ff4e20;
     --brand-hover: #e0431a;
     --brand-soft: #fff1ec;
     --danger: #dc2626;
     --danger-soft: #fef2f2;
-    --shadow: 0 20px 45px -18px rgba(30, 41, 59, 0.35);
-    --shadow-sm: 0 1px 2px rgba(30, 41, 59, 0.06);
+    --shadow: 0 20px 45px -18px rgba(39, 39, 42, 0.35);
+    --shadow-sm: 0 1px 2px rgba(39, 39, 42, 0.06);
 
     --b-news: #6366f1;
     --b-case: #2563eb;
@@ -33,7 +33,7 @@
     --b-bts: #475569;
     --b-promo: #b45309;
 
-    --s-draft-fg: #64748b;    --s-draft-bg: #f1f5f9;    --s-draft-line: #cbd5e1;
+    --s-draft-fg: #71717a;    --s-draft-bg: #f4f4f5;    --s-draft-line: #d4d4d8;
     --s-approved-fg: #15803d; --s-approved-bg: #f0fdf4; --s-approved-line: #bbf7d0;
     --s-scheduled-fg: #ffffff; --s-scheduled-bg: #ff4e20; --s-scheduled-line: #ff4e20;
     --s-posted-fg: #1d4ed8;   --s-posted-bg: #eff6ff;   --s-posted-line: #bfdbfe;
@@ -54,13 +54,13 @@
 
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #0f172a;
-      --surface: #1e293b;
-      --surface-alt: #172033;
-      --border: #334155;
-      --text: #e2e8f0;
-      --text-soft: #94a3b8;
-      --text-faint: #64748b;
+      --bg: #18181b;
+      --surface: #27272a;
+      --surface-alt: #202023;
+      --border: #3f3f46;
+      --text: #e4e4e7;
+      --text-soft: #a1a1aa;
+      --text-faint: #71717a;
       --brand: #ff7a52;
       --brand-hover: #ff9470;
       --brand-soft: #3a2015;
@@ -72,38 +72,38 @@
       --b-news: #c7d2fe;
       --b-case: #bfdbfe;
       --b-industry: #a5f3fc;
-      --b-bts: #e2e8f0;
+      --b-bts: #e4e4e7;
       --b-promo: #fcd34d;
 
-      --s-draft-fg: #94a3b8;    --s-draft-bg: #1e293b;    --s-draft-line: #334155;
+      --s-draft-fg: #a1a1aa;    --s-draft-bg: #27272a;    --s-draft-line: #3f3f46;
       --s-approved-fg: #4ade80; --s-approved-bg: #14251a; --s-approved-line: #14532d;
-      --s-scheduled-fg: #0f172a; --s-scheduled-bg: #ff7a52; --s-scheduled-line: #ff7a52;
+      --s-scheduled-fg: #18181b; --s-scheduled-bg: #ff7a52; --s-scheduled-line: #ff7a52;
       --s-posted-fg: #60a5fa;   --s-posted-bg: #152238;   --s-posted-line: #1e3a5f;
       --good: #4ade80;
       --bad: #f87171;
     }
   }
   :root[data-theme="dark"] {
-    --bg: #0f172a; --surface: #1e293b; --surface-alt: #172033; --border: #334155;
-    --text: #e2e8f0; --text-soft: #94a3b8; --text-faint: #64748b;
+    --bg: #18181b; --surface: #27272a; --surface-alt: #202023; --border: #3f3f46;
+    --text: #e4e4e7; --text-soft: #a1a1aa; --text-faint: #71717a;
     --brand: #ff7a52; --brand-hover: #ff9470; --brand-soft: #3a2015;
     --danger: #f87171; --danger-soft: #3f1d1d;
     --shadow: 0 20px 45px -18px rgba(0, 0, 0, 0.6); --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --b-news: #c7d2fe; --b-case: #bfdbfe; --b-industry: #a5f3fc; --b-bts: #e2e8f0; --b-promo: #fcd34d;
-    --s-draft-fg: #94a3b8; --s-draft-bg: #1e293b; --s-draft-line: #334155;
+    --b-news: #c7d2fe; --b-case: #bfdbfe; --b-industry: #a5f3fc; --b-bts: #e4e4e7; --b-promo: #fcd34d;
+    --s-draft-fg: #a1a1aa; --s-draft-bg: #27272a; --s-draft-line: #3f3f46;
     --s-approved-fg: #4ade80; --s-approved-bg: #14251a; --s-approved-line: #14532d;
-    --s-scheduled-fg: #0f172a; --s-scheduled-bg: #ff7a52; --s-scheduled-line: #ff7a52;
+    --s-scheduled-fg: #18181b; --s-scheduled-bg: #ff7a52; --s-scheduled-line: #ff7a52;
     --s-posted-fg: #60a5fa; --s-posted-bg: #152238; --s-posted-line: #1e3a5f;
     --good: #4ade80; --bad: #f87171;
   }
   :root[data-theme="light"] {
-    --bg: #f4f6f8; --surface: #ffffff; --surface-alt: #f8fafc; --border: #e2e8f0;
-    --text: #1e293b; --text-soft: #64748b; --text-faint: #94a3b8;
+    --bg: #f4f4f5; --surface: #ffffff; --surface-alt: #fafafa; --border: #e4e4e7;
+    --text: #27272a; --text-soft: #71717a; --text-faint: #a1a1aa;
     --brand: #ff4e20; --brand-hover: #e0431a; --brand-soft: #fff1ec;
     --danger: #dc2626; --danger-soft: #fef2f2;
-    --shadow: 0 20px 45px -18px rgba(30, 41, 59, 0.35); --shadow-sm: 0 1px 2px rgba(30, 41, 59, 0.06);
+    --shadow: 0 20px 45px -18px rgba(39, 39, 42, 0.35); --shadow-sm: 0 1px 2px rgba(39, 39, 42, 0.06);
     --b-news: #6366f1; --b-case: #2563eb; --b-industry: #0891b2; --b-bts: #475569; --b-promo: #b45309;
-    --s-draft-fg: #64748b; --s-draft-bg: #f1f5f9; --s-draft-line: #cbd5e1;
+    --s-draft-fg: #71717a; --s-draft-bg: #f4f4f5; --s-draft-line: #d4d4d8;
     --s-approved-fg: #15803d; --s-approved-bg: #f0fdf4; --s-approved-line: #bbf7d0;
     --s-scheduled-fg: #ffffff; --s-scheduled-bg: #ff4e20; --s-scheduled-line: #ff4e20;
     --s-posted-fg: #1d4ed8; --s-posted-bg: #eff6ff; --s-posted-line: #bfdbfe;
@@ -747,7 +747,7 @@
 
   /* ---------- modal ---------- */
   .modal-backdrop {
-    position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5);
+    position: fixed; inset: 0; background: rgba(24, 24, 27, 0.5);
     display: flex; align-items: center; justify-content: center; padding: 1.5rem;
     opacity: 0; pointer-events: none; transition: opacity 0.15s ease; z-index: 20;
   }
@@ -944,7 +944,7 @@
   /* ---------- print (calendar view) ---------- */
   @media print {
     :root {
-      --bg: #ffffff; --surface: #ffffff; --surface-alt: #f8fafc; --border: #cbd5e1;
+      --bg: #ffffff; --surface: #ffffff; --surface-alt: #fafafa; --border: #d4d4d8;
       --text: #000000; --text-soft: #333333; --text-faint: #666666; --shadow: none; --shadow-sm: none;
     }
     .topbar-actions, .tabs, .view-toggle, #filterBar,
@@ -1758,6 +1758,12 @@ import {
     }).catch(function (e) { console.error("Failed to log activity", e); });
   }
 
+  // Turns a list of field-level change descriptions into a capped, readable clause
+  // ("status Draft → Approved, copy edited (+2 more)") for an activity-log summary.
+  function summarizeChanges(changes) {
+    return changes.slice(0, 3).join(", ") + (changes.length > 3 ? " (+" + (changes.length - 3) + " more)" : "");
+  }
+
   var googleProvider = new GoogleAuthProvider();
   googleProvider.setCustomParameters({ hd: ALLOWED_EMAIL_DOMAIN });
 
@@ -1871,7 +1877,7 @@ import {
   // open -- Firestore data already updates live via onSnapshot, so the only thing lagging
   // behind is *this page's own code*, and losing an in-progress draft to a surprise reload
   // would be worse than waiting a few seconds for the tab to be idle.
-  var CURRENT_BUILD_VERSION = "2026-07-31T08:49:48Z";
+  var CURRENT_BUILD_VERSION = "2026-07-31T09:42:02Z";
   var pendingBuildVersion = null;
 
   function anyModalOpen() {
@@ -1916,7 +1922,10 @@ import {
       signInBtn.disabled = false;
     });
   });
-  function doSignOut() { signOut(auth); }
+  function doSignOut() {
+    if (!confirm("Sign out?")) return;
+    signOut(auth);
+  }
   authSignOutBtn.addEventListener("click", doSignOut);
   topbarSignOutBtn.addEventListener("click", doSignOut);
 
@@ -2074,7 +2083,7 @@ import {
   var buckets = DEFAULT_BUCKETS.slice();
 
   function bucketByKey(key) { return buckets.find(function (b) { return b.key === key; }); }
-  function bucketColorFor(key) { var b = bucketByKey(key); return b ? b.color : "#94a3b8"; }
+  function bucketColorFor(key) { var b = bucketByKey(key); return b ? b.color : "#a1a1aa"; }
   function bucketLabelFor(key) { var b = bucketByKey(key); return b ? b.label : "Uncategorized"; }
   function nextPaletteColor() { return PALETTE_ROTATION[buckets.length % PALETTE_ROTATION.length]; }
   function slugifyBucket(label) {
@@ -2284,13 +2293,30 @@ import {
     return addDays(d, -diff);
   }
   function escapeHtml(s) {
-    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
 
   // Same breakpoint the layout switches to a single-column phone layout at (see CSS).
   // Post/Idea modals open read-only below this width -- creating and editing is desktop-only.
   function isMobileView() {
     return window.matchMedia("(max-width: 720px)").matches;
+  }
+
+  // Keeps Tab/Shift+Tab focus cycling within an open modal instead of escaping into
+  // hidden page content behind it. Bind once per modal element at setup time --
+  // it's a no-op keydown listener until that modal actually has focus inside it.
+  function trapFocus(modalEl) {
+    return function (e) {
+      if (e.key !== "Tab") return;
+      var focusable = Array.prototype.slice.call(
+        modalEl.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')
+      ).filter(function (el) { return el.offsetParent !== null; });
+      if (!focusable.length) return;
+      var first = focusable[0], last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
   }
 
   function formatTime12(t) {
@@ -2807,6 +2833,7 @@ import {
   var modalBackdrop = document.getElementById("modalBackdrop");
   var modalTitle = document.getElementById("modalTitle");
   var postModalEl = modalBackdrop.querySelector(".modal");
+  postModalEl.addEventListener("keydown", trapFocus(postModalEl));
   var postViewOnlyBadge = document.getElementById("postViewOnlyBadge");
   var cancelBtn = document.getElementById("cancelBtn");
   var postForm = document.getElementById("postForm");
@@ -3233,6 +3260,21 @@ import {
   // Deliberately no click-outside-to-close here -- accidental clicks off a long
   // post draft shouldn't discard it. Use Cancel/close button or Escape instead.
 
+  function describePostChanges(oldPost, data) {
+    var changes = [];
+    if (oldPost.title !== data.title) changes.push('renamed to "' + data.title + '"');
+    if (oldPost.status !== data.status) changes.push("status " + (STATUS_LABELS[oldPost.status] || oldPost.status) + " → " + (STATUS_LABELS[data.status] || data.status));
+    if (oldPost.bucket !== data.bucket) changes.push("bucket " + bucketLabelFor(oldPost.bucket) + " → " + bucketLabelFor(data.bucket));
+    if (oldPost.date !== data.date || oldPost.time !== data.time) {
+      changes.push("scheduled " + formatDateShort(oldPost.date) + " " + formatTime12(oldPost.time) + " → " + formatDateShort(data.date) + " " + formatTime12(data.time));
+    }
+    if ((oldPost.owners || []).join(",") !== (data.owners || []).join(",")) changes.push("owners updated");
+    if ((oldPost.copy || "") !== (data.copy || "")) changes.push("copy edited");
+    var oldImgCount = (oldPost.images || []).length, newImgCount = (data.images || []).length;
+    if (oldImgCount !== newImgCount) changes.push("images " + oldImgCount + " → " + newImgCount);
+    return changes;
+  }
+
   postForm.addEventListener("submit", function (e) {
     e.preventDefault();
     var title = fTitle.value.trim();
@@ -3286,7 +3328,12 @@ import {
     // document on every save, silently wiping feedback (only ever appended via updateDoc, not
     // listed here) and approvedBy/approvedAt on any save where neither condition above fires.
     setDoc(doc(postsCol, postId), postData, { merge: true }).then(function () {
-      logActivity(wasEditing ? "post_updated" : "post_created", (wasEditing ? "Updated" : "Added") + ' post "' + title + '"');
+      if (wasEditing) {
+        var postChanges = describePostChanges(previousPost, postData);
+        logActivity("post_updated", postChanges.length ? 'Updated "' + title + '": ' + summarizeChanges(postChanges) : 'Updated post "' + title + '"');
+      } else {
+        logActivity("post_created", 'Added post "' + title + '"');
+      }
       if (sourceIdeaId) {
         deleteDoc(doc(ideasCol, sourceIdeaId)).then(function () {
           logActivity("idea_deleted", 'Idea "' + (sourceIdea ? sourceIdea.title : sourceIdeaId) + '" sent to Calendar and removed from the board');
@@ -3357,6 +3404,7 @@ import {
   var ideaBackdrop = document.getElementById("ideaBackdrop");
   var ideaModalTitle = document.getElementById("ideaModalTitle");
   var ideaModalEl = ideaBackdrop.querySelector(".modal");
+  ideaModalEl.addEventListener("keydown", trapFocus(ideaModalEl));
   var ideaViewOnlyBadge = document.getElementById("ideaViewOnlyBadge");
   var ideaCancelBtn = document.getElementById("ideaCancelBtn");
   var ideaForm = document.getElementById("ideaForm");
@@ -3691,6 +3739,23 @@ import {
   ideaCancelBtn.addEventListener("click", requestCloseIdeaModal);
   // Deliberately no click-outside-to-close here -- see the note on modalBackdrop above.
 
+  function ideaStageLabel(key) {
+    var stage = IDEA_STAGES.find(function (s) { return s.key === key; });
+    return stage ? stage.label : key;
+  }
+
+  function describeIdeaChanges(oldIdea, data) {
+    var changes = [];
+    if (oldIdea.title !== data.title) changes.push('renamed to "' + data.title + '"');
+    if (oldIdea.stage !== data.stage) changes.push("stage " + ideaStageLabel(oldIdea.stage) + " → " + ideaStageLabel(data.stage));
+    if (oldIdea.bucket !== data.bucket) changes.push("bucket " + bucketLabelFor(oldIdea.bucket) + " → " + bucketLabelFor(data.bucket));
+    if ((oldIdea.owners || []).join(",") !== (data.owners || []).join(",")) changes.push("owners updated");
+    if ((oldIdea.notes || "") !== (data.notes || "")) changes.push("notes edited");
+    var oldImgCount = (oldIdea.images || []).length, newImgCount = (data.images || []).length;
+    if (oldImgCount !== newImgCount) changes.push("images " + oldImgCount + " → " + newImgCount);
+    return changes;
+  }
+
   ideaForm.addEventListener("submit", function (e) {
     e.preventDefault();
     var title = iTitle.value.trim();
@@ -3719,7 +3784,12 @@ import {
       data.feedback = [];
     }
     setDoc(doc(ideasCol, ideaId), data, { merge: true }).then(function () {
-      logActivity(wasEditingIdea ? "idea_updated" : "idea_created", (wasEditingIdea ? "Updated" : "Added") + ' idea "' + title + '"');
+      if (wasEditingIdea) {
+        var ideaChanges = describeIdeaChanges(previousIdea, data);
+        logActivity("idea_updated", ideaChanges.length ? 'Updated "' + title + '": ' + summarizeChanges(ideaChanges) : 'Updated idea "' + title + '"');
+      } else {
+        logActivity("idea_created", 'Added idea "' + title + '"');
+      }
       closeIdeaModal();
     }).catch(function (err) {
       alert("Couldn't save this idea: " + err.message);
