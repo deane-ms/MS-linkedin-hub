@@ -670,8 +670,15 @@
   .suggestion-empty { color: var(--text-faint); font-size: 0.85rem; padding: 1.5rem 0; }
   .idea-stage-row { display: flex; align-items: center; gap: 0.6rem; }
   .idea-stage-row label { flex: 1; }
-  .feedback-input-row { display: flex; gap: 0.5rem; align-items: flex-end; }
+  .feedback-input-row { display: flex; gap: 0.5rem; align-items: flex-end; position: relative; }
   .feedback-input-row textarea { flex: 1; min-height: 3.4rem; }
+  .mention-menu {
+    position: absolute; left: 0; bottom: calc(100% + 0.3rem); z-index: 20; min-width: 10rem; max-width: 16rem;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    box-shadow: var(--shadow); padding: 0.3rem; display: flex; flex-direction: column; gap: 0.1rem;
+  }
+  .mention-option { all: unset; box-sizing: border-box; width: 100%; display: flex; align-items: center; gap: 0.4rem; cursor: pointer; padding: 0.3rem 0.4rem; border-radius: 6px; font-size: 0.8rem; color: var(--text); }
+  .mention-option:hover, .mention-option:focus-visible { background: var(--surface-alt); }
 
   /* ---------- analytics: header + sample badge ---------- */
   .analytics-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
@@ -1660,7 +1667,8 @@
           <div class="feedback-log" id="postFeedbackLog"></div>
         </div>
         <div class="feedback-input-row">
-          <textarea id="f-feedback-input" placeholder="Add a round of feedback or a note for next revision..." rows="2"></textarea>
+          <textarea id="f-feedback-input" placeholder="Add a round of feedback or a note for next revision... (type @ to mention someone)" rows="2"></textarea>
+          <div class="mention-menu" id="postFeedbackMentionMenu" hidden></div>
           <button type="button" class="btn btn-ghost small" id="addPostFeedbackBtn">Add</button>
         </div>
       </div>
@@ -1746,7 +1754,8 @@
           <div class="feedback-log" id="feedbackLog"></div>
         </div>
         <div class="feedback-input-row">
-          <textarea id="i-feedback-input" placeholder="Add a round of feedback or a note for next revision..." rows="2"></textarea>
+          <textarea id="i-feedback-input" placeholder="Add a round of feedback or a note for next revision... (type @ to mention someone)" rows="2"></textarea>
+          <div class="mention-menu" id="ideaFeedbackMentionMenu" hidden></div>
           <button type="button" class="btn btn-ghost small" id="addFeedbackBtn">Add</button>
         </div>
       </div>
@@ -1972,6 +1981,64 @@ import {
     });
   }
 
+  // Matches "@Name" in feedback text against everyone who's ever appeared as an owner on a
+  // post or idea (there's no fixed team roster -- see getKnownNames) so a mention notifies
+  // that person even if they aren't an owner of the item being commented on.
+  function parseMentions(text) {
+    var mentioned = [];
+    getKnownNames().forEach(function (name) {
+      var re = new RegExp("@" + name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+      if (re.test(text)) mentioned.push(name);
+    });
+    return mentioned;
+  }
+
+  // Notifies recipients for one feedback event (a new item or a reply), giving each person
+  // exactly one notification: anyone @mentioned in the text gets type "mention" (even if
+  // they're not in `primaryRecipients`), everyone else in `primaryRecipients` gets
+  // `primaryType` -- mirrors notifyOnComment's merge in the sibling Flowboard app.
+  function notifyWithMentions(text, primaryRecipients, primaryType, itemId, itemKind, itemTitle) {
+    var mentioned = {};
+    parseMentions(text).forEach(function (name) { mentioned[name] = true; });
+    notifyRecipients(Object.keys(mentioned), "mention", itemId, itemKind, itemTitle, text);
+    notifyRecipients((primaryRecipients || []).filter(function (name) { return !mentioned[name]; }), primaryType, itemId, itemKind, itemTitle, text);
+  }
+
+  // Wires an "@Name" autocomplete onto a feedback textarea, sourced from getKnownNames() since
+  // there's no fixed team roster -- same interaction as Flowboard's task-comment mention menu.
+  function wireMentionAutocomplete(inputEl, menuEl) {
+    var state = null;
+    function close() { state = null; menuEl.hidden = true; }
+    function render() {
+      var q = state.query.toLowerCase();
+      var matches = getKnownNames().filter(function (n) { return n.toLowerCase().indexOf(q) !== -1; }).slice(0, 5);
+      if (!matches.length) { menuEl.hidden = true; return; }
+      menuEl.innerHTML = matches.map(function (n) {
+        return '<button type="button" class="mention-option" data-name="' + escapeHtml(n) + '">' + avatarHtml(n, "small") + '<span>' + escapeHtml(n) + '</span></button>';
+      }).join("");
+      menuEl.hidden = false;
+    }
+    inputEl.addEventListener("input", function () {
+      var pos = inputEl.selectionStart;
+      var textBefore = inputEl.value.slice(0, pos);
+      var at = textBefore.lastIndexOf("@");
+      if (at === -1 || textBefore.slice(at).indexOf("\n") !== -1 || textBefore.length - at > 30) { close(); return; }
+      state = { start: at, query: textBefore.slice(at + 1) };
+      render();
+    });
+    inputEl.addEventListener("blur", function () { setTimeout(close, 150); });
+    menuEl.addEventListener("click", function (e) {
+      var opt = e.target.closest(".mention-option");
+      if (!opt || !state) return;
+      var name = opt.getAttribute("data-name");
+      var before = inputEl.value.slice(0, state.start);
+      var after = inputEl.value.slice(state.start + 1 + state.query.length);
+      inputEl.value = before + "@" + name + " " + after;
+      close();
+      inputEl.focus();
+    });
+  }
+
   var googleProvider = new GoogleAuthProvider();
   googleProvider.setCustomParameters({ hd: ALLOWED_EMAIL_DOMAIN });
 
@@ -2013,7 +2080,7 @@ import {
   var notifBadge = document.getElementById("notifBadge");
   var notifListEl = document.getElementById("notifList");
 
-  var NOTIF_VERBS = { feedback: "left feedback on", feedback_reply: "replied to your feedback on" };
+  var NOTIF_VERBS = { feedback: "left feedback on", feedback_reply: "replied to your feedback on", mention: "mentioned you in feedback on" };
 
   function renderNotifBell() {
     var unread = myNotifications.filter(function (n) { return !n.read; });
@@ -2218,7 +2285,7 @@ import {
   // open -- Firestore data already updates live via onSnapshot, so the only thing lagging
   // behind is *this page's own code*, and losing an in-progress draft to a surprise reload
   // would be worse than waiting a few seconds for the tab to be idle.
-  var CURRENT_BUILD_VERSION = "2026-08-06T07:29:31Z";
+  var CURRENT_BUILD_VERSION = "2026-08-06T08:23:33Z";
   var pendingBuildVersion = null;
 
   function anyModalOpen() {
@@ -2277,7 +2344,7 @@ import {
   var activityLog = [];
   var myNotifications = [];
   var suggestions = [];
-  var notifStreamStartedAt = 0;
+  var notifListenerReady = false;
   var firedDesktopNotifIds = {};
 
   function fireDesktopNotification(notif) {
@@ -2307,20 +2374,27 @@ import {
       // composite index. Sorting server-side would need one (recipient asc + at desc are two
       // different fields), and a missing index fails the whole query with nothing but a
       // console error -- silently breaking notifications with no visible sign anything's wrong.
-      notifStreamStartedAt = Date.now();
+      notifListenerReady = false;
       var myNotificationsQuery = query(notificationsCol, where("recipient", "==", myName));
       unsubNotifications = onSnapshot(myNotificationsQuery, function (snap) {
         myNotifications = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
-        // Only pop a desktop notification for docs that showed up after this listener
-        // attached -- otherwise the initial snapshot of pre-existing unread notifications
-        // would fire a burst of popups every time the app is opened.
-        snap.docChanges().forEach(function (change) {
-          if (change.type !== "added") return;
-          var data = Object.assign({ id: change.doc.id }, change.doc.data());
-          if (data.read) return;
-          if (new Date(data.at).getTime() < notifStreamStartedAt) return;
-          fireDesktopNotification(data);
-        });
+        // Only pop a desktop notification for docs added *after* the listener's first
+        // snapshot -- otherwise the initial snapshot of pre-existing unread notifications
+        // would fire a burst of popups every time the app is opened. Deliberately not a
+        // timestamp comparison (used to check `data.at < notifStreamStartedAt`): `at` is a
+        // client-generated timestamp from the sender's machine, so any clock skew between two
+        // people's computers made brand-new notifications look "older" than this tab's start
+        // time and silently swallowed the popup while the in-app bell (no such check) still
+        // updated fine. A ready-flag needs no clock at all.
+        if (notifListenerReady) {
+          snap.docChanges().forEach(function (change) {
+            if (change.type !== "added") return;
+            var data = Object.assign({ id: change.doc.id }, change.doc.data());
+            if (data.read) return;
+            fireDesktopNotification(data);
+          });
+        }
+        notifListenerReady = true;
         renderNotifBell();
       }, function (err) {
         console.error("notifications listener error", err);
@@ -2952,10 +3026,10 @@ import {
     };
   }
 
-  // Suggests previously-used owner names via the input's native autocomplete,
-  // so the same person gets typed the same way (and so gets the same avatar)
-  // instead of drifting across slightly different spellings.
-  function renderOwnerNamesList() {
+  // Every name that's ever appeared as an owner on a post or idea -- there's no fixed team
+  // roster in this app, so this doubles as both the owner autocomplete source and the
+  // @mention roster (see parseMentions).
+  function getKnownNames() {
     var seen = {};
     var names = [];
     posts.concat(ideas).forEach(function (item) {
@@ -2964,8 +3038,15 @@ import {
         if (key && !seen[key]) { seen[key] = true; names.push(name); }
       });
     });
+    return names;
+  }
+
+  // Suggests previously-used owner names via the input's native autocomplete,
+  // so the same person gets typed the same way (and so gets the same avatar)
+  // instead of drifting across slightly different spellings.
+  function renderOwnerNamesList() {
     var el = document.getElementById("ownerNamesList");
-    el.innerHTML = names.map(function (n) { return '<option value="' + escapeHtml(n) + '"></option>'; }).join("");
+    el.innerHTML = getKnownNames().map(function (n) { return '<option value="' + escapeHtml(n) + '"></option>'; }).join("");
   }
 
   // ---------- calendar: rendering ----------
@@ -3913,6 +3994,7 @@ import {
   var postFeedbackLogEl = document.getElementById("postFeedbackLog");
   var fFeedbackInput = document.getElementById("f-feedback-input");
   var addPostFeedbackBtn = document.getElementById("addPostFeedbackBtn");
+  wireMentionAutocomplete(fFeedbackInput, document.getElementById("postFeedbackMentionMenu"));
 
   addPostFeedbackBtn.addEventListener("click", function () {
     var text = fFeedbackInput.value.trim();
@@ -3922,7 +4004,7 @@ import {
       feedback: arrayUnion({ text: text, date: new Date().toISOString(), author: auth.currentUser ? (auth.currentUser.displayName || auth.currentUser.email) : null })
     }).then(function () {
       logActivity("post_feedback", 'Added feedback on "' + (feedbackPost ? feedbackPost.title : editingId) + '"');
-      if (feedbackPost) notifyRecipients(feedbackPost.owners, "feedback", feedbackPost.id, "post", feedbackPost.title, text);
+      if (feedbackPost) notifyWithMentions(text, feedbackPost.owners, "feedback", feedbackPost.id, "post", feedbackPost.title);
       fFeedbackInput.value = "";
     }).catch(function (err) {
       alert("Couldn't add feedback: " + err.message);
@@ -3939,7 +4021,7 @@ import {
     if (!promise) return;
     promise.then(function () {
       logActivity("post_feedback", 'Replied to feedback on "' + feedbackPost.title + '"');
-      notifyRecipients([originalAuthor], "feedback_reply", feedbackPost.id, "post", feedbackPost.title, text);
+      notifyWithMentions(text, [originalAuthor], "feedback_reply", feedbackPost.id, "post", feedbackPost.title);
       inputEl.value = "";
     }).catch(function (err) {
       alert("Couldn't post reply: " + err.message);
@@ -4009,6 +4091,7 @@ import {
   );
   var iStage = document.getElementById("i-stage");
   var iFeedbackInput = document.getElementById("i-feedback-input");
+  wireMentionAutocomplete(iFeedbackInput, document.getElementById("ideaFeedbackMentionMenu"));
   var feedbackLogEl = document.getElementById("feedbackLog");
   var deleteIdeaBtn = document.getElementById("deleteIdeaBtn");
   var sendToCalendarBtn = document.getElementById("sendToCalendarBtn");
@@ -4430,7 +4513,7 @@ import {
       feedback: arrayUnion({ text: text, date: new Date().toISOString(), author: auth.currentUser ? (auth.currentUser.displayName || auth.currentUser.email) : null })
     }).then(function () {
       logActivity("idea_feedback", 'Added feedback on "' + (feedbackIdea ? feedbackIdea.title : editingIdeaId) + '"');
-      if (feedbackIdea) notifyRecipients(feedbackIdea.owners, "feedback", feedbackIdea.id, "idea", feedbackIdea.title, text);
+      if (feedbackIdea) notifyWithMentions(text, feedbackIdea.owners, "feedback", feedbackIdea.id, "idea", feedbackIdea.title);
       iFeedbackInput.value = "";
     }).catch(function (err) {
       alert("Couldn't add feedback: " + err.message);
@@ -4447,7 +4530,7 @@ import {
     if (!promise) return;
     promise.then(function () {
       logActivity("idea_feedback", 'Replied to feedback on "' + feedbackIdea.title + '"');
-      notifyRecipients([originalAuthor], "feedback_reply", feedbackIdea.id, "idea", feedbackIdea.title, text);
+      notifyWithMentions(text, [originalAuthor], "feedback_reply", feedbackIdea.id, "idea", feedbackIdea.title);
       inputEl.value = "";
     }).catch(function (err) {
       alert("Couldn't post reply: " + err.message);

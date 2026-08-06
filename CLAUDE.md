@@ -56,14 +56,29 @@ no config changes needed.
   `@mediashock.com.sg` only) covering every collection — unlike the sibling Team Project Manager
   app, a brand-new collection here needs no separate rules deploy. `notifications` is queried with
   `where("recipient", "==", ...)` only (sorted client-side) to avoid needing a composite index.
-- **Desktop tag notifications**: `notifyRecipients` writes a `notifications` doc for every
-  mention/feedback recipient. An opt-in toggle in the user menu (`desktopNotifToggleBtn`,
-  `localStorage` key `mscontenthub_desktop_notif`) fires a native `Notification` from the
-  `notifications` `onSnapshot` listener in `startListeners` for anything that arrives *after* the
-  listener attaches (`notifStreamStartedAt` guards against popping the whole existing backlog on
-  every page load). Tab-open-somewhere only — no service-worker push, no server. Requires the
-  browser's Notification permission to be granted; `notifyRecipients` never notifies the person who
-  triggered it, so testing needs a second account/tab, not self-feedback.
+- **Notifications**: `notifyRecipients` writes a `notifications` doc per recipient.
+  `notifyWithMentions` (used by both the feedback-add and feedback-reply handlers on Posts and
+  Ideas) wraps it to merge two recipient sets into one notification each: anyone `@Name`-mentioned
+  in the text (matched via `parseMentions` against `getKnownNames()` — every name that's ever
+  appeared as a post/idea Owner, since there's no fixed team roster) gets type `"mention"`, and
+  everyone else in the primary recipient list (the item's Owners for a new feedback item, or the
+  original author for a reply) gets `"feedback"`/`"feedback_reply"`. `wireMentionAutocomplete`
+  drives the `@`-triggered suggestion menu on both feedback textareas (mirrors Flowboard's
+  task-comment mention menu). Assigning/tagging is feedback-only for now — the checklist/assignee
+  UI in the Post/Idea modals is dead code (`createTaskListInput` is defined but never wired to any
+  DOM elements — see the "Tasks UI is removed for now" comments near `currentPostTasks`/
+  `currentIdeaTasks`), so there's no live per-task assignment to notify on.
+  - **Desktop popups**: an opt-in toggle in the user menu (`desktopNotifToggleBtn`, `localStorage`
+    key `mscontenthub_desktop_notif`) fires a native `Notification` from the `notifications`
+    `onSnapshot` listener in `startListeners` for anything added *after* the listener's first
+    snapshot (`notifListenerReady` flips true once that first snapshot resolves). Deliberately not
+    a timestamp comparison: an earlier version compared each notification's client-generated `at`
+    field against this tab's own `Date.now()` at attach time, which silently ate popups whenever
+    the notifying user's and the recipient's machine clocks disagreed (the in-app bell has no such
+    check, so it kept working — only desktop popups went quiet). Tab-open-somewhere only — no
+    service-worker push, no server. Requires the browser's Notification permission to be granted;
+    `notifyRecipients` never notifies the person who triggered it, so testing needs a second
+    account/tab, not self-feedback/self-mention.
 - **Images** are pasted URLs, not uploads — no Firebase Storage (would require the paid Blaze plan)
   and no base64-on-document (hits Firestore's 1MiB limit and looked pixelated). A Drive folder link
   pasted into the same Images field is auto-detected and rendered as a distinct folder chip. Image
