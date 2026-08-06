@@ -627,6 +627,9 @@
   .feedback-item { background: var(--surface-alt); border-radius: 8px; padding: 0.5rem 0.65rem; font-size: 0.8rem; }
   .feedback-item .fb-head { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.25rem; }
   .feedback-item .fb-date { font-size: 0.65rem; color: var(--text-faint); }
+  .fb-mention { background: var(--brand-soft); color: var(--brand); border-radius: 4px; padding: 0.05rem 0.25rem; font-weight: 600; }
+  .fb-link { color: var(--brand); text-decoration: underline; word-break: break-word; }
+  .fb-link:hover { color: var(--brand-hover); }
   .fb-remove {
     all: unset; cursor: pointer; margin-left: auto; width: 1rem; height: 1rem; display: flex;
     align-items: center; justify-content: center; color: var(--text-faint); font-size: 0.7rem;
@@ -1981,6 +1984,35 @@ import {
       if (re.test(text)) mentioned.push(name);
     });
     return mentioned;
+  }
+
+  var FEEDBACK_URL_RE = /(https?:\/\/[^\s<>"']+)/gi;
+
+  // Escapes feedback/reply text, wraps any "@Name" it contains in .fb-mention, and turns any
+  // http(s) URL into a clickable link -- so tags read as tags and links read as links instead
+  // of both sitting there as plain text. Splits on URLs first and only mention-highlights the
+  // non-URL segments, rather than running both passes over the whole string one after another,
+  // so a URL that happens to contain "@Name"-shaped text (a query string, a path segment)
+  // can't get a stray <span> spliced into its href.
+  function enrichFeedbackText(text) {
+    var names = getKnownNames().slice().sort(function (a, b) { return b.length - a.length; });
+    var mentionRe = names.length
+      ? new RegExp("@(?:" + names.map(function (name) { return escapeHtml(name).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }).join("|") + ")", "gi")
+      : null;
+    return String(text || "").split(FEEDBACK_URL_RE).map(function (segment, i) {
+      if (i % 2 === 1) {
+        // Odd indices are the captured URLs (String.split keeps capture groups in the result).
+        // Trailing sentence punctuation ("check this out: https://x.com.") shouldn't become
+        // part of the link -- same trim set extractDriveFolderUrl() uses for pasted Drive links.
+        var trailingMatch = segment.match(/[)\]"'.,;:!?]+$/);
+        var trailing = trailingMatch ? trailingMatch[0] : "";
+        var url = trailing ? segment.slice(0, -trailing.length) : segment;
+        var safeUrl = escapeHtml(url);
+        return '<a class="fb-link" href="' + safeUrl + '" target="_blank" rel="noopener noreferrer">' + safeUrl + "</a>" + escapeHtml(trailing);
+      }
+      var escaped = escapeHtml(segment);
+      return mentionRe ? escaped.replace(mentionRe, function (match) { return '<span class="fb-mention">' + match + "</span>"; }) : escaped;
+    }).join("");
   }
 
   // Notifies recipients for one feedback event (a new item or a reply), giving each person
@@ -4324,13 +4356,13 @@ import {
               avatarHtml(r.author, "small") +
               '<span class="fb-date">' + formatDateShort(localDateOf(r.date)) + '</span>' +
               '<button type="button" class="fb-reply-remove" data-i="' + i + '" data-ri="' + ri + '" aria-label="Remove this reply">' + ICON_X_SMALL + '</button></div>' +
-              escapeHtml(r.text) + '</div>';
+              enrichFeedbackText(r.text) + '</div>';
           }).join("");
           return '<div class="feedback-item"><div class="fb-head">' +
             avatarHtml(f.author, "small") +
             '<span class="fb-date">' + formatDateShort(localDateOf(f.date)) + '</span>' +
             '<button type="button" class="fb-remove" data-i="' + i + '" aria-label="Remove this feedback">' + ICON_X_SMALL + '</button></div>' +
-            escapeHtml(f.text) +
+            enrichFeedbackText(f.text) +
             (repliesHtml ? '<div class="fb-replies">' + repliesHtml + '</div>' : "") +
             '<div class="fb-reply-row">' +
               '<input type="text" class="fb-reply-input" data-i="' + i + '" placeholder="Reply...">' +
