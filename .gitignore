@@ -1,5 +1,6 @@
 firestore-debug.log
 ui-debug.log
+firebase-debug.log
 .firebase/
 .qa-tools/
 # Local desktop-shortcut icon only -- not referenced by the deployed app (which uses favicon.png).
