@@ -146,7 +146,63 @@
   .quick-link-edit:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
 
   .topbar-actions { display: flex; align-items: center; gap: 0.6rem; }
-  .user-chip { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.78rem; color: var(--text-soft); padding: 0 0.4rem; }
+  /* ---------- notifications ---------- */
+  .notif-wrap { position: relative; }
+  .notif-badge {
+    position: absolute; top: -0.15rem; right: -0.15rem; min-width: 1rem; height: 1rem; padding: 0 0.2rem;
+    border-radius: 999px; background: var(--danger); color: #fff; font-size: 0.62rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; line-height: 1;
+  }
+  .notif-panel {
+    position: absolute; top: calc(100% + 0.3rem); right: 0; z-index: 30; width: 20rem; max-width: calc(100vw - 2rem);
+    max-height: 24rem; overflow-y: auto; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; box-shadow: var(--shadow); display: flex; flex-direction: column;
+  }
+  .notif-panel-head {
+    display: flex; align-items: center; justify-content: space-between; padding: 0.55rem 0.7rem;
+    border-bottom: 1px solid var(--border); font-size: 0.8rem; font-weight: 700; color: var(--text);
+    position: sticky; top: 0; background: var(--surface);
+  }
+  .notif-list { display: flex; flex-direction: column; }
+  .notif-item {
+    all: unset; display: block; box-sizing: border-box; width: 100%; text-align: left; cursor: pointer;
+    padding: 0.6rem 0.7rem; border-bottom: 1px solid var(--border); font-size: 0.78rem;
+  }
+  .notif-item:last-child { border-bottom: none; }
+  .notif-item:hover { background: var(--surface-alt); }
+  .notif-item.unread { background: color-mix(in srgb, var(--brand) 7%, transparent); }
+  .notif-item-row { display: flex; align-items: flex-start; gap: 0.45rem; }
+  .notif-dot { width: 0.4rem; height: 0.4rem; border-radius: 50%; margin-top: 0.35rem; flex-shrink: 0; background: transparent; }
+  .notif-item.unread .notif-dot { background: var(--brand); }
+  .notif-item-body { min-width: 0; flex: 1; color: var(--text-soft); }
+  .notif-item.unread .notif-item-body { color: var(--text); font-weight: 600; }
+  .notif-item-snippet { color: var(--text-faint); font-weight: 400; margin-top: 0.15rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .notif-empty { padding: 1.6rem 0.7rem; text-align: center; color: var(--text-faint); font-size: 0.8rem; }
+  /* ---------- user menu (avatar chip -> theme toggle + sign out dropdown) ---------- */
+  .user-menu { position: relative; }
+  .user-chip-trigger {
+    all: unset; display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; box-sizing: border-box;
+    font-size: 0.78rem; color: var(--text-soft); padding: 0.3rem 0.5rem 0.3rem 0.35rem;
+    border-radius: 8px; border: 1px solid transparent; transition: background 0.12s ease, color 0.12s ease;
+  }
+  .user-chip-trigger:hover, .user-chip-trigger[aria-expanded="true"] {
+    background: var(--surface-alt); border-color: var(--border); color: var(--text);
+  }
+  .user-chip-trigger:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+  .user-chip-chevron { color: var(--text-faint); flex-shrink: 0; }
+  .user-menu-panel {
+    position: absolute; top: calc(100% + 0.3rem); left: 0; z-index: 30; min-width: 11rem;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    box-shadow: var(--shadow); padding: 0.3rem; display: flex; flex-direction: column; gap: 0.1rem;
+  }
+  .user-menu-item {
+    all: unset; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; box-sizing: border-box;
+    width: 100%; padding: 0.45rem 0.6rem; border-radius: 6px; font-size: 0.82rem; color: var(--text);
+  }
+  .user-menu-item:hover, .user-menu-item:focus-visible { background: var(--surface-alt); }
+  .user-menu-item-icon { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 1rem; height: 1rem; color: var(--text-soft); }
+  .user-menu-item-danger:hover, .user-menu-item-danger:focus-visible { background: var(--danger-soft); color: var(--danger); }
+  .user-menu-divider { height: 1px; background: var(--border); margin: 0.25rem 0.2rem; }
 
   /* ---------- one-time onboarding banner ---------- */
   .onboarding-banner {
@@ -228,6 +284,10 @@
   /* ---------- filter bar ---------- */
   .filter-bar { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 1rem; }
   .filter-bar input[type="search"] { flex: 1; min-width: 12rem; }
+  .cadence-badge {
+    font-size: 0.72rem; font-weight: 600; color: var(--text-faint); background: var(--surface-alt);
+    border: 1px solid var(--border); border-radius: 999px; padding: 0.2rem 0.6rem; white-space: nowrap;
+  }
   .icon-btn.has-badge { position: relative; }
   .filter-active-dot { position: absolute; top: 0.1rem; right: 0.1rem; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--brand); }
   .icon-btn[aria-expanded="true"] { background: var(--brand-soft); color: var(--brand); border-color: var(--brand); }
@@ -279,6 +339,19 @@
   .li-preview-media { margin-bottom: 0.7rem; }
   .li-preview-single-img { display: block; width: 100%; height: auto; max-height: 24rem; object-fit: contain; border-radius: 8px; background: #14181a; }
   .li-preview-media .carousel-dots { margin-top: 0.5rem; }
+  /* A pasted image URL can go bad (deleted, permissions changed, typo) after it was added --
+     without this, the preview showed the browser's native broken-image icon, which looks
+     unpolished for something meant to mimic a real LinkedIn post. Same fallback affordance
+     the editable thumbnail grid already has (.image-thumb.broken), just scoped to the
+     preview's own elements since they're not .image-thumb. */
+  .li-preview-media.broken-single .li-preview-single-img { display: none; }
+  .li-preview-media.broken-single { position: relative; min-height: 8rem; }
+  .li-preview-media.broken-single::after {
+    content: "🖼️"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; background: #14181a; border-radius: 8px;
+  }
+  #postPreviewCarousel.broken img { display: none; }
+  #postPreviewCarousel.broken::after { content: "🖼️"; font-size: 2rem; color: var(--text-faint); }
   .li-preview-actions { display: flex; justify-content: space-between; padding-top: 0.6rem; border-top: 1px solid var(--border); font-size: 0.76rem; color: var(--text-soft); font-weight: 600; }
   .goal-empty { font-size: 0.85rem; color: var(--text-faint); }
   .goal-stats { display: flex; gap: 2rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
@@ -545,6 +618,30 @@
   }
   .fb-remove:hover { color: var(--danger); }
   .feedback-empty { color: var(--text-faint); font-size: 0.8rem; }
+  /* Replies to a single feedback item -- nested inside the same .feedback-item card, indented
+     and on a slightly darker chip so they read as "under" the feedback they respond to rather
+     than as their own independent entries. */
+  .fb-replies { display: flex; flex-direction: column; gap: 0.4rem; margin: 0.5rem 0 0 1rem; }
+  .fb-reply { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.55rem; font-size: 0.78rem; }
+  .fb-reply .fb-head { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.2rem; }
+  .fb-reply-remove { all: unset; cursor: pointer; margin-left: auto; width: 1rem; height: 1rem; display: flex; align-items: center; justify-content: center; color: var(--text-faint); font-size: 0.7rem; line-height: 1; flex-shrink: 0; }
+  .fb-reply-remove:hover { color: var(--danger); }
+  .fb-reply-row { display: flex; gap: 0.4rem; margin-top: 0.5rem; }
+  .fb-reply-row input { flex: 1; font-size: 0.78rem; padding: 0.3rem 0.5rem; }
+  .fb-reply-row .btn { flex-shrink: 0; }
+
+  /* ---------- suggestions tab ---------- */
+  .suggestion-composer { display: flex; gap: 0.6rem; align-items: flex-end; margin-bottom: 1rem; }
+  .suggestion-composer textarea { flex: 1; min-height: 3.4rem; }
+  .suggestion-list { display: flex; flex-direction: column; gap: 0.7rem; max-width: 42rem; }
+  .suggestion-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.8rem 0.9rem; }
+  .suggestion-head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; }
+  .suggestion-date { font-size: 0.7rem; color: var(--text-faint); }
+  .suggestion-remove { all: unset; cursor: pointer; margin-left: auto; width: 1.1rem; height: 1.1rem; display: flex; align-items: center; justify-content: center; color: var(--text-faint); flex-shrink: 0; }
+  .suggestion-remove:hover { color: var(--danger); }
+  .suggestion-text { font-size: 0.86rem; color: var(--text); white-space: pre-wrap; }
+  .suggestion-replies { display: flex; flex-direction: column; gap: 0.4rem; margin: 0.6rem 0 0 1.2rem; }
+  .suggestion-empty { color: var(--text-faint); font-size: 0.85rem; padding: 1.5rem 0; }
   .idea-stage-row { display: flex; align-items: center; gap: 0.6rem; }
   .idea-stage-row label { flex: 1; }
   .feedback-input-row { display: flex; gap: 0.5rem; align-items: flex-end; }
@@ -766,6 +863,7 @@
   .modal.view-only .owner-chip-remove,
   .modal.view-only .image-remove,
   .modal.view-only .fb-remove,
+  .modal.view-only .fb-reply-remove,
   .modal.view-only #emojiToggleBtn,
   .modal.view-only #ideaEmojiToggleBtn {
     display: none;
@@ -860,6 +958,11 @@
   .image-link-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.5rem 0 0.2rem; }
   .image-thumb { position: relative; width: 4.2rem; height: 4.2rem; border-radius: 6px; overflow: hidden; background: var(--surface-alt); border: 1px solid var(--border); cursor: grab; }
   .image-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  /* Wraps the <img> so a thumbnail opens its full-size source in a new tab, same affordance
+     the folder-link thumbnails already had -- block-level and full-size so the percentage
+     sizing on the <img> above resolves against it rather than against an inline <a>'s
+     content-driven box. */
+  .image-thumb-link { display: block; width: 100%; height: 100%; }
   .image-thumb.broken img { display: none; }
   .image-thumb.broken::after { content: "🖼️"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: var(--text-faint); pointer-events: none; }
   .image-thumb.dragging { opacity: 0.4; }
@@ -982,7 +1085,36 @@
       </div>
     </div>
     <div class="topbar-actions">
-      <span class="user-chip" id="userChip" hidden></span>
+      <div class="notif-wrap" id="notifWrap" hidden>
+        <button type="button" class="icon-btn has-badge" id="notifToggleBtn" aria-haspopup="true" aria-expanded="false" aria-label="Notifications" title="Notifications">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          <span class="notif-badge" id="notifBadge" hidden>0</span>
+        </button>
+        <div class="notif-panel" id="notifPanel" hidden>
+          <div class="notif-panel-head">
+            <span>Notifications</span>
+            <button type="button" class="btn btn-ghost small" id="notifMarkAllReadBtn">Mark all read</button>
+          </div>
+          <div class="notif-list" id="notifList"></div>
+        </div>
+      </div>
+      <div class="user-menu" id="userMenu" hidden>
+        <button type="button" class="user-chip-trigger" id="userChipTrigger" aria-haspopup="true" aria-expanded="false">
+          <span id="userChipLabel"></span>
+          <svg class="user-chip-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+        </button>
+        <div class="user-menu-panel" id="userMenuPanel" hidden>
+          <button type="button" class="user-menu-item" id="themeToggleBtn">
+            <span class="user-menu-item-icon" id="themeToggleIcon"></span>
+            <span id="themeToggleLabel">Switch to dark mode</span>
+          </button>
+          <div class="user-menu-divider"></div>
+          <button type="button" class="user-menu-item user-menu-item-danger" id="signOutBtn">Sign out</button>
+        </div>
+      </div>
       <div class="global-search" id="globalSearch">
         <input type="search" id="globalSearchInput" placeholder="Search posts &amp; ideas..." aria-label="Search posts and ideas">
         <div class="global-search-results" id="globalSearchResults" hidden></div>
@@ -994,11 +1126,21 @@
           <path d="M4 19h16"></path>
         </svg>
       </button>
-      <button type="button" class="icon-btn" id="themeToggleBtn" aria-label="Toggle color theme" title="Toggle color theme"></button>
-      <button class="btn btn-ghost" id="importBtn">Import JSON</button>
-      <button class="btn btn-ghost" id="exportBtn">Export Calendar (JSON)</button>
+      <button type="button" class="icon-btn" id="importBtn" aria-label="Import JSON" title="Import JSON">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="17 8 12 3 7 8"></polyline>
+          <line x1="12" y1="3" x2="12" y2="15"></line>
+        </svg>
+      </button>
+      <button type="button" class="icon-btn" id="exportBtn" aria-label="Export Calendar (JSON)" title="Export Calendar (JSON)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+      </button>
       <button class="btn btn-primary" id="newPostBtn">+ New Post</button>
-      <button class="btn btn-ghost" id="signOutBtn" hidden>Sign out</button>
     </div>
   </header>
 
@@ -1016,6 +1158,7 @@
     <button class="tab-btn" data-tab="planner" role="tab" aria-selected="false">Content Planner</button>
     <button class="tab-btn" data-tab="analytics" role="tab" aria-selected="false">Analytics</button>
     <button class="tab-btn" data-tab="activity" role="tab" aria-selected="false">Activity</button>
+    <button class="tab-btn" data-tab="suggestions" role="tab" aria-selected="false">Suggestions</button>
   </div>
 
   <section class="tab-panel" id="calendarView">
@@ -1029,6 +1172,7 @@
         <button class="btn btn-ghost small" id="todayBtn">Today</button>
         <button class="icon-btn" id="nextBtn" aria-label="Next">›</button>
         <h2 id="periodLabel"></h2>
+        <span class="cadence-badge" id="cadenceBadge" title="Posts with a non-draft status (approved, scheduled, or posted) in the last 4 weeks"></span>
         <button type="button" class="icon-btn has-badge" id="filterToggleBtn" aria-label="Search and filter posts" aria-expanded="false" title="Search and filter posts">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="11" cy="11" r="7"></circle>
@@ -1099,6 +1243,17 @@
       <p class="planner-sub">Recent changes across posts and ideas, newest first.</p>
     </div>
     <div class="activity-feed" id="activityFeed"></div>
+  </section>
+
+  <section class="tab-panel" id="suggestionsView" hidden>
+    <div class="toolbar">
+      <p class="planner-sub">A place for ideas and feedback on the dashboard itself -- not a post or a client project. Anyone can reply.</p>
+    </div>
+    <div class="suggestion-composer">
+      <textarea id="suggestionInput" maxlength="1000" rows="2" placeholder="What would you like to see changed or added?"></textarea>
+      <button type="button" class="btn btn-primary small" id="addSuggestionBtn">Post</button>
+    </div>
+    <div class="suggestion-list" id="suggestionList"></div>
   </section>
 
   <section class="tab-panel" id="analyticsView" hidden>
@@ -1696,7 +1851,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, getDoc, onSnapshot, writeBatch, arrayUnion,
-  connectFirestoreEmulator, query, orderBy, limit
+  connectFirestoreEmulator, query, orderBy, limit, where
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 (function () {
@@ -1737,6 +1892,8 @@ import {
   var goalDocRef = doc(db, "settings", "goal"); // legacy single-goal doc, kept only for one-time migration
   var goalsCol = collection(db, "goals");
   var activityQuery = query(activityCol, orderBy("at", "desc"), limit(50));
+  var notificationsCol = collection(db, "notifications");
+  var suggestionsCol = collection(db, "suggestions");
 
   function logActivity(type, summary) {
     var user = auth.currentUser;
@@ -1754,6 +1911,31 @@ import {
     return changes.slice(0, 3).join(", ") + (changes.length > 3 ? " (+" + (changes.length - 3) + " more)" : "");
   }
 
+  // Fires a notification to each name in `recipients` (owners of a post/idea, or a feedback
+  // item's original author), skipping the person who just took the action -- nobody needs to
+  // be told about their own feedback/reply. `recipients` may contain duplicates (e.g. the same
+  // person is both an owner and the feedback author) -- deduped here so they don't get paged twice.
+  function notifyRecipients(recipients, type, itemId, itemKind, itemTitle, snippet) {
+    var user = auth.currentUser;
+    var myName = user ? (user.displayName || user.email) : null;
+    var seen = {};
+    (recipients || []).forEach(function (name) {
+      if (!name || name === myName || seen[name]) return;
+      seen[name] = true;
+      setDoc(doc(notificationsCol), {
+        recipient: name,
+        type: type,
+        itemId: itemId,
+        itemKind: itemKind,
+        itemTitle: itemTitle,
+        author: myName || "unknown",
+        snippet: (snippet || "").slice(0, 140),
+        at: new Date().toISOString(),
+        read: false
+      }).catch(function (e) { console.error("Failed to notify " + name, e); });
+    });
+  }
+
   var googleProvider = new GoogleAuthProvider();
   googleProvider.setCustomParameters({ hd: ALLOWED_EMAIL_DOMAIN });
 
@@ -1768,11 +1950,93 @@ import {
   var signInBtn = document.getElementById("signInBtn");
   var authSignOutBtn = document.getElementById("authSignOutBtn");
   var topbarSignOutBtn = document.getElementById("signOutBtn");
-  var userChip = document.getElementById("userChip");
+  var userChip = document.getElementById("userMenu");
+  var userChipLabel = document.getElementById("userChipLabel");
+  var notifWrap = document.getElementById("notifWrap");
+
+  // ---------- user menu (avatar chip dropdown: theme toggle + sign out) ----------
+  var userChipTrigger = document.getElementById("userChipTrigger");
+  var userMenuPanel = document.getElementById("userMenuPanel");
+  function closeUserMenu() {
+    userMenuPanel.hidden = true;
+    userChipTrigger.setAttribute("aria-expanded", "false");
+  }
+  userChipTrigger.addEventListener("click", function (e) {
+    e.stopPropagation();
+    var willOpen = userMenuPanel.hidden;
+    userMenuPanel.hidden = !willOpen;
+    userChipTrigger.setAttribute("aria-expanded", String(willOpen));
+  });
+  document.addEventListener("click", function (e) {
+    if (!userMenuPanel.hidden && !userChip.contains(e.target)) closeUserMenu();
+  });
+
+  // ---------- notifications ----------
+  var notifToggleBtn = document.getElementById("notifToggleBtn");
+  var notifPanel = document.getElementById("notifPanel");
+  var notifBadge = document.getElementById("notifBadge");
+  var notifListEl = document.getElementById("notifList");
+
+  var NOTIF_VERBS = { feedback: "left feedback on", feedback_reply: "replied to your feedback on" };
+
+  function renderNotifBell() {
+    var unread = myNotifications.filter(function (n) { return !n.read; });
+    notifBadge.textContent = unread.length > 9 ? "9+" : String(unread.length);
+    notifBadge.hidden = unread.length === 0;
+
+    var sorted = myNotifications.slice().sort(function (a, b) { return new Date(b.at) - new Date(a.at); });
+    notifListEl.innerHTML = sorted.length
+      ? sorted.map(function (n) {
+          var verb = NOTIF_VERBS[n.type] || "notified you about";
+          return '<button type="button" class="notif-item' + (n.read ? "" : " unread") + '" data-id="' + n.id + '" data-item-id="' + escapeHtml(n.itemId || "") + '" data-item-kind="' + escapeHtml(n.itemKind || "") + '">' +
+            '<div class="notif-item-row">' +
+              '<span class="notif-dot"></span>' +
+              '<div class="notif-item-body">' +
+                '<div>' + escapeHtml(n.author) + " " + verb + ' "' + escapeHtml(n.itemTitle || "") + '"</div>' +
+                (n.snippet ? '<div class="notif-item-snippet">' + escapeHtml(n.snippet) + "</div>" : "") +
+              "</div>" +
+            "</div>" +
+          "</button>";
+        }).join("")
+      : '<p class="notif-empty">No notifications yet.</p>';
+  }
+
+  function closeNotifPanel() {
+    notifPanel.hidden = true;
+    notifToggleBtn.setAttribute("aria-expanded", "false");
+  }
+  notifToggleBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    var willOpen = notifPanel.hidden;
+    notifPanel.hidden = !willOpen;
+    notifToggleBtn.setAttribute("aria-expanded", String(willOpen));
+  });
+  document.addEventListener("click", function (e) {
+    if (!notifPanel.hidden && !notifWrap.contains(e.target)) closeNotifPanel();
+  });
+  document.getElementById("notifMarkAllReadBtn").addEventListener("click", function (e) {
+    e.stopPropagation();
+    myNotifications.filter(function (n) { return !n.read; }).forEach(function (n) {
+      updateDoc(doc(notificationsCol, n.id), { read: true }).catch(function () {});
+    });
+  });
+  notifListEl.addEventListener("click", function (e) {
+    var item = e.target.closest(".notif-item");
+    if (!item) return;
+    updateDoc(doc(notificationsCol, item.dataset.id), { read: true }).catch(function () {});
+    var itemId = item.dataset.itemId, itemKind = item.dataset.itemKind;
+    closeNotifPanel();
+    if (!itemId) return;
+    if (itemKind === "post" && posts.some(function (p) { return p.id === itemId; })) openModal(itemId);
+    else if (itemKind === "idea" && ideas.some(function (i) { return i.id === itemId; })) openIdeaModal(itemId);
+    else alert("That " + (itemKind || "item") + " no longer exists.");
+  });
 
   // ---------- light/dark theme toggle (per-browser preference, not shared data) ----------
   var THEME_STORAGE_KEY = "mscontenthub_theme";
   var themeToggleBtn = document.getElementById("themeToggleBtn");
+  var themeToggleIcon = document.getElementById("themeToggleIcon");
+  var themeToggleLabel = document.getElementById("themeToggleLabel");
   var SUN_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
     '<circle cx="12" cy="12" r="4"></circle><line x1="12" y1="2" x2="12" y2="4"></line><line x1="12" y1="20" x2="12" y2="22"></line>' +
     '<line x1="4.93" y1="4.93" x2="6.34" y2="6.34"></line><line x1="17.66" y1="17.66" x2="19.07" y2="19.07"></line>' +
@@ -1791,8 +2055,8 @@ import {
       document.documentElement.removeAttribute("data-theme");
     }
     var dark = isEffectivelyDark(theme);
-    themeToggleBtn.innerHTML = dark ? SUN_ICON : MOON_ICON;
-    themeToggleBtn.setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode");
+    themeToggleIcon.innerHTML = dark ? SUN_ICON : MOON_ICON;
+    themeToggleLabel.textContent = dark ? "Switch to light mode" : "Switch to dark mode";
   }
   var storedTheme = null;
   try { storedTheme = localStorage.getItem(THEME_STORAGE_KEY); } catch (e) {}
@@ -1801,6 +2065,7 @@ import {
     var next = isEffectivelyDark(document.documentElement.getAttribute("data-theme")) ? "light" : "dark";
     try { localStorage.setItem(THEME_STORAGE_KEY, next); } catch (e) {}
     applyTheme(next);
+    closeUserMenu();
   });
 
   // ---------- one-time onboarding banner ----------
@@ -1920,12 +2185,35 @@ import {
   topbarSignOutBtn.addEventListener("click", doSignOut);
 
   var unsubPosts = null, unsubBuckets = null, unsubIdeas = null, unsubAnalytics = null, unsubActivity = null, unsubQuickLink = null, unsubGoal = null;
+  var unsubNotifications = null, unsubSuggestions = null;
   var currentGoals = [];
   var goalsMigrationChecked = false;
   var activityLog = [];
+  var myNotifications = [];
+  var suggestions = [];
 
   function startListeners() {
     if (unsubPosts) return;
+
+    var myName = auth.currentUser ? (auth.currentUser.displayName || auth.currentUser.email) : null;
+    if (myName) {
+      // A single equality filter (no orderBy alongside it) -- sorted client-side instead of
+      // adding a second Firestore field to the query, specifically so this never needs a
+      // composite index. Sorting server-side would need one (recipient asc + at desc are two
+      // different fields), and a missing index fails the whole query with nothing but a
+      // console error -- silently breaking notifications with no visible sign anything's wrong.
+      var myNotificationsQuery = query(notificationsCol, where("recipient", "==", myName));
+      unsubNotifications = onSnapshot(myNotificationsQuery, function (snap) {
+        myNotifications = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+        renderNotifBell();
+      }, function (err) {
+        console.error("notifications listener error", err);
+      });
+    }
+    unsubSuggestions = onSnapshot(suggestionsCol, function (snap) {
+      suggestions = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+      renderSuggestionsTab();
+    }, function (err) { console.error("suggestions listener error", err); });
 
     unsubPosts = onSnapshot(postsCol, function (snap) {
       posts = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
@@ -2021,8 +2309,8 @@ import {
   }
 
   function stopListeners() {
-    [unsubPosts, unsubBuckets, unsubIdeas, unsubAnalytics, unsubActivity, unsubQuickLink, unsubGoal].forEach(function (fn) { if (fn) fn(); });
-    unsubPosts = unsubBuckets = unsubIdeas = unsubAnalytics = unsubActivity = unsubQuickLink = unsubGoal = null;
+    [unsubPosts, unsubBuckets, unsubIdeas, unsubAnalytics, unsubActivity, unsubQuickLink, unsubGoal, unsubNotifications, unsubSuggestions].forEach(function (fn) { if (fn) fn(); });
+    unsubPosts = unsubBuckets = unsubIdeas = unsubAnalytics = unsubActivity = unsubQuickLink = unsubGoal = unsubNotifications = unsubSuggestions = null;
   }
 
   onAuthStateChanged(auth, function (user) {
@@ -2036,7 +2324,8 @@ import {
       appRoot.hidden = true;
       authGate.hidden = false;
       userChip.hidden = true;
-      topbarSignOutBtn.hidden = true;
+      notifWrap.hidden = true;
+      closeUserMenu();
       authStatus.textContent = "Sign in with your Mediashock Google account to continue.";
       return;
     }
@@ -2048,16 +2337,17 @@ import {
       signInBtn.hidden = true;
       authDenied.hidden = false;
       userChip.hidden = true;
-      topbarSignOutBtn.hidden = true;
+      notifWrap.hidden = true;
+      closeUserMenu();
       return;
     }
 
     authGate.hidden = true;
     appRoot.hidden = false;
     userChip.hidden = false;
+    notifWrap.hidden = false;
     var displayName = user.displayName || user.email;
-    userChip.innerHTML = avatarHtml(displayName, "small") + '<span>' + escapeHtml(displayName) + '</span>';
-    topbarSignOutBtn.hidden = false;
+    userChipLabel.innerHTML = avatarHtml(displayName, "small") + '<span>' + escapeHtml(displayName) + '</span>';
     startListeners();
   });
 
@@ -2271,6 +2561,121 @@ import {
     el.innerHTML = html;
   }
 
+  // ---------- suggestions tab: a shared feedback board, separate from posts/ideas ----------
+  // Replies live as an embedded array on the suggestion doc (same shape/rationale as feedback
+  // replies above) -- one arrayUnion-shaped write, no subcollection or second listener.
+  var suggestionInput = document.getElementById("suggestionInput");
+  var suggestionListEl = document.getElementById("suggestionList");
+
+  function suggestionCardHtml(s) {
+    var replies = s.replies || [];
+    var repliesHtml = replies.map(function (r, ri) {
+      return '<div class="fb-reply"><div class="fb-head">' +
+        avatarHtml(r.author, "small") +
+        '<span class="fb-date">' + formatDateShort(localDateOf(r.date)) + '</span>' +
+        '<button type="button" class="fb-reply-remove" data-id="' + s.id + '" data-ri="' + ri + '" aria-label="Remove this reply">' + ICON_X_SMALL + '</button></div>' +
+        escapeHtml(r.text) + '</div>';
+    }).join("");
+    return '<div class="suggestion-card" data-id="' + s.id + '">' +
+      '<div class="suggestion-head">' +
+        avatarHtml(s.author, "small") +
+        '<span class="suggestion-date">' + formatDateShort(localDateOf(s.date)) + '</span>' +
+        '<button type="button" class="suggestion-remove" data-id="' + s.id + '" aria-label="Remove this suggestion">' + ICON_X_SMALL + '</button>' +
+      '</div>' +
+      '<div class="suggestion-text">' + escapeHtml(s.text) + '</div>' +
+      (repliesHtml ? '<div class="suggestion-replies">' + repliesHtml + '</div>' : "") +
+      '<div class="fb-reply-row">' +
+        '<input type="text" class="suggestion-reply-input" data-id="' + s.id + '" maxlength="500" placeholder="Reply...">' +
+        '<button type="button" class="btn btn-ghost small suggestion-reply-add" data-id="' + s.id + '">Reply</button>' +
+      '</div>' +
+    '</div>';
+  }
+
+  // Named renderSuggestionsTab (not renderSuggestions) -- that name already belongs to the
+  // unrelated Analytics "suggested next steps" renderer (generateSuggestions()) further down
+  // this file. A same-name top-level function declaration would silently shadow whichever one
+  // is declared later, breaking one of the two features with no error.
+  function renderSuggestionsTab() {
+    var sorted = suggestions.slice().sort(function (a, b) { return new Date(b.date) - new Date(a.date); });
+    suggestionListEl.innerHTML = sorted.length
+      ? sorted.map(suggestionCardHtml).join("")
+      : '<p class="suggestion-empty">No suggestions yet -- be the first to share an idea.</p>';
+  }
+
+  document.getElementById("addSuggestionBtn").addEventListener("click", function () {
+    var text = suggestionInput.value.trim();
+    if (!text) return;
+    var user = auth.currentUser;
+    setDoc(doc(suggestionsCol), {
+      text: text,
+      author: user ? (user.displayName || user.email) : null,
+      date: new Date().toISOString(),
+      replies: []
+    }).then(function () {
+      suggestionInput.value = "";
+    }).catch(function (err) {
+      alert("Couldn't post suggestion: " + err.message);
+    });
+  });
+  suggestionInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      document.getElementById("addSuggestionBtn").click();
+    }
+  });
+
+  function submitSuggestionReply(suggestionId, inputEl) {
+    var text = inputEl.value.trim();
+    if (!text) return;
+    var user = auth.currentUser;
+    updateDoc(doc(suggestionsCol, suggestionId), {
+      replies: arrayUnion({ text: text, author: user ? (user.displayName || user.email) : null, date: new Date().toISOString() })
+    }).then(function () {
+      inputEl.value = "";
+    }).catch(function (err) {
+      alert("Couldn't post reply: " + err.message);
+    });
+  }
+
+  suggestionListEl.addEventListener("click", function (e) {
+    var replyBtn = e.target.closest(".suggestion-reply-add");
+    if (replyBtn) {
+      var card = replyBtn.closest(".suggestion-card");
+      var input = card ? card.querySelector(".suggestion-reply-input") : null;
+      if (input) submitSuggestionReply(replyBtn.dataset.id, input);
+      return;
+    }
+    var removeBtn = e.target.closest(".suggestion-remove");
+    if (removeBtn) {
+      var suggestion = suggestions.find(function (s) { return s.id === removeBtn.dataset.id; });
+      var snippet = suggestion && suggestion.text ? (suggestion.text.length > 60 ? suggestion.text.slice(0, 60) + "…" : suggestion.text) : "This suggestion";
+      if (!confirm('Remove "' + snippet + '"? This removes it (and any replies) for everyone. This cannot be undone.')) return;
+      deleteDoc(doc(suggestionsCol, removeBtn.dataset.id)).catch(function (err) {
+        alert("Couldn't remove suggestion: " + err.message);
+      });
+      return;
+    }
+    var replyRemoveBtn = e.target.closest(".fb-reply-remove");
+    if (replyRemoveBtn) {
+      var rSuggestion = suggestions.find(function (s) { return s.id === replyRemoveBtn.dataset.id; });
+      if (!rSuggestion) return;
+      var replyList = (rSuggestion.replies || []).slice();
+      var ri = parseInt(replyRemoveBtn.dataset.ri, 10);
+      if (ri < 0 || ri >= replyList.length) return;
+      if (!confirm("Remove this reply? This cannot be undone.")) return;
+      replyList.splice(ri, 1);
+      updateDoc(doc(suggestionsCol, replyRemoveBtn.dataset.id), { replies: replyList }).catch(function (err) {
+        alert("Couldn't remove reply: " + err.message);
+      });
+    }
+  });
+  suggestionListEl.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && e.target.classList.contains("suggestion-reply-input")) {
+      e.preventDefault();
+      submitSuggestionReply(e.target.dataset.id, e.target);
+    }
+  });
+
   // ---------- date helpers ----------
   function pad(n) { return n < 10 ? "0" + n : "" + n; }
   function dateKey(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
@@ -2451,6 +2856,7 @@ import {
   var weekdayRow = document.getElementById("weekdayRow");
   var calendarRoot = document.getElementById("calendarRoot");
   var periodLabel = document.getElementById("periodLabel");
+  var cadenceBadgeEl = document.getElementById("cadenceBadge");
   var postSearchInput = document.getElementById("postSearchInput");
   var filterBucketSelect = document.getElementById("filterBucketSelect");
   var filterStatusSelect = document.getElementById("filterStatusSelect");
@@ -2492,9 +2898,29 @@ import {
     render();
   });
 
+  // Trailing 4-week posting rate, independent of whatever month/week is currently being
+  // browsed -- this is "are we actually keeping pace lately", not a stat about the page
+  // you happen to be looking at. Drafts don't count: nothing's actually committed to going
+  // out yet, so they'd overstate real cadence.
+  function renderCadenceBadge() {
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var startKey = dateKey(addDays(today, -27));
+    var endKey = dateKey(today);
+    var count = posts.filter(function (p) {
+      return p.status !== "draft" && p.date >= startKey && p.date <= endKey;
+    }).length;
+    if (!count) {
+      cadenceBadgeEl.textContent = "No posts in the last 4 weeks";
+      return;
+    }
+    var perWeek = (count / 4).toFixed(1).replace(/\.0$/, "");
+    cadenceBadgeEl.textContent = count + " post" + (count === 1 ? "" : "s") + " in the last 4 weeks (~" + perWeek + "/wk)";
+  }
+
   function render() {
     renderWeekdayRow();
     renderPeriodLabel();
+    renderCadenceBadge();
     if (isMobileView()) renderAgenda();
     else if (view === "month") renderMonth(); else renderWeek();
     renderUpcomingPosts();
@@ -2917,7 +3343,9 @@ import {
       var legacy = isLegacyEmbeddedImage(url);
       return '<div class="image-thumb' + (legacy ? " legacy" : "") + '" data-i="' + i + '" draggable="true"' +
         (legacy ? ' title="Saved before links were supported -- quality is reduced. Remove and re-add as a link for full quality."' : '') + '>' +
+        '<a class="image-thumb-link" href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer" draggable="false" aria-label="Open image in a new tab">' +
         '<img src="' + escapeHtml(url) + '" alt="Post image" draggable="false">' +
+        '</a>' +
         '<button type="button" class="image-remove" data-i="' + i + '" aria-label="Remove image">' + ICON_X_SMALL + '</button>' +
         '</div>';
     }).join("");
@@ -2985,6 +3413,11 @@ import {
 
   function renderPostPreviewMedia() {
     var previewImages = getPreviewImages();
+    // Cleared on every render, not just on success -- otherwise switching from a broken image
+    // to a working one (or to no image at all) would leave the old broken-state placeholder
+    // showing, since nothing else ever removes these classes.
+    postPreviewMediaEl.classList.remove("broken-single");
+    postPreviewCarousel.classList.remove("broken");
     if (!previewImages.length) {
       postPreviewMediaEl.hidden = true;
       return;
@@ -3010,6 +3443,11 @@ import {
         '" data-i="' + i + '" aria-label="Slide ' + (i + 1) + '"></button>';
     }).join("");
   }
+  // Wired once (these <img> elements are static, never rebuilt via innerHTML) rather than
+  // per-render. A bad/expired image URL fires this instead of silently leaving the browser's
+  // native broken-image icon showing inside what's meant to look like a real LinkedIn post.
+  postPreviewSingleImg.addEventListener("error", function () { postPreviewMediaEl.classList.add("broken-single"); });
+  postPreviewCarImg.addEventListener("error", function () { postPreviewCarousel.classList.add("broken"); });
   document.getElementById("postPreviewCarPrev").addEventListener("click", function () {
     var n = getPreviewImages().length;
     postPreviewCarouselIndex = (postPreviewCarouselIndex - 1 + n) % n;
@@ -3368,13 +3806,46 @@ import {
       feedback: arrayUnion({ text: text, date: new Date().toISOString(), author: auth.currentUser ? (auth.currentUser.displayName || auth.currentUser.email) : null })
     }).then(function () {
       logActivity("post_feedback", 'Added feedback on "' + (feedbackPost ? feedbackPost.title : editingId) + '"');
+      if (feedbackPost) notifyRecipients(feedbackPost.owners, "feedback", feedbackPost.id, "post", feedbackPost.title, text);
       fFeedbackInput.value = "";
     }).catch(function (err) {
       alert("Couldn't add feedback: " + err.message);
     });
   });
 
+  function submitPostFeedbackReply(idx, inputEl) {
+    var text = inputEl.value.trim();
+    if (!text || !editingId) return;
+    var feedbackPost = posts.find(function (p) { return p.id === editingId; });
+    if (!feedbackPost) return;
+    var originalAuthor = (feedbackPost.feedback || [])[idx] ? (feedbackPost.feedback || [])[idx].author : null;
+    var promise = submitFeedbackReply(postsCol, editingId, feedbackPost.feedback || [], idx, text);
+    if (!promise) return;
+    promise.then(function () {
+      logActivity("post_feedback", 'Replied to feedback on "' + feedbackPost.title + '"');
+      notifyRecipients([originalAuthor], "feedback_reply", feedbackPost.id, "post", feedbackPost.title, text);
+      inputEl.value = "";
+    }).catch(function (err) {
+      alert("Couldn't post reply: " + err.message);
+    });
+  }
+
   postFeedbackLogEl.addEventListener("click", function (e) {
+    var replyBtn = e.target.closest(".fb-reply-add");
+    if (replyBtn) {
+      var input = postFeedbackLogEl.querySelector('.fb-reply-input[data-i="' + replyBtn.dataset.i + '"]');
+      if (input) submitPostFeedbackReply(parseInt(replyBtn.dataset.i, 10), input);
+      return;
+    }
+    var replyRemoveBtn = e.target.closest(".fb-reply-remove");
+    if (replyRemoveBtn) {
+      if (!editingId) return;
+      var feedbackPostR = posts.find(function (p) { return p.id === editingId; });
+      if (!feedbackPostR) return;
+      var promise = removeFeedbackReply(postsCol, editingId, feedbackPostR.feedback || [], parseInt(replyRemoveBtn.dataset.i, 10), parseInt(replyRemoveBtn.dataset.ri, 10));
+      if (promise) promise.catch(function (err) { alert("Couldn't remove reply: " + err.message); });
+      return;
+    }
     var btn = e.target.closest(".fb-remove");
     if (!btn || !editingId) return;
     var idx = parseInt(btn.dataset.i, 10);
@@ -3388,6 +3859,12 @@ import {
     }).catch(function (err) {
       alert("Couldn't remove feedback: " + err.message);
     });
+  });
+  postFeedbackLogEl.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && e.target.classList.contains("fb-reply-input")) {
+      e.preventDefault();
+      submitPostFeedbackReply(parseInt(e.target.dataset.i, 10), e.target);
+    }
   });
 
   // ---------- content planner ----------
@@ -3471,7 +3948,9 @@ import {
           '</div>';
       }
       return '<div class="image-thumb" data-i="' + i + '" draggable="true">' +
+        '<a class="image-thumb-link" href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer" draggable="false" aria-label="Open image in a new tab">' +
         '<img src="' + escapeHtml(url) + '" alt="Idea reference image" draggable="false">' +
+        '</a>' +
         '<button type="button" class="image-remove" data-i="' + i + '" aria-label="Remove image">' + ICON_X_SMALL + '</button>' +
         '</div>';
     }).join("");
@@ -3613,17 +4092,58 @@ import {
     }).join("");
   }
 
+  // Replies live as an embedded array on the feedback item itself (feedback[i].replies), same
+  // shape/rationale as feedback on a post/idea: one arrayUnion-shaped write, no subcollection
+  // or second listener. Shared by both Post and Idea feedback logs -- colRef/docId are the
+  // only thing that differs between the two call sites.
+  function submitFeedbackReply(colRef, docId, list, idx, text) {
+    var item = list[idx];
+    if (!item) return null;
+    var updated = list.slice();
+    updated[idx] = Object.assign({}, item, {
+      replies: (item.replies || []).concat([{
+        text: text, date: new Date().toISOString(),
+        author: auth.currentUser ? (auth.currentUser.displayName || auth.currentUser.email) : null
+      }])
+    });
+    return updateDoc(doc(colRef, docId), { feedback: updated });
+  }
+  function removeFeedbackReply(colRef, docId, list, idx, replyIdx) {
+    var item = list[idx];
+    if (!item) return null;
+    var replies = (item.replies || []).slice();
+    if (replyIdx < 0 || replyIdx >= replies.length) return null;
+    replies.splice(replyIdx, 1);
+    var updated = list.slice();
+    updated[idx] = Object.assign({}, item, { replies: replies });
+    return updateDoc(doc(colRef, docId), { feedback: updated });
+  }
+
   // Shared between the Idea and Post feedback logs -- which element to render into is entirely
   // the caller's concern, same pattern as renderDemographics()'s gridId/cardId parameters.
   function renderFeedbackLog(feedback, logEl) {
     var list = feedback || [];
     logEl.innerHTML = list.length
       ? list.map(function (f, i) {
+          var replies = f.replies || [];
+          var repliesHtml = replies.map(function (r, ri) {
+            return '<div class="fb-reply"><div class="fb-head">' +
+              avatarHtml(r.author, "small") +
+              '<span class="fb-date">' + formatDateShort(localDateOf(r.date)) + '</span>' +
+              '<button type="button" class="fb-reply-remove" data-i="' + i + '" data-ri="' + ri + '" aria-label="Remove this reply">' + ICON_X_SMALL + '</button></div>' +
+              escapeHtml(r.text) + '</div>';
+          }).join("");
           return '<div class="feedback-item"><div class="fb-head">' +
             avatarHtml(f.author, "small") +
             '<span class="fb-date">' + formatDateShort(localDateOf(f.date)) + '</span>' +
             '<button type="button" class="fb-remove" data-i="' + i + '" aria-label="Remove this feedback">' + ICON_X_SMALL + '</button></div>' +
-            escapeHtml(f.text) + '</div>';
+            escapeHtml(f.text) +
+            (repliesHtml ? '<div class="fb-replies">' + repliesHtml + '</div>' : "") +
+            '<div class="fb-reply-row">' +
+              '<input type="text" class="fb-reply-input" data-i="' + i + '" placeholder="Reply...">' +
+              '<button type="button" class="btn btn-ghost small fb-reply-add" data-i="' + i + '">Reply</button>' +
+            '</div>' +
+            '</div>';
         }).join("")
       : '<p class="feedback-empty">No feedback logged yet.</p>';
     logEl.scrollTop = logEl.scrollHeight;
@@ -3794,13 +4314,46 @@ import {
       feedback: arrayUnion({ text: text, date: new Date().toISOString(), author: auth.currentUser ? (auth.currentUser.displayName || auth.currentUser.email) : null })
     }).then(function () {
       logActivity("idea_feedback", 'Added feedback on "' + (feedbackIdea ? feedbackIdea.title : editingIdeaId) + '"');
+      if (feedbackIdea) notifyRecipients(feedbackIdea.owners, "feedback", feedbackIdea.id, "idea", feedbackIdea.title, text);
       iFeedbackInput.value = "";
     }).catch(function (err) {
       alert("Couldn't add feedback: " + err.message);
     });
   });
 
+  function submitIdeaFeedbackReply(idx, inputEl) {
+    var text = inputEl.value.trim();
+    if (!text || !editingIdeaId) return;
+    var feedbackIdea = ideas.find(function (i) { return i.id === editingIdeaId; });
+    if (!feedbackIdea) return;
+    var originalAuthor = (feedbackIdea.feedback || [])[idx] ? (feedbackIdea.feedback || [])[idx].author : null;
+    var promise = submitFeedbackReply(ideasCol, editingIdeaId, feedbackIdea.feedback || [], idx, text);
+    if (!promise) return;
+    promise.then(function () {
+      logActivity("idea_feedback", 'Replied to feedback on "' + feedbackIdea.title + '"');
+      notifyRecipients([originalAuthor], "feedback_reply", feedbackIdea.id, "idea", feedbackIdea.title, text);
+      inputEl.value = "";
+    }).catch(function (err) {
+      alert("Couldn't post reply: " + err.message);
+    });
+  }
+
   feedbackLogEl.addEventListener("click", function (e) {
+    var replyBtn = e.target.closest(".fb-reply-add");
+    if (replyBtn) {
+      var input = feedbackLogEl.querySelector('.fb-reply-input[data-i="' + replyBtn.dataset.i + '"]');
+      if (input) submitIdeaFeedbackReply(parseInt(replyBtn.dataset.i, 10), input);
+      return;
+    }
+    var replyRemoveBtn = e.target.closest(".fb-reply-remove");
+    if (replyRemoveBtn) {
+      if (!editingIdeaId) return;
+      var feedbackIdeaR = ideas.find(function (i) { return i.id === editingIdeaId; });
+      if (!feedbackIdeaR) return;
+      var promise = removeFeedbackReply(ideasCol, editingIdeaId, feedbackIdeaR.feedback || [], parseInt(replyRemoveBtn.dataset.i, 10), parseInt(replyRemoveBtn.dataset.ri, 10));
+      if (promise) promise.catch(function (err) { alert("Couldn't remove reply: " + err.message); });
+      return;
+    }
     var btn = e.target.closest(".fb-remove");
     if (!btn || !editingIdeaId) return;
     var idx = parseInt(btn.dataset.i, 10);
@@ -3814,6 +4367,12 @@ import {
     }).catch(function (err) {
       alert("Couldn't remove feedback: " + err.message);
     });
+  });
+  feedbackLogEl.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && e.target.classList.contains("fb-reply-input")) {
+      e.preventDefault();
+      submitIdeaFeedbackReply(parseInt(e.target.dataset.i, 10), e.target);
+    }
   });
 
   deleteIdeaBtn.addEventListener("click", function () {
@@ -5297,6 +5856,7 @@ import {
 
   document.addEventListener("keydown", function (e) {
     if (e.key !== "Escape") return;
+    if (!userMenuPanel.hidden) closeUserMenu();
     if (modalBackdrop.classList.contains("open")) requestCloseModal();
     if (ideaBackdrop.classList.contains("open")) requestCloseIdeaModal();
     if (bucketsBackdrop.classList.contains("open")) closeBucketsModal();
