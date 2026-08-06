@@ -45,13 +45,30 @@ no config changes needed.
 
 ## Architecture
 
-- **Firestore collections**: `posts`, `buckets`, `ideas`, `notifications`, `suggestions` (one doc
-  per item), plus single documents `analytics/current` and `goals/<metric>` (one goal doc per
-  metric, capped at 3). Everything reads live via `onSnapshot`. Access control is one blanket rule
-  in `firestore.rules` (`match /{document=**} { allow read, write: if isMediashock(); }`,
+- **Firestore collections**: `posts`, `buckets`, `ideas`, `notifications`, `suggestions`, `users`
+  (one doc per item), plus single documents `analytics/current` and `goals/<metric>` (one goal doc
+  per metric, capped at 3). Everything reads live via `onSnapshot`. Access control is one blanket
+  rule in `firestore.rules` (`match /{document=**} { allow read, write: if isMediashock(); }`,
   `@mediashock.com.sg` only) covering every collection — unlike the sibling Team Project Manager
   app, a brand-new collection here needs no separate rules deploy. `notifications` is queried with
   `where("recipient", "==", ...)` only (sorted client-side) to avoid needing a composite index.
+  `users` is a name→email directory, upserted by each user on sign-in (`upsertUserDirectory`) —
+  see "Tag notifications" below for what it's for.
+- **Tag notifications**: `notifyRecipients` writes a `notifications` doc for every mention/feedback
+  recipient. Two delivery paths beyond the in-app bell:
+  - **Desktop popups** — an opt-in toggle in the user menu (`desktopNotifToggleBtn`, `localStorage`
+    key `mscontenthub_desktop_notif`) fires a native `Notification` from the `notifications`
+    `onSnapshot` listener in `startListeners` for anything that arrives *after* the listener
+    attaches (`notifStreamStartedAt` guards against popping the whole existing backlog on every
+    page load). Tab-open-somewhere only — no service-worker push, no server.
+  - **Email** — a separate, out-of-band GitHub Actions workflow
+    (`.github/workflows/notify-email.yml`, script in `scripts/send-notification-emails.mjs`) polls
+    for `notifications` docs with `emailed: false` every ~10 minutes and sends mail via Resend. It
+    resolves `recipient` (a display name) to an email address via the `users` directory above, so a
+    teammate's email is only resolvable once they've signed in at least once after this shipped.
+    Needs three GitHub repo secrets (`FIREBASE_SERVICE_ACCOUNT`, `RESEND_API_KEY`, `EMAIL_FROM`);
+    see the script's header comment for what each does. This exists instead of a Cloud Function
+    specifically to avoid requiring the Blaze billing plan.
 - **Images** are pasted URLs, not uploads — no Firebase Storage (would require the paid Blaze plan)
   and no base64-on-document (hits Firestore's 1MiB limit and looked pixelated). A Drive folder link
   pasted into the same Images field is auto-detected and rendered as a distinct folder chip. Image

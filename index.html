@@ -1143,6 +1143,10 @@
             <span class="user-menu-item-icon" id="themeToggleIcon"></span>
             <span id="themeToggleLabel">Switch to dark mode</span>
           </button>
+          <button type="button" class="user-menu-item" id="desktopNotifToggleBtn">
+            <span class="user-menu-item-icon" id="desktopNotifToggleIcon"></span>
+            <span id="desktopNotifToggleLabel">Desktop notifications: Off</span>
+          </button>
           <div class="user-menu-divider"></div>
           <button type="button" class="user-menu-item user-menu-item-danger" id="signOutBtn">Sign out</button>
         </div>
@@ -1926,6 +1930,7 @@ import {
   var activityQuery = query(activityCol, orderBy("at", "desc"), limit(50));
   var notificationsCol = collection(db, "notifications");
   var suggestionsCol = collection(db, "suggestions");
+  var usersCol = collection(db, "users");
 
   function logActivity(type, summary) {
     var user = auth.currentUser;
@@ -1941,6 +1946,19 @@ import {
   // ("status Draft → Approved, copy edited (+2 more)") for an activity-log summary.
   function summarizeChanges(changes) {
     return changes.slice(0, 3).join(", ") + (changes.length > 3 ? " (+" + (changes.length - 3) + " more)" : "");
+  }
+
+  // Keeps a name->email directory so the email-notification GitHub Action (which only sees
+  // Firestore, not Google auth) can resolve a `recipient` display name to an address --
+  // notifications themselves only ever store the display name. Written on every sign-in so
+  // the directory self-heals if a name changes. Covered by the same blanket firestore.rules
+  // match as every other collection in this app.
+  function upsertUserDirectory(user) {
+    setDoc(doc(usersCol, user.uid), {
+      name: user.displayName || user.email,
+      email: user.email,
+      updatedAt: new Date().toISOString()
+    }, { merge: true }).catch(function (e) { console.error("Failed to update user directory", e); });
   }
 
   // Fires a notification to each name in `recipients` (owners of a post/idea, or a feedback
@@ -1963,7 +1981,8 @@ import {
         author: myName || "unknown",
         snippet: (snippet || "").slice(0, 140),
         at: new Date().toISOString(),
-        read: false
+        read: false,
+        emailed: false
       }).catch(function (e) { console.error("Failed to notify " + name, e); });
     });
   }
@@ -2100,6 +2119,56 @@ import {
     closeUserMenu();
   });
 
+  // ---------- desktop notifications (opt-in, per-browser preference) ----------
+  // Pops a native OS notification when a new @mention/feedback notification arrives while a
+  // tab is open (even backgrounded) -- see the docChanges() handling in the notifications
+  // onSnapshot listener in startListeners. No service-worker push, no server -- this only
+  // fires while some tab on this browser is open.
+  var DESKTOP_NOTIF_STORAGE_KEY = "mscontenthub_desktop_notif";
+  var desktopNotifToggleBtn = document.getElementById("desktopNotifToggleBtn");
+  var desktopNotifToggleIcon = document.getElementById("desktopNotifToggleIcon");
+  var desktopNotifToggleLabel = document.getElementById("desktopNotifToggleLabel");
+  var BELL_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>';
+  var BELL_OFF_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M8.7 3A6 6 0 0 1 18 8a21.3 21.3 0 0 0 .6 5"></path><path d="M17 17H3s3-2 3-9a4.67 4.67 0 0 1 .3-1.7"></path>' +
+    '<path d="M13.73 21a2 2 0 0 1-3.46 0"></path><line x1="2" y1="2" x2="22" y2="22"></line></svg>';
+
+  function desktopNotifWanted() {
+    try { return localStorage.getItem(DESKTOP_NOTIF_STORAGE_KEY) === "on"; } catch (e) { return false; }
+  }
+  function desktopNotifActive() {
+    return desktopNotifWanted() && typeof Notification !== "undefined" && Notification.permission === "granted";
+  }
+  function syncDesktopNotifToggle() {
+    var on = desktopNotifActive();
+    desktopNotifToggleIcon.innerHTML = on ? BELL_ICON : BELL_OFF_ICON;
+    desktopNotifToggleLabel.textContent = "Desktop notifications: " + (on ? "On" : "Off");
+  }
+  syncDesktopNotifToggle();
+  desktopNotifToggleBtn.addEventListener("click", function () {
+    closeUserMenu();
+    if (typeof Notification === "undefined") {
+      alert("This browser doesn't support desktop notifications");
+      return;
+    }
+    if (desktopNotifActive()) {
+      try { localStorage.setItem(DESKTOP_NOTIF_STORAGE_KEY, "off"); } catch (e) {}
+      syncDesktopNotifToggle();
+      return;
+    }
+    if (Notification.permission === "denied") {
+      alert("Notifications are blocked for this site -- re-enable them in your browser's site settings");
+      return;
+    }
+    Notification.requestPermission().then(function (perm) {
+      if (perm === "granted") {
+        try { localStorage.setItem(DESKTOP_NOTIF_STORAGE_KEY, "on"); } catch (e) {}
+      }
+      syncDesktopNotifToggle();
+    });
+  });
+
   // ---------- one-time onboarding banner ----------
   var ONBOARDING_DISMISSED_KEY = "mediashock-content-hub-onboarding-dismissed";
   var onboardingBanner = document.getElementById("onboardingBanner");
@@ -2164,7 +2233,7 @@ import {
   // open -- Firestore data already updates live via onSnapshot, so the only thing lagging
   // behind is *this page's own code*, and losing an in-progress draft to a surprise reload
   // would be worse than waiting a few seconds for the tab to be idle.
-  var CURRENT_BUILD_VERSION = "2026-08-06T06:48:36Z";
+  var CURRENT_BUILD_VERSION = "2026-08-06T07:13:33Z";
   var pendingBuildVersion = null;
 
   function anyModalOpen() {
@@ -2223,6 +2292,25 @@ import {
   var activityLog = [];
   var myNotifications = [];
   var suggestions = [];
+  var notifStreamStartedAt = 0;
+  var firedDesktopNotifIds = {};
+
+  function fireDesktopNotification(notif) {
+    if (!desktopNotifActive() || firedDesktopNotifIds[notif.id]) return;
+    firedDesktopNotifIds[notif.id] = true;
+    var title = notif.author + (notif.type === "mention" ? " mentioned you" : " left feedback");
+    var n = new Notification(title, {
+      body: (notif.itemTitle ? notif.itemTitle + ": " : "") + (notif.snippet || ""),
+      icon: "favicon.png",
+      tag: notif.id
+    });
+    n.onclick = function () {
+      window.focus();
+      if (notif.itemKind === "post" && posts.some(function (p) { return p.id === notif.itemId; })) openModal(notif.itemId);
+      else if (notif.itemKind === "idea" && ideas.some(function (i) { return i.id === notif.itemId; })) openIdeaModal(notif.itemId);
+      n.close();
+    };
+  }
 
   function startListeners() {
     if (unsubPosts) return;
@@ -2234,9 +2322,20 @@ import {
       // composite index. Sorting server-side would need one (recipient asc + at desc are two
       // different fields), and a missing index fails the whole query with nothing but a
       // console error -- silently breaking notifications with no visible sign anything's wrong.
+      notifStreamStartedAt = Date.now();
       var myNotificationsQuery = query(notificationsCol, where("recipient", "==", myName));
       unsubNotifications = onSnapshot(myNotificationsQuery, function (snap) {
         myNotifications = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+        // Only pop a desktop notification for docs that showed up after this listener
+        // attached -- otherwise the initial snapshot of pre-existing unread notifications
+        // would fire a burst of popups every time the app is opened.
+        snap.docChanges().forEach(function (change) {
+          if (change.type !== "added") return;
+          var data = Object.assign({ id: change.doc.id }, change.doc.data());
+          if (data.read) return;
+          if (new Date(data.at).getTime() < notifStreamStartedAt) return;
+          fireDesktopNotification(data);
+        });
         renderNotifBell();
       }, function (err) {
         console.error("notifications listener error", err);
@@ -2380,6 +2479,7 @@ import {
     notifWrap.hidden = false;
     var displayName = user.displayName || user.email;
     userChipLabel.innerHTML = avatarHtml(displayName, "small") + '<span>' + escapeHtml(displayName) + '</span>';
+    upsertUserDirectory(user);
     startListeners();
   });
 
