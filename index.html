@@ -354,23 +354,27 @@
   .li-preview-media { margin-bottom: 0.7rem; }
   .li-preview-single-img { display: block; width: 100%; height: auto; max-height: 24rem; object-fit: contain; border-radius: 8px; background: #14181a; }
   .li-preview-media .carousel-dots { margin-top: 0.5rem; }
-  /* A pasted image URL can go bad (deleted, permissions changed, typo) after it was added --
-     without this, the preview showed the browser's native broken-image icon, which looks
-     unpolished for something meant to mimic a real LinkedIn post. Same fallback affordance
-     the editable thumbnail grid already has (.image-thumb.broken), just scoped to the
-     preview's own elements since they're not .image-thumb. */
+  /* A pasted "image" URL that a plain <img> can't render inline (not a raw image file -- a
+     Drive/Photos share page, a webpage URL, etc.) still opens fine as a link (.image-thumb-link
+     wraps every thumb in an <a>) -- it just can't be inline-previewed. That's the "or if not an
+     image, a clickable link" half of the pasted-URL feature, not a failure, so the placeholder is
+     brand-colored (positive/clickable), not muted like a real error. Without this, the preview
+     showed the browser's native broken-image icon, which read as an error and looked unpolished
+     for something meant to mimic a real LinkedIn post. Same fallback affordance the editable
+     thumbnail grid already has (.image-thumb.broken), just scoped to the preview's own elements
+     since they're not .image-thumb. */
   .li-preview-media.broken-single .li-preview-single-img { display: none; }
   .li-preview-media.broken-single { position: relative; min-height: 8rem; background: #14181a; border-radius: 8px; }
   .li-preview-media.broken-single::after {
     content: ""; position: absolute; inset: 0; margin: auto; width: 2rem; height: 2rem;
-    background-color: var(--text-faint);
+    background-color: var(--brand);
     -webkit-mask: var(--icon-image-mask) center / contain no-repeat;
     mask: var(--icon-image-mask) center / contain no-repeat;
   }
   #postPreviewCarousel.broken img { display: none; }
   #postPreviewCarousel.broken::after {
     content: ""; display: block; width: 2rem; height: 2rem; margin: 0 auto;
-    background-color: var(--text-faint);
+    background-color: var(--brand);
     -webkit-mask: var(--icon-image-mask) center / contain no-repeat;
     mask: var(--icon-image-mask) center / contain no-repeat;
   }
@@ -988,7 +992,7 @@
   .image-thumb.broken img { display: none; }
   .image-thumb.broken::after {
     content: ""; position: absolute; inset: 0; margin: auto; width: 1.3rem; height: 1.3rem;
-    background-color: var(--text-faint);
+    background-color: var(--brand);
     -webkit-mask: var(--icon-image-mask) center / contain no-repeat;
     mask: var(--icon-image-mask) center / contain no-repeat;
     pointer-events: none;
@@ -2160,7 +2164,7 @@ import {
   // open -- Firestore data already updates live via onSnapshot, so the only thing lagging
   // behind is *this page's own code*, and losing an in-progress draft to a surprise reload
   // would be worse than waiting a few seconds for the tab to be idle.
-  var CURRENT_BUILD_VERSION = "2026-08-06T06:39:34Z";
+  var CURRENT_BUILD_VERSION = "2026-08-06T06:48:36Z";
   var pendingBuildVersion = null;
 
   function anyModalOpen() {
