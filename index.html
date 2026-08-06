@@ -566,6 +566,12 @@
   .kanban-count { font-size: 0.68rem; font-weight: 700; color: var(--text-faint); background: var(--surface-alt); border-radius: 999px; padding: 0.05rem 0.5rem; }
   .kanban-cards { display: flex; flex-direction: column; gap: 0.55rem; min-height: 2.5rem; border-radius: 8px; }
   .kanban-cards.drop-target { outline: 2px dashed var(--brand); outline-offset: 2px; background: var(--brand-soft); }
+  .file-drop-zone {
+    display: flex; align-items: center; gap: 0.5rem; border: 1px dashed var(--border); border-radius: 8px;
+    padding: 0.6rem 0.7rem; margin-bottom: 0.7rem; font-size: 0.8rem; color: var(--text-faint);
+  }
+  .file-drop-zone.drop-target { outline: 2px dashed var(--brand); outline-offset: -2px; background: var(--brand-soft); border-color: transparent; color: var(--brand); }
+  .file-drop-zone input[type="file"] { flex: 1; font-size: 0.78rem; }
   .idea-card {
     all: unset; cursor: pointer; display: block; box-sizing: border-box; width: 100%;
     border-left: 3px solid var(--dot); background: color-mix(in srgb, var(--dot) 10%, var(--surface));
@@ -1303,6 +1309,18 @@
   </section>
 
   <section class="tab-panel" id="analyticsView" hidden>
+    <!-- Reuses .onboarding-banner's visual recipe (brand-tinted, left accent bar, dismiss X)
+         rather than a new CSS block for the same "brand-tinted info banner" shape. Unlike that
+         banner's dismiss-forever flag, this one's dismissal is tied to the specific stale date
+         (see updateStaleAnalyticsBanner() below, and the dismiss button's click handler) so a
+         fresh import automatically re-arms it if the data goes stale again later. -->
+    <div class="onboarding-banner" id="staleAnalyticsBanner" hidden>
+      <p><strong>Analytics data hasn't been refreshed in a while.</strong> <span id="staleAnalyticsText"></span></p>
+      <button type="button" class="btn btn-ghost small" id="staleAnalyticsImportBtn">Import now</button>
+      <button type="button" class="icon-btn" id="dismissStaleAnalyticsBtn" aria-label="Dismiss">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
     <div class="analytics-head">
       <div>
         <div class="analytics-headline-row">
@@ -1533,7 +1551,10 @@
       (or <code style="font-family:var(--font-mono);">export_analytics.py</code>), or choose the exported
       file directly. This replaces the sample data shown below.
     </p>
-    <input type="file" id="importAnalyticsFile" accept="application/json,.json" style="margin-bottom:0.7rem;">
+    <div class="file-drop-zone" id="importAnalyticsDropZone">
+      <span id="importAnalyticsDropLabel">Drop the exported JSON file here, or choose one:</span>
+      <input type="file" id="importAnalyticsFile" accept="application/json,.json">
+    </div>
     <textarea id="importAnalyticsText" placeholder="[ { &quot;date&quot;: ..., &quot;followers&quot;: ..., &quot;impressions&quot;: ... } ]"></textarea>
     <p id="importAnalyticsError" style="display:none;margin:0.5rem 0 0;font-size:0.8rem;color:var(--danger);"></p>
     <div class="modal-actions">
@@ -2317,7 +2338,7 @@ import {
   // open -- Firestore data already updates live via onSnapshot, so the only thing lagging
   // behind is *this page's own code*, and losing an in-progress draft to a surprise reload
   // would be worse than waiting a few seconds for the tab to be idle.
-  var CURRENT_BUILD_VERSION = "2026-08-06T09:44:34Z";
+  var CURRENT_BUILD_VERSION = "2026-08-06T15:08:20Z";
   var pendingBuildVersion = null;
 
   function anyModalOpen() {
@@ -5645,6 +5666,41 @@ import {
     });
   });
 
+  // ---------- analytics: stale-data reminder ----------
+  var STALE_ANALYTICS_DAYS = 14;
+  var STALE_ANALYTICS_DISMISSED_KEY = "mscontenthub_stale_analytics_dismissed";
+
+  // Keys the dismissal to the specific stale date (not a bare "dismissed forever" flag like
+  // the onboarding banner) -- so importing fresh data later, which pushes the latest date
+  // further out, automatically re-arms the banner the next time it goes stale, instead of it
+  // staying dismissed for good after the first click.
+  function updateStaleAnalyticsBanner(state) {
+    var banner = document.getElementById("staleAnalyticsBanner");
+    var days = state.days || [];
+    if (state.isSample || !days.length) { banner.hidden = true; return; }
+    var latestDate = days.reduce(function (max, d) { return d.date > max ? d.date : max; }, days[0].date);
+    var staleDays = Math.round((Date.now() - new Date(latestDate + "T00:00:00Z").getTime()) / 86400000);
+    if (staleDays < STALE_ANALYTICS_DAYS) { banner.hidden = true; return; }
+    var dismissedFor = "";
+    try { dismissedFor = localStorage.getItem(STALE_ANALYTICS_DISMISSED_KEY) || ""; } catch (e) {}
+    if (dismissedFor === latestDate) { banner.hidden = true; return; }
+    document.getElementById("staleAnalyticsText").textContent =
+      "The newest day covered is " + formatDateShort(latestDate) + " (" + staleDays + " days ago).";
+    banner.hidden = false;
+  }
+  document.getElementById("dismissStaleAnalyticsBtn").addEventListener("click", function () {
+    var state = loadAnalytics();
+    var days = state.days || [];
+    if (days.length) {
+      var latestDate = days.reduce(function (max, d) { return d.date > max ? d.date : max; }, days[0].date);
+      try { localStorage.setItem(STALE_ANALYTICS_DISMISSED_KEY, latestDate); } catch (e) {}
+    }
+    document.getElementById("staleAnalyticsBanner").hidden = true;
+  });
+  document.getElementById("staleAnalyticsImportBtn").addEventListener("click", function () {
+    document.getElementById("importAnalyticsBtn").click();
+  });
+
   // ---------- analytics: master render ----------
   var currentPeriods = [];
 
@@ -5653,6 +5709,7 @@ import {
     var allDays = state.days || [];
 
     document.getElementById("sampleBadge").hidden = !state.isSample;
+    updateStaleAnalyticsBanner(state);
     document.getElementById("followerSourceNote").textContent = state.currentFollowers !== null && state.currentFollowers !== undefined
       ? "Current followers: " + formatNumber(state.currentFollowers) + " (source: " + (state.currentFollowersSource || "import") + ")"
       : "No absolute follower count available yet — showing a relative growth curve from 0. Re-run the importer with --current-followers <n> to calibrate it.";
@@ -6023,12 +6080,37 @@ import {
   document.getElementById("importAnalyticsCancelBtn").addEventListener("click", closeImportAnalytics);
   importAnalyticsBackdrop.addEventListener("click", function (e) { if (e.target === importAnalyticsBackdrop) closeImportAnalytics(); });
 
-  importAnalyticsFile.addEventListener("change", function () {
-    var file = importAnalyticsFile.files && importAnalyticsFile.files[0];
+  function loadAnalyticsFileIntoTextarea(file) {
     if (!file) return;
     var reader = new FileReader();
     reader.onload = function () { importAnalyticsText.value = String(reader.result); };
     reader.readAsText(file);
+  }
+  importAnalyticsFile.addEventListener("change", function () {
+    loadAnalyticsFileIntoTextarea(importAnalyticsFile.files && importAnalyticsFile.files[0]);
+  });
+
+  // Drag-and-drop onto the import modal's drop zone -- the first file drag-and-drop in this
+  // app (every other dragstart/drop pair here moves an existing DOM element, e.g. reordering
+  // images or moving a kanban card, not an OS file). Reuses the same FileReader path as the
+  // file input's change handler. The window-level guard exists so dropping a file just outside
+  // the zone (but still somewhere on the page) doesn't trigger the browser's default "navigate
+  // to this file" behavior and blow away the app.
+  var importAnalyticsDropZone = document.getElementById("importAnalyticsDropZone");
+  window.addEventListener("dragover", function (e) { e.preventDefault(); });
+  window.addEventListener("drop", function (e) { e.preventDefault(); });
+  importAnalyticsDropZone.addEventListener("dragover", function (e) {
+    e.preventDefault();
+    importAnalyticsDropZone.classList.add("drop-target");
+  });
+  importAnalyticsDropZone.addEventListener("dragleave", function () {
+    importAnalyticsDropZone.classList.remove("drop-target");
+  });
+  importAnalyticsDropZone.addEventListener("drop", function (e) {
+    e.preventDefault();
+    importAnalyticsDropZone.classList.remove("drop-target");
+    var file = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) loadAnalyticsFileIntoTextarea(file);
   });
 
   document.getElementById("importAnalyticsCommitBtn").addEventListener("click", function () {
@@ -6055,9 +6137,21 @@ import {
     }
     var demo = splitLegacyDemographics(bundle);
 
+    // Numeric fields are coerced with Number() rather than passed through as-is -- a stray
+    // string value (e.g. "N/A" pasted into a spreadsheet cell) used to flow straight into
+    // Firestore untouched and only broke later, silently, the first time the analytics view
+    // summed it with a real number. Missing/invalid values both default to 0, but are counted
+    // separately so the import summary can flag rows that needed help instead of pretending
+    // the file was perfectly clean.
+    var missingFieldCount = 0, invalidNumberCount = 0;
     var normalized = bundle.days.map(function (row) {
       var out = {};
-      DAY_FIELDS.forEach(function (k) { out[k] = row[k] !== undefined ? row[k] : (k === "date" ? "" : 0); });
+      DAY_FIELDS.forEach(function (k) {
+        if (k === "date") { out.date = row.date !== undefined ? String(row.date) : ""; return; }
+        if (row[k] === undefined) { out[k] = 0; missingFieldCount++; return; }
+        var n = Number(row[k]);
+        if (isNaN(n)) { out[k] = 0; invalidNumberCount++; } else { out[k] = n; }
+      });
       return out;
     }).filter(function (row) { return row.date; }).sort(function (a, b) { return a.date.localeCompare(b.date); });
 
@@ -6083,9 +6177,13 @@ import {
     });
     renderAnalytics();
     importAnalyticsError.style.color = "var(--good)";
+    var warnings = [];
+    if (missingFieldCount) warnings.push(missingFieldCount + " missing value(s) defaulted to 0");
+    if (invalidNumberCount) warnings.push(invalidNumberCount + " non-numeric value(s) defaulted to 0");
     importAnalyticsError.textContent = "Imported " + normalized.length + " day(s), " + (bundle.topPosts || []).length + " post(s), " +
       Object.keys(demo.followerDemographics).length + " follower demographic facet(s), " +
-      Object.keys(demo.visitorDemographics).length + " visitor demographic facet(s).";
+      Object.keys(demo.visitorDemographics).length + " visitor demographic facet(s)." +
+      (warnings.length ? " (" + warnings.join(", ") + " -- check the source file if that's unexpected.)" : "");
     importAnalyticsError.style.display = "block";
   });
 

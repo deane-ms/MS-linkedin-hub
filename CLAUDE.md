@@ -92,6 +92,28 @@ no config changes needed.
   opens with sample data until real exported data is imported), Suggestions (comment/reply feature
   board, same embedded-array reply model as Post/Idea feedback). A notification bell (top-right of
   the topbar) surfaces new feedback/replies/suggestions per-user.
+  - **Analytics import** (`#importAnalyticsBackdrop`) is JSON-only — a Python script
+    (`agent/import_linkedin_xls.py`/`export_analytics.py`, outside this HTML file) converts the
+    raw LinkedIn XLS export first; the browser side just parses/validates/writes whatever JSON it's
+    given. The file input sits in a `.file-drop-zone` that also accepts a dragged-and-dropped file
+    (`loadAnalyticsFileIntoTextarea`, shared by both the `change` handler and the drop handler) —
+    this was the first real OS-file drag-and-drop in the app; every other drag-and-drop here moves
+    an existing DOM element (image reorder, kanban cards), not a file, so there was no precedent to
+    extend. A `window`-level `dragover`/`drop` `preventDefault()` guard stops a file dropped just
+    outside the zone from triggering the browser's default "navigate to this file" behavior.
+    Numeric `DAY_FIELDS` are coerced with `Number()` (invalid/missing values default to `0`, each
+    counted separately) rather than passed through as-is, so a stray non-numeric cell doesn't
+    silently corrupt a later sum in the analytics view — the import summary reports how many
+    values needed defaulting instead of pretending the file was clean. There is no toast system in
+    this app; import feedback is the single inline `#importAnalyticsError` paragraph (red for
+    errors, green for success), same as it's always been.
+  - **Stale-data reminder**: `updateStaleAnalyticsBanner`, called from `renderAnalytics()`, shows a
+    dismissible banner (reusing `.onboarding-banner`'s visual recipe) when the newest day in
+    `state.days` is more than `STALE_ANALYTICS_DAYS` (14) old — never for sample data. Unlike the
+    onboarding banner's dismiss-forever flag, dismissal here is keyed to the specific stale date
+    (`mscontenthub_stale_analytics_dismissed` in `localStorage`), so importing fresher data
+    automatically re-arms it the next time *that* data goes stale, rather than staying silently
+    dismissed forever after the first click.
 - **Mobile (≤720px)**: view-only for Post/Idea editing (creation entry points hidden, existing
   items open read-only with a "View only" badge); everything else stays fully functional, including
   adding (not removing) idea/post feedback comments. Month/week grid becomes an agenda list; the
