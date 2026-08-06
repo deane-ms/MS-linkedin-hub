@@ -116,3 +116,21 @@ No unit tests. QA is a real Firebase emulator + Playwright run against the live 
 under `.qa-tools/`, gitignored), sign-in flow, and this app's specific selector-scoping gotchas
 (near-duplicate Post/Idea modal structures). Don't hand-write a test harness from scratch; delegate
 to that agent, briefed with specifics of what changed.
+
+## Automated UI/UX optimization reviews
+
+A scheduled cloud routine (`https://claude.ai/code/routines/trig_01JanYSJWSBVFMmJp9TAekmt`, cron
+`16 */5 * * *`, ~5 runs/day) reviews this repo unattended and opens a GitHub issue titled
+"UI/UX Optimization Report — <date>" when it finds something concrete — categorized 🔴 Critical /
+🟡 Refinement / 🔵 Feature Optimization, citing specific file/function. It skips creating a new
+issue if one from the last 24h already exists, and opens nothing at all if it found nothing real.
+
+**This is report-only by design, not the original "propose then wait for a reply" spec it was
+adapted from.** A cron-fired cloud session runs once, unattended, and finishes — it cannot pause
+mid-run and wait days for a human to reply "1, 3, 4" the way an interactive chat can. So the
+automated run's tools are deliberately restricted to `Bash`/`Read`/`Grep`/`Glob` (no `Edit`/
+`Write`), and its prompt forbids touching code entirely. **Implementing anything from a report is
+always a separate, manually-triggered step**: open the GitHub issue, then ask Claude in a normal
+interactive session (e.g. "implement items 1 and 3 from issue #N") — that request, in a real
+conversation, is the actual approval gate. Manage/disable the schedule at
+`https://claude.ai/code/routines`.
