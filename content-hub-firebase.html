@@ -290,8 +290,8 @@
   .filter-bar { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 1rem; }
   .filter-bar input[type="search"] { flex: 1; min-width: 12rem; }
   .cadence-badge {
-    font-size: 0.72rem; font-weight: 600; color: var(--text-faint); background: var(--surface-alt);
-    border: 1px solid var(--border); border-radius: 999px; padding: 0.2rem 0.6rem; white-space: nowrap;
+    font-size: 0.76rem; font-weight: 700; color: var(--text-soft); background: var(--surface-alt);
+    border: 1px solid var(--border); border-radius: 999px; padding: 0.25rem 0.7rem; white-space: nowrap;
   }
   .icon-btn.has-badge { position: relative; }
   .filter-active-dot { position: absolute; top: 0.1rem; right: 0.1rem; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--brand); }
@@ -1214,7 +1214,7 @@
         <button class="btn btn-ghost small" id="todayBtn">Today</button>
         <button class="icon-btn" id="nextBtn" aria-label="Next">›</button>
         <h2 id="periodLabel"></h2>
-        <span class="cadence-badge" id="cadenceBadge" title="Posts with a non-draft status (approved, scheduled, or posted) in the last 4 weeks"></span>
+        <span class="cadence-badge" id="cadenceBadge"></span>
         <button type="button" class="icon-btn has-badge" id="filterToggleBtn" aria-label="Search and filter posts" aria-expanded="false" title="Search and filter posts">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="11" cy="11" r="7"></circle>
@@ -3153,12 +3153,19 @@ import {
     var count = posts.filter(function (p) {
       return p.status !== "draft" && p.date >= startKey && p.date <= endKey;
     }).length;
+    // Leads with the pace (one number, the thing "cadence" actually means) instead of a
+    // compound sentence mixing a raw count and a derived rate -- that read as two competing
+    // numbers instead of one clear stat. The raw count and status caveat move into the tooltip,
+    // still there on hover, just not competing for attention in the badge itself.
+    var detail = count + " post" + (count === 1 ? "" : "s") + " with a non-draft status (approved, scheduled, or posted) in the last 4 weeks";
     if (!count) {
       cadenceBadgeEl.textContent = "No posts in the last 4 weeks";
+      cadenceBadgeEl.title = detail;
       return;
     }
     var perWeek = (count / 4).toFixed(1).replace(/\.0$/, "");
-    cadenceBadgeEl.textContent = count + " post" + (count === 1 ? "" : "s") + " in the last 4 weeks (~" + perWeek + "/wk)";
+    cadenceBadgeEl.textContent = "~" + perWeek + " posts/week";
+    cadenceBadgeEl.title = detail;
   }
 
   function render() {
