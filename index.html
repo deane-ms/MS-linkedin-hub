@@ -1930,7 +1930,6 @@ import {
   var activityQuery = query(activityCol, orderBy("at", "desc"), limit(50));
   var notificationsCol = collection(db, "notifications");
   var suggestionsCol = collection(db, "suggestions");
-  var usersCol = collection(db, "users");
 
   function logActivity(type, summary) {
     var user = auth.currentUser;
@@ -1946,19 +1945,6 @@ import {
   // ("status Draft → Approved, copy edited (+2 more)") for an activity-log summary.
   function summarizeChanges(changes) {
     return changes.slice(0, 3).join(", ") + (changes.length > 3 ? " (+" + (changes.length - 3) + " more)" : "");
-  }
-
-  // Keeps a name->email directory so the email-notification GitHub Action (which only sees
-  // Firestore, not Google auth) can resolve a `recipient` display name to an address --
-  // notifications themselves only ever store the display name. Written on every sign-in so
-  // the directory self-heals if a name changes. Covered by the same blanket firestore.rules
-  // match as every other collection in this app.
-  function upsertUserDirectory(user) {
-    setDoc(doc(usersCol, user.uid), {
-      name: user.displayName || user.email,
-      email: user.email,
-      updatedAt: new Date().toISOString()
-    }, { merge: true }).catch(function (e) { console.error("Failed to update user directory", e); });
   }
 
   // Fires a notification to each name in `recipients` (owners of a post/idea, or a feedback
@@ -1981,8 +1967,7 @@ import {
         author: myName || "unknown",
         snippet: (snippet || "").slice(0, 140),
         at: new Date().toISOString(),
-        read: false,
-        emailed: false
+        read: false
       }).catch(function (e) { console.error("Failed to notify " + name, e); });
     });
   }
@@ -2233,7 +2218,7 @@ import {
   // open -- Firestore data already updates live via onSnapshot, so the only thing lagging
   // behind is *this page's own code*, and losing an in-progress draft to a surprise reload
   // would be worse than waiting a few seconds for the tab to be idle.
-  var CURRENT_BUILD_VERSION = "2026-08-06T07:13:33Z";
+  var CURRENT_BUILD_VERSION = "2026-08-06T07:29:31Z";
   var pendingBuildVersion = null;
 
   function anyModalOpen() {
@@ -2479,7 +2464,6 @@ import {
     notifWrap.hidden = false;
     var displayName = user.displayName || user.email;
     userChipLabel.innerHTML = avatarHtml(displayName, "small") + '<span>' + escapeHtml(displayName) + '</span>';
-    upsertUserDirectory(user);
     startListeners();
   });
 
