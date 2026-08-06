@@ -2344,7 +2344,11 @@ import {
     var n = new Notification(title, {
       body: (notif.itemTitle ? notif.itemTitle + ": " : "") + (notif.snippet || ""),
       icon: "favicon.png",
-      tag: notif.id
+      tag: notif.id,
+      // Stays on screen until clicked (n.onclick below calls n.close()) instead of
+      // auto-dismissing after a few seconds -- Chrome/Edge honor this; Firefox/Safari
+      // silently ignore it and fall back to their own default timing.
+      requireInteraction: true
     });
     n.onclick = function () {
       window.focus();
