@@ -147,6 +147,16 @@ A scheduled cloud routine (`https://claude.ai/code/routines/trig_01JanYSJWSBVFMm
 🟡 Refinement / 🔵 Feature Optimization, citing specific file/function. It skips creating a new
 issue if one from the last 24h already exists, and opens nothing at all if it found nothing real.
 
+**Push-notification fallback.** Every run of the sibling Flowboard repo's identical routine found
+real things but silently failed to file them — `403 Resource not accessible by integration` on
+every issue-creation attempt — worth knowing if this repo's issue tracker looks suspiciously empty
+too. The prompt now tries issue creation first and, if it fails for any reason, pushes a mobile
+notification with the same categorized report instead (prefixed with the error). **The root cause
+isn't fixed by this** — it's a GitHub App permissions gap (`issues:write` missing on the
+integration), fixable only from GitHub's UI. See "Scheduled cloud routines" in the parent
+`Claude Projects/CLAUDE.md` for the exact fix — same gap, same GitHub App installation, for both
+this repo's routine and Flowboard's.
+
 **This is report-only by design, not the original "propose then wait for a reply" spec it was
 adapted from.** A cron-fired cloud session runs once, unattended, and finishes — it cannot pause
 mid-run and wait days for a human to reply "1, 3, 4" the way an interactive chat can. So the
