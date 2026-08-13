@@ -1552,7 +1552,9 @@
       file directly. This replaces the sample data shown below.
     </p>
     <div class="file-drop-zone" id="importAnalyticsDropZone">
-      <span id="importAnalyticsDropLabel">Drop the exported JSON file here, or choose one:</span>
+      <!-- A real <label for>, not a bare <span>: a screen reader tabbing to the file input
+           otherwise announces just "choose file" and never reads these instructions. -->
+      <label id="importAnalyticsDropLabel" for="importAnalyticsFile">Drop the exported JSON file here, or choose one:</label>
       <input type="file" id="importAnalyticsFile" accept="application/json,.json">
     </div>
     <textarea id="importAnalyticsText" placeholder="[ { &quot;date&quot;: ..., &quot;followers&quot;: ..., &quot;impressions&quot;: ... } ]"></textarea>
@@ -2008,10 +2010,19 @@ import {
   // Matches "@Name" in feedback text against everyone who's ever appeared as an owner on a
   // post or idea (there's no fixed team roster -- see getKnownNames) so a mention notifies
   // that person even if they aren't an owner of the item being commented on.
+  // A matched name must END where the name ends. Without MENTION_TAIL, a known name that happens
+  // to be a prefix of a longer word notifies the wrong person: with "Dee" on the roster, typing
+  // "@Deepak" matched "@Dee" and sent Dee a notification for a comment that never named them.
+  // Kept as a shared constant because enrichFeedbackText below needs the identical guard -- the
+  // two used to differ only by accident, and the display side showed it as a half-highlighted
+  // "@Dee|pak". Flowboard's parseMentions/enrichCommentText carry the same pair; keep all four
+  // in sync (see DESIGN.md "Notifications").
+  var MENTION_TAIL = "(?![A-Za-z0-9])";
+
   function parseMentions(text) {
     var mentioned = [];
     getKnownNames().forEach(function (name) {
-      var re = new RegExp("@" + name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+      var re = new RegExp("@" + name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + MENTION_TAIL, "i");
       if (re.test(text)) mentioned.push(name);
     });
     return mentioned;
@@ -2028,7 +2039,7 @@ import {
   function enrichFeedbackText(text) {
     var names = getKnownNames().slice().sort(function (a, b) { return b.length - a.length; });
     var mentionRe = names.length
-      ? new RegExp("@(?:" + names.map(function (name) { return escapeHtml(name).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }).join("|") + ")", "gi")
+      ? new RegExp("@(?:" + names.map(function (name) { return escapeHtml(name).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }).join("|") + ")" + MENTION_TAIL, "gi")
       : null;
     return String(text || "").split(FEEDBACK_URL_RE).map(function (segment, i) {
       if (i % 2 === 1) {
@@ -2338,7 +2349,7 @@ import {
   // open -- Firestore data already updates live via onSnapshot, so the only thing lagging
   // behind is *this page's own code*, and losing an in-progress draft to a surprise reload
   // would be worse than waiting a few seconds for the tab to be idle.
-  var CURRENT_BUILD_VERSION = "2026-08-06T15:19:16Z";
+  var CURRENT_BUILD_VERSION = "2026-08-13T07:54:26Z";
   var pendingBuildVersion = null;
 
   function anyModalOpen() {

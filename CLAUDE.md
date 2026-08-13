@@ -131,6 +131,34 @@ fields/panels/icons, and read the relevant section before touching an area it do
 duplicate that content here. `/ship-content-hub` updates it automatically when a change introduces
 something non-obvious.
 
+## Syntax check (guards against a one-typo blackout)
+
+The app is one `<script type="module">` with no build step, so a single syntax error anywhere kills
+the *entire* page, not just the feature that introduced it. The sibling Flowboard repo shipped
+exactly that and its live board was dead for days -- nothing about the deployed HTML looks wrong, so
+only an actual parse catches it. This repo is the more exposed of the two, because
+`sync_from_scratchpad.py` does blind `str.replace()` into the HTML, and DESIGN.md records that
+mechanism silently disabling the build-version guard once already.
+
+```
+node scripts/check-syntax.mjs
+```
+
+Checks **both** files by default -- `content-hub-firebase.html` (the source you edit) and
+`index.html` (the file that actually deploys) -- and reports failures against each file's own line
+numbers. Wired in two places, because neither alone is enough:
+
+- **`.githooks/pre-push`** actually *prevents* the bad deploy, but git doesn't distribute hooks, so
+  each clone needs `git config core.hooksPath .githooks` once. `--no-verify` bypasses it.
+- **`.github/workflows/syntax-check.yml`** is the backstop for pushes where the hook wasn't enabled
+  or was bypassed. It runs *after* the push, so it makes breakage loud rather than preventing it.
+
+`.gitattributes` pins `.githooks/*` to LF: a CRLF checkout on Windows turns the shebang into
+`/bin/sh` and silently disables the hook.
+
+`/ship-content-hub` already ran `node --check` as part of its flow; this is the same check made
+unskippable for anyone pushing directly.
+
 ## Testing
 
 No unit tests. QA is a real Firebase emulator + Playwright run against the live app, done via the
