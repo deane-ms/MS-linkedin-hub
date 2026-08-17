@@ -228,6 +228,46 @@
   .onboarding-banner p { margin: 0; font-size: 0.85rem; color: var(--text); line-height: 1.5; }
   .onboarding-banner .icon-btn { flex-shrink: 0; }
 
+  /* ---------- toasts ----------
+     Replaces the blocking alert() dialogs this app used for every write failure. z-index sits
+     above the auth gate (100) and every modal so a toast is never trapped behind one. Colour
+     comes from the existing status tokens -- no new hexes. */
+  .toast-container {
+    position: fixed; left: 50%; transform: translateX(-50%); bottom: 1.25rem; z-index: 200;
+    display: flex; flex-direction: column; gap: 0.5rem; align-items: stretch;
+    width: min(30rem, calc(100vw - 1.5rem));
+    /* The container spans a wide strip; only the toasts themselves should catch clicks. */
+    pointer-events: none;
+  }
+  .toast {
+    /* gap:0 on purpose -- the shared ICON_* constants carry their own inline margin-right, so a
+       flex gap here would double the spacing. */
+    display: flex; align-items: flex-start; gap: 0; pointer-events: auto;
+    background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--text-faint);
+    border-radius: 8px; box-shadow: var(--shadow); padding: 0.6rem 0.7rem;
+    font-size: 0.82rem; line-height: 1.35; color: var(--text);
+    animation: toast-in 0.18s ease-out;
+  }
+  .toast-success { border-left-color: var(--good); }
+  .toast-error { border-left-color: var(--bad); }
+  .toast-info { border-left-color: var(--brand); }
+  .toast-success .toast-icon { color: var(--good); }
+  .toast-error .toast-icon { color: var(--bad); }
+  .toast-info .toast-icon { color: var(--brand); }
+  .toast-icon { display: flex; align-items: center; flex-shrink: 0; padding-top: 0.05rem; }
+  .toast-text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .toast-close {
+    flex-shrink: 0; background: none; border: 0; padding: 0.1rem; margin-left: 0.25rem;
+    color: var(--text-faint); cursor: pointer; display: flex; align-items: center; border-radius: 4px;
+  }
+  .toast-close:hover { color: var(--text); background: var(--surface-alt); }
+  .toast-leaving { animation: toast-out 0.16s ease-in forwards; }
+  @keyframes toast-in { from { opacity: 0; transform: translateY(0.5rem); } to { opacity: 1; transform: none; } }
+  @keyframes toast-out { to { opacity: 0; transform: translateY(0.35rem); } }
+  @media (prefers-reduced-motion: reduce) {
+    .toast, .toast-leaving { animation: none; }
+  }
+
   /* ---------- auth gate ---------- */
   .auth-gate {
     position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center;
@@ -299,9 +339,21 @@
   /* ---------- filter bar ---------- */
   .filter-bar { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 1rem; }
   .filter-bar input[type="search"] { flex: 1; min-width: 12rem; }
+  .cadence-badge-wrap { position: relative; }
   .cadence-badge {
     font-size: 0.76rem; font-weight: 700; color: var(--text-soft); background: var(--surface-alt);
     border: 1px solid var(--border); border-radius: 999px; padding: 0.25rem 0.7rem; white-space: nowrap;
+    font-family: inherit; cursor: pointer;
+  }
+  .cadence-badge:hover { border-color: var(--text-faint); }
+  /* Tap-to-reveal detail for the cadence badge -- a title attribute alone is unreachable on
+     touch devices (no hover), so the raw count/status caveat needs a real, visible disclosure
+     too, not just a tooltip. */
+  .cadence-badge-detail {
+    position: absolute; top: calc(100% + 0.4rem); left: 0; z-index: 20; width: 15rem;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    box-shadow: var(--shadow); padding: 0.5rem 0.65rem; font-size: 0.76rem; color: var(--text-soft);
+    line-height: 1.4;
   }
   .icon-btn.has-badge { position: relative; }
   .filter-active-dot { position: absolute; top: 0.1rem; right: 0.1rem; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--brand); }
@@ -1224,7 +1276,10 @@
         <button class="btn btn-ghost small" id="todayBtn">Today</button>
         <button class="icon-btn" id="nextBtn" aria-label="Next">›</button>
         <h2 id="periodLabel"></h2>
-        <span class="cadence-badge" id="cadenceBadge"></span>
+        <div class="cadence-badge-wrap">
+          <button type="button" class="cadence-badge" id="cadenceBadge" aria-expanded="false"></button>
+          <div class="cadence-badge-detail" id="cadenceBadgeDetail" role="status" hidden></div>
+        </div>
         <button type="button" class="icon-btn has-badge" id="filterToggleBtn" aria-label="Search and filter posts" aria-expanded="false" title="Search and filter posts">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="11" cy="11" r="7"></circle>
@@ -1915,6 +1970,12 @@
   </div>
 </div>
 
+<!-- Toasts. Outside #appRoot so a toast can also fire before sign-in. aria-live matters here:
+     the alert() dialogs this replaces were announced by screen readers automatically, and a
+     plain injected <div> would not be. Errors additionally carry role="alert" (see showToast)
+     so they interrupt rather than wait for a pause. -->
+<div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="false"></div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
@@ -2145,13 +2206,22 @@ import {
   var notifListEl = document.getElementById("notifList");
 
   var NOTIF_VERBS = { feedback: "left feedback on", feedback_reply: "replied to your feedback on", mention: "mentioned you in feedback on" };
+  // Matches the sibling Flowboard's limit(30) on its notifications query.
+  var NOTIF_RENDER_LIMIT = 30;
 
   function renderNotifBell() {
     var unread = myNotifications.filter(function (n) { return !n.read; });
     notifBadge.textContent = unread.length > 9 ? "9+" : String(unread.length);
     notifBadge.hidden = unread.length === 0;
 
-    var sorted = myNotifications.slice().sort(function (a, b) { return new Date(b.at) - new Date(a.at); });
+    // Only the newest NOTIF_RENDER_LIMIT get drawn. The query itself deliberately has no
+    // orderBy/limit -- an equality where() plus an orderBy on a different field would need a
+    // composite index, and a missing one fails the whole query silently (see the note below the
+    // startListeners query). A bare limit() without orderBy would return an arbitrary subset, not
+    // the newest, so the cap has to happen here after the client-side sort. The badge count above
+    // still reflects *all* unread, so nothing is hidden from the count -- just from the dropdown,
+    // which would otherwise grow without bound and get slower every month.
+    var sorted = myNotifications.slice().sort(function (a, b) { return new Date(b.at) - new Date(a.at); }).slice(0, NOTIF_RENDER_LIMIT);
     notifListEl.innerHTML = sorted.length
       ? sorted.map(function (n) {
           var verb = NOTIF_VERBS[n.type] || "notified you about";
@@ -2196,7 +2266,7 @@ import {
     if (!itemId) return;
     if (itemKind === "post" && posts.some(function (p) { return p.id === itemId; })) openModal(itemId);
     else if (itemKind === "idea" && ideas.some(function (i) { return i.id === itemId; })) openIdeaModal(itemId);
-    else alert("That " + (itemKind || "item") + " no longer exists.");
+    else showToast("That " + (itemKind || "item") + " no longer exists.", "info");
   });
 
   // ---------- light/dark theme toggle (per-browser preference, not shared data) ----------
@@ -2265,7 +2335,7 @@ import {
   desktopNotifToggleBtn.addEventListener("click", function () {
     closeUserMenu();
     if (typeof Notification === "undefined") {
-      alert("This browser doesn't support desktop notifications");
+      showToast("This browser doesn't support desktop notifications", "info");
       return;
     }
     if (desktopNotifActive()) {
@@ -2274,7 +2344,7 @@ import {
       return;
     }
     if (Notification.permission === "denied") {
-      alert("Notifications are blocked for this site -- re-enable them in your browser's site settings");
+      showToast("Notifications are blocked for this site -- re-enable them in your browser's site settings", "error");
       return;
     }
     Notification.requestPermission().then(function (perm) {
@@ -2314,6 +2384,10 @@ import {
     if (isIOS()) {
       installAppBtn.hidden = false;
       installAppBtn.addEventListener("click", function () {
+        // Deliberately still a blocking alert(), and the only one left in this file. Every other
+        // alert() became a toast, but this one is a multi-step instruction the user has to read and
+        // then act on *outside* the page (tap Share, find the menu item). A toast that fades after
+        // a few seconds would be gone before they finished reading it. Don't convert this to a toast.
         alert('To add the Content Hub to your Home Screen: tap the Share icon, then "Add to Home Screen".');
       });
     } else {
@@ -2349,7 +2423,7 @@ import {
   // open -- Firestore data already updates live via onSnapshot, so the only thing lagging
   // behind is *this page's own code*, and losing an in-progress draft to a surprise reload
   // would be worse than waiting a few seconds for the tab to be idle.
-  var CURRENT_BUILD_VERSION = "2026-08-13T07:54:26Z";
+  var CURRENT_BUILD_VERSION = "2026-08-17T08:56:37Z";
   var pendingBuildVersion = null;
 
   function anyModalOpen() {
@@ -2767,6 +2841,70 @@ import {
   var ICON_IMAGE = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right:0.2rem;vertical-align:-1px;"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg>';
   var ACTIVITY_ICON_DOT = '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle></svg>';
 
+  // ---------- toasts ----------
+  // Non-blocking replacement for the alert() dialogs this app used on every write failure. Safe to
+  // define here even though it reads ICON_* above: the constants are only dereferenced when the
+  // function is *called*, which is always after module init (see the hoisting note above).
+  //
+  // type: "error" | "success" | "info" (default "info").
+  var TOAST_MAX = 3;
+  var TOAST_MS = { error: 6500, success: 3000, info: 4000 };
+
+  function showToast(message, type) {
+    type = TOAST_MS[type] ? type : "info";
+    var container = document.getElementById("toastContainer");
+    if (!container) return;
+
+    // Oldest-out once there are too many, so a burst of failures can't paper over the screen.
+    while (container.children.length >= TOAST_MAX) container.removeChild(container.firstChild);
+
+    var el = document.createElement("div");
+    el.className = "toast toast-" + type;
+    // The alert() calls this replaces were announced by screen readers automatically. The container
+    // is aria-live="polite"; errors get role="alert" so they interrupt instead of queueing.
+    if (type === "error") el.setAttribute("role", "alert");
+
+    var icon = type === "success" ? ICON_CHECK_CIRCLE : (type === "error" ? ICON_ALERT_TRIANGLE : ICON_MESSAGE);
+    el.innerHTML =
+      '<span class="toast-icon">' + icon + "</span>" +
+      '<span class="toast-text"></span>' +
+      '<button type="button" class="toast-close" aria-label="Dismiss">' + ICON_X_SMALL + "</button>";
+    // textContent, not innerHTML: most of these messages interpolate a raw Firestore err.message.
+    el.querySelector(".toast-text").textContent = String(message == null ? "" : message);
+
+    var timer = null;
+    function dismiss() {
+      if (!el.parentNode) return;
+      clearTimeout(timer);
+      el.classList.add("toast-leaving");
+      // Fall back to a timer rather than relying on animationend alone -- with
+      // prefers-reduced-motion the animation is disabled and the event never fires.
+      setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 200);
+    }
+    el.querySelector(".toast-close").addEventListener("click", dismiss);
+    container.appendChild(el);
+    timer = setTimeout(dismiss, TOAST_MS[type]);
+  }
+
+  // Flags a field as invalid using the browser's own validation bubble -- the same UI the user
+  // already sees when a `required` field is left blank. This app has no inline field-error styling
+  // of its own, and inventing one just for this would add a pattern nobody else uses.
+  //
+  // Needed because `required` only rejects an *empty* value: a title of "   " passes it, the submit
+  // handler then trims it to "" and used to `return` silently, so clicking Save appeared to do
+  // nothing at all with no explanation. The message is cleared on the next keystroke, otherwise the
+  // custom validity would stick and block every later submit.
+  function flagInvalid(inputEl, message) {
+    if (!inputEl) return;
+    inputEl.setCustomValidity(message);
+    inputEl.reportValidity();
+    var clear = function () {
+      inputEl.setCustomValidity("");
+      inputEl.removeEventListener("input", clear);
+    };
+    inputEl.addEventListener("input", clear);
+  }
+
   // ---------- activity feed ----------
   var ACTIVITY_ICONS = {
     post_created: ICON_CALENDAR, post_updated: ICON_EDIT, post_deleted: ICON_TRASH,
@@ -2872,7 +3010,7 @@ import {
     }).then(function () {
       suggestionInput.value = "";
     }).catch(function (err) {
-      alert("Couldn't post suggestion: " + err.message);
+      showToast("Couldn't post suggestion: " + err.message, "error");
     });
   });
   suggestionInput.addEventListener("keydown", function (e) {
@@ -2891,7 +3029,7 @@ import {
     }).then(function () {
       inputEl.value = "";
     }).catch(function (err) {
-      alert("Couldn't post reply: " + err.message);
+      showToast("Couldn't post reply: " + err.message, "error");
     });
   }
 
@@ -2909,7 +3047,7 @@ import {
       var snippet = suggestion && suggestion.text ? (suggestion.text.length > 60 ? suggestion.text.slice(0, 60) + "…" : suggestion.text) : "This suggestion";
       if (!confirm('Remove "' + snippet + '"? This removes it (and any replies) for everyone. This cannot be undone.')) return;
       deleteDoc(doc(suggestionsCol, removeBtn.dataset.id)).catch(function (err) {
-        alert("Couldn't remove suggestion: " + err.message);
+        showToast("Couldn't remove suggestion: " + err.message, "error");
       });
       return;
     }
@@ -2923,7 +3061,7 @@ import {
       if (!confirm("Remove this reply? This cannot be undone.")) return;
       replyList.splice(ri, 1);
       updateDoc(doc(suggestionsCol, replyRemoveBtn.dataset.id), { replies: replyList }).catch(function (err) {
-        alert("Couldn't remove reply: " + err.message);
+        showToast("Couldn't remove reply: " + err.message, "error");
       });
     }
   });
@@ -3122,6 +3260,22 @@ import {
   var calendarRoot = document.getElementById("calendarRoot");
   var periodLabel = document.getElementById("periodLabel");
   var cadenceBadgeEl = document.getElementById("cadenceBadge");
+  var cadenceBadgeDetailEl = document.getElementById("cadenceBadgeDetail");
+  // The `title` attribute set in renderCadenceBadge() is unreachable on touch devices (no
+  // hover), so the badge is a real button that toggles this popover open/closed on tap --
+  // same show/hide-on-outside-click shape as the status picker (closeStatusPicker below).
+  cadenceBadgeEl.addEventListener("click", function (e) {
+    e.stopPropagation();
+    var willOpen = cadenceBadgeDetailEl.hidden;
+    cadenceBadgeDetailEl.hidden = !willOpen;
+    cadenceBadgeEl.setAttribute("aria-expanded", willOpen ? "true" : "false");
+  });
+  document.addEventListener("click", function (e) {
+    if (!cadenceBadgeDetailEl.hidden && !cadenceBadgeEl.contains(e.target) && !cadenceBadgeDetailEl.contains(e.target)) {
+      cadenceBadgeDetailEl.hidden = true;
+      cadenceBadgeEl.setAttribute("aria-expanded", "false");
+    }
+  });
   var postSearchInput = document.getElementById("postSearchInput");
   var filterBucketSelect = document.getElementById("filterBucketSelect");
   var filterStatusSelect = document.getElementById("filterStatusSelect");
@@ -3176,9 +3330,11 @@ import {
     }).length;
     // Leads with the pace (one number, the thing "cadence" actually means) instead of a
     // compound sentence mixing a raw count and a derived rate -- that read as two competing
-    // numbers instead of one clear stat. The raw count and status caveat move into the tooltip,
-    // still there on hover, just not competing for attention in the badge itself.
+    // numbers instead of one clear stat. The raw count and status caveat move into the detail
+    // popover (title too, for a desktop hover shortcut -- but title alone is unreachable on
+    // touch, hence the tap-to-open popover doing the real work here).
     var detail = count + " post" + (count === 1 ? "" : "s") + " with a non-draft status (approved, scheduled, or posted) in the last 4 weeks";
+    cadenceBadgeDetailEl.textContent = detail;
     if (!count) {
       cadenceBadgeEl.textContent = "No posts in the last 4 weeks";
       cadenceBadgeEl.title = detail;
@@ -3441,7 +3597,7 @@ import {
     }).then(function () {
       logActivity("post_updated", 'Rescheduled post "' + post.title + '" to ' + formatDateShort(newDateKey));
     }).catch(function (err) {
-      alert("Couldn't reschedule this post: " + err.message);
+      showToast("Couldn't reschedule this post: " + err.message, "error");
     });
   }
 
@@ -3652,7 +3808,7 @@ import {
   document.getElementById("addPostImageBtn").addEventListener("click", function () {
     var url = postImageLinkInput.value.trim();
     if (!url) return;
-    if (currentImages.length >= MAX_IMAGES) { alert("Up to " + MAX_IMAGES + " images per post."); return; }
+    if (currentImages.length >= MAX_IMAGES) { showToast("Up to " + MAX_IMAGES + " images per post.", "info"); return; }
     currentImages.push(url);
     postImageLinkInput.value = "";
     renderPostImageGrid();
@@ -3979,7 +4135,9 @@ import {
     e.preventDefault();
     var title = fTitle.value.trim();
     var date = fDate.value;
-    if (!title || !date) return;
+    // Say why instead of returning silently -- `required` lets a whitespace-only title through.
+    if (!title) { flagInvalid(fTitle, "Please enter a title."); return; }
+    if (!date) { flagInvalid(fDate, "Please pick a date."); return; }
 
     var images = currentImages.slice();
 
@@ -4041,7 +4199,7 @@ import {
       }
       closeModal();
     }).catch(function (err) {
-      alert("Couldn't save this post: " + err.message);
+      showToast("Couldn't save this post: " + err.message, "error");
     }).finally(function () {
       submitBtn.disabled = false;
       submitBtn.textContent = "Save Post";
@@ -4061,7 +4219,7 @@ import {
       logActivity("post_deleted", 'Deleted post "' + (deletedPost ? deletedPost.title : editingId) + '"');
       closeModal();
     }).catch(function (err) {
-      alert("Couldn't delete this post: " + err.message);
+      showToast("Couldn't delete this post: " + err.message, "error");
     });
   });
 
@@ -4082,7 +4240,7 @@ import {
       if (feedbackPost) notifyWithMentions(text, feedbackPost.owners, "feedback", feedbackPost.id, "post", feedbackPost.title);
       fFeedbackInput.value = "";
     }).catch(function (err) {
-      alert("Couldn't add feedback: " + err.message);
+      showToast("Couldn't add feedback: " + err.message, "error");
     });
   });
 
@@ -4099,7 +4257,7 @@ import {
       notifyWithMentions(text, [originalAuthor], "feedback_reply", feedbackPost.id, "post", feedbackPost.title);
       inputEl.value = "";
     }).catch(function (err) {
-      alert("Couldn't post reply: " + err.message);
+      showToast("Couldn't post reply: " + err.message, "error");
     });
   }
 
@@ -4116,7 +4274,7 @@ import {
       var feedbackPostR = posts.find(function (p) { return p.id === editingId; });
       if (!feedbackPostR) return;
       var promise = removeFeedbackReply(postsCol, editingId, feedbackPostR.feedback || [], parseInt(replyRemoveBtn.dataset.i, 10), parseInt(replyRemoveBtn.dataset.ri, 10));
-      if (promise) promise.catch(function (err) { alert("Couldn't remove reply: " + err.message); });
+      if (promise) promise.catch(function (err) { showToast("Couldn't remove reply: " + err.message, "error"); });
       return;
     }
     var btn = e.target.closest(".fb-remove");
@@ -4130,7 +4288,7 @@ import {
     updateDoc(doc(postsCol, editingId), { feedback: list }).then(function () {
       logActivity("post_feedback", 'Removed feedback on "' + feedbackPost.title + '"');
     }).catch(function (err) {
-      alert("Couldn't remove feedback: " + err.message);
+      showToast("Couldn't remove feedback: " + err.message, "error");
     });
   });
   postFeedbackLogEl.addEventListener("keydown", function (e) {
@@ -4202,7 +4360,7 @@ import {
       var stage = ideaByKey(newStage);
       logActivity("idea_moved", 'Moved idea "' + idea.title + '" to ' + (stage ? stage.label : newStage));
     }).catch(function (err) {
-      alert("Couldn't move this idea: " + err.message);
+      showToast("Couldn't move this idea: " + err.message, "error");
     });
   }
 
@@ -4258,7 +4416,7 @@ import {
   document.getElementById("addIdeaImageBtn").addEventListener("click", function () {
     var url = ideaImageLinkInput.value.trim();
     if (!url) return;
-    if (currentIdeaImages.length >= MAX_IMAGES) { alert("Up to " + MAX_IMAGES + " images per idea."); return; }
+    if (currentIdeaImages.length >= MAX_IMAGES) { showToast("Up to " + MAX_IMAGES + " images per idea.", "info"); return; }
     currentIdeaImages.push(url);
     ideaImageLinkInput.value = "";
     renderIdeaImageGrid();
@@ -4543,7 +4701,8 @@ import {
   ideaForm.addEventListener("submit", function (e) {
     e.preventDefault();
     var title = iTitle.value.trim();
-    if (!title) return;
+    // Same as the Post form: `required` accepts "   ", so say why rather than silently doing nothing.
+    if (!title) { flagInvalid(iTitle, "Please enter a title."); return; }
     var wasEditingIdea = !!editingIdeaId;
     var previousIdea = wasEditingIdea ? ideas.find(function (i) { return i.id === editingIdeaId; }) : null;
     var data = {
@@ -4576,7 +4735,7 @@ import {
       }
       closeIdeaModal();
     }).catch(function (err) {
-      alert("Couldn't save this idea: " + err.message);
+      showToast("Couldn't save this idea: " + err.message, "error");
     });
   });
 
@@ -4591,7 +4750,7 @@ import {
       if (feedbackIdea) notifyWithMentions(text, feedbackIdea.owners, "feedback", feedbackIdea.id, "idea", feedbackIdea.title);
       iFeedbackInput.value = "";
     }).catch(function (err) {
-      alert("Couldn't add feedback: " + err.message);
+      showToast("Couldn't add feedback: " + err.message, "error");
     });
   });
 
@@ -4608,7 +4767,7 @@ import {
       notifyWithMentions(text, [originalAuthor], "feedback_reply", feedbackIdea.id, "idea", feedbackIdea.title);
       inputEl.value = "";
     }).catch(function (err) {
-      alert("Couldn't post reply: " + err.message);
+      showToast("Couldn't post reply: " + err.message, "error");
     });
   }
 
@@ -4625,7 +4784,7 @@ import {
       var feedbackIdeaR = ideas.find(function (i) { return i.id === editingIdeaId; });
       if (!feedbackIdeaR) return;
       var promise = removeFeedbackReply(ideasCol, editingIdeaId, feedbackIdeaR.feedback || [], parseInt(replyRemoveBtn.dataset.i, 10), parseInt(replyRemoveBtn.dataset.ri, 10));
-      if (promise) promise.catch(function (err) { alert("Couldn't remove reply: " + err.message); });
+      if (promise) promise.catch(function (err) { showToast("Couldn't remove reply: " + err.message, "error"); });
       return;
     }
     var btn = e.target.closest(".fb-remove");
@@ -4639,7 +4798,7 @@ import {
     updateDoc(doc(ideasCol, editingIdeaId), { feedback: list }).then(function () {
       logActivity("idea_feedback", 'Removed feedback on "' + feedbackIdea.title + '"');
     }).catch(function (err) {
-      alert("Couldn't remove feedback: " + err.message);
+      showToast("Couldn't remove feedback: " + err.message, "error");
     });
   });
   feedbackLogEl.addEventListener("keydown", function (e) {
@@ -4662,7 +4821,7 @@ import {
       logActivity("idea_deleted", 'Deleted idea "' + (deletedIdea ? deletedIdea.title : editingIdeaId) + '"');
       closeIdeaModal();
     }).catch(function (err) {
-      alert("Couldn't delete this idea: " + err.message);
+      showToast("Couldn't delete this idea: " + err.message, "error");
     });
   });
 
@@ -4759,7 +4918,7 @@ import {
     setDoc(quickLinkDocRef, { label: label, url: url }).then(function () {
       closeQuickLinkModal();
     }).catch(function (err) {
-      alert("Couldn't save this link: " + err.message);
+      showToast("Couldn't save this link: " + err.message, "error");
     });
   });
 
@@ -4777,7 +4936,7 @@ import {
     var label = "New bucket " + (buckets.length + 1);
     var key = slugifyBucket(label);
     setDoc(doc(bucketsCol, key), { label: label, color: nextPaletteColor(), order: buckets.length })
-      .catch(function (err) { alert("Couldn't add bucket: " + err.message); });
+      .catch(function (err) { showToast("Couldn't add bucket: " + err.message, "error"); });
   });
 
   bucketsList.addEventListener("change", function (e) {
@@ -4786,12 +4945,12 @@ import {
     var key = row.dataset.key;
     if (e.target.classList.contains("bucket-color")) {
       updateDoc(doc(bucketsCol, key), { color: e.target.value })
-        .catch(function (err) { alert("Couldn't update color: " + err.message); });
+        .catch(function (err) { showToast("Couldn't update color: " + err.message, "error"); });
     } else if (e.target.classList.contains("bucket-label")) {
       var label = e.target.value.trim();
       if (!label) { e.target.value = bucketLabelFor(key); return; }
       updateDoc(doc(bucketsCol, key), { label: label })
-        .catch(function (err) { alert("Couldn't rename bucket: " + err.message); });
+        .catch(function (err) { showToast("Couldn't rename bucket: " + err.message, "error"); });
     }
   });
 
@@ -4819,7 +4978,7 @@ import {
       if (p.bucket === key) batch.update(doc(postsCol, p.id), { bucket: fallbackKey });
     });
     batch.delete(doc(bucketsCol, key));
-    batch.commit().catch(function (err) { alert("Couldn't delete bucket: " + err.message); });
+    batch.commit().catch(function (err) { showToast("Couldn't delete bucket: " + err.message, "error"); });
   });
 
   // ---------- calendar: export ----------
@@ -5985,19 +6144,19 @@ import {
     if (!metric || isNaN(rawInput) || !rawInput || !date) return;
     var isNewGoal = !currentGoals.some(function (g) { return g.metric === metric; });
     if (isNewGoal && currentGoals.length >= MAX_GOALS) {
-      alert("You can have up to " + MAX_GOALS + " goals at a time -- clear one first to add another.");
+      showToast("You can have up to " + MAX_GOALS + " goals at a time -- clear one first to add another.", "info");
       return;
     }
     var targetValue = def && def.kind === "rate" ? rawInput / 100 : rawInput;
     setDoc(doc(goalsCol, metric), { metric: metric, targetValue: targetValue, targetDate: date }).then(function () {
       closeGoalModal();
-    }).catch(function (err) { alert("Couldn't save goal: " + err.message); });
+    }).catch(function (err) { showToast("Couldn't save goal: " + err.message, "error"); });
   });
   goalClearBtn.addEventListener("click", function () {
     var metric = goalMetricSelect.value;
     deleteDoc(doc(goalsCol, metric)).then(function () {
       closeGoalModal();
-    }).catch(function (err) { alert("Couldn't clear goal: " + err.message); });
+    }).catch(function (err) { showToast("Couldn't clear goal: " + err.message, "error"); });
   });
 
   // ---------- analytics: export ----------
@@ -6117,15 +6276,27 @@ import {
   var importAnalyticsDropZone = document.getElementById("importAnalyticsDropZone");
   window.addEventListener("dragover", function (e) { e.preventDefault(); });
   window.addEventListener("drop", function (e) { e.preventDefault(); });
-  importAnalyticsDropZone.addEventListener("dragover", function (e) {
+  // Depth-counted rather than a bare enter/leave toggle: the zone has child elements (the
+  // <label>, the file input), and the browser fires dragenter/dragleave on each of those too as
+  // the cursor crosses their boundaries, not just the zone's own edge -- a bare toggle flickered
+  // the highlight on and off during a single drag over the zone. Counting nets to zero only once
+  // the cursor has actually left every element inside the zone, not just one of them.
+  var importAnalyticsDropDepth = 0;
+  importAnalyticsDropZone.addEventListener("dragenter", function (e) {
     e.preventDefault();
+    importAnalyticsDropDepth++;
     importAnalyticsDropZone.classList.add("drop-target");
   });
+  importAnalyticsDropZone.addEventListener("dragover", function (e) {
+    e.preventDefault(); // required on dragover (not just dragenter) or the browser refuses the drop
+  });
   importAnalyticsDropZone.addEventListener("dragleave", function () {
-    importAnalyticsDropZone.classList.remove("drop-target");
+    importAnalyticsDropDepth = Math.max(0, importAnalyticsDropDepth - 1);
+    if (importAnalyticsDropDepth === 0) importAnalyticsDropZone.classList.remove("drop-target");
   });
   importAnalyticsDropZone.addEventListener("drop", function (e) {
     e.preventDefault();
+    importAnalyticsDropDepth = 0;
     importAnalyticsDropZone.classList.remove("drop-target");
     var file = e.dataTransfer.files && e.dataTransfer.files[0];
     if (file) loadAnalyticsFileIntoTextarea(file);

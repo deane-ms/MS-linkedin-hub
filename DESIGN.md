@@ -39,6 +39,55 @@ Despite the "retroactive full sweep" above, a literal ⏳ emoji survived in `.ic
 
 **Deliberate exceptions** (real emoji, left as-is on purpose -- don't "fix" these): the emoji picker's own category data (`EMOJI_CATEGORIES`) is the feature's content, not UI chrome. The LinkedIn post preview's action row (👍 Like / 💬 Comment / 🔁 Repost / ✈️ Send) is simulating LinkedIn's actual UI as accurately as possible, not our own app's iconography -- converting it to our monotone style would make the preview less accurate, not more consistent.
 
+## Toasts (replaced the blocking alert() dialogs)
+
+`showToast(message, type)` — `type` is `"error" | "success" | "info"` (default `info`). Renders into
+`#toastContainer`, a fixed bottom-centre stack at `z-index: 200`, above the auth gate (100) and every
+modal, so a toast is never trapped behind one.
+
+This app used to call `alert()` on every write failure — 31 of them. A blocking dialog for
+"couldn't save" is the wrong trade: it steals focus, must be dismissed before you can retry, and the
+sibling Flowboard had already settled on non-blocking notices. All 31 became toasts.
+
+- **Colour comes from the existing status tokens** (`--good` / `--bad` / `--brand` on the left border
+  and the icon), and the icon is a reused `ICON_*` constant (`ICON_CHECK_CIRCLE` / `ICON_ALERT_TRIANGLE`
+  / `ICON_MESSAGE`) — no new hexes, no new SVGs, no emoji.
+- **`gap: 0` on `.toast` is deliberate**: those shared `ICON_*` constants carry their own inline
+  `margin-right`, so a flex gap would double the spacing.
+- **The message goes in via `textContent`, never `innerHTML`** — nearly every call interpolates a raw
+  Firestore `err.message`.
+- **Accessibility is load-bearing here.** `alert()` was announced by screen readers automatically; a
+  plain injected `<div>` is not. The container is `aria-live="polite"` and error toasts additionally
+  get `role="alert"` so they interrupt rather than queue.
+- **Dismissal falls back to a timer, not just `animationend`** — under
+  `prefers-reduced-motion: reduce` the animation is disabled and that event never fires, which would
+  leave the toast on screen forever.
+- Capped at `TOAST_MAX` (3), oldest evicted first, so a burst of failures can't cover the page.
+
+**One `alert()` is left on purpose** — the iOS "Add to Home Screen" instructions in the install
+button handler. It's a multi-step instruction the user has to read and then act on *outside* the
+page, so a toast that fades after a few seconds would be gone before they finished. Don't convert it.
+
+`flagInvalid(inputEl, message)` sits alongside `showToast` and handles the other half: field-level
+validation. It uses the browser's own validation bubble (`setCustomValidity` + `reportValidity`) —
+the same UI a blank `required` field already produces — because this app has no inline field-error
+styling of its own and inventing one just for this would add a pattern nothing else uses. It exists
+because `required` only rejects an *empty* value: a title of `"   "` passes it, the submit handler
+then trims it to `""`, and both the Post and Idea forms used to `return` silently, so clicking Save
+appeared to do nothing at all. The custom validity is cleared on the next keystroke — without that it
+sticks and blocks every later submit.
+
+## Notification dropdown is capped at 30
+
+`renderNotifBell()` sorts client-side then `.slice(0, NOTIF_RENDER_LIMIT)`. The **badge count still
+reflects every unread item** — only the dropdown list is capped, so nothing is hidden from the count.
+
+The cap has to happen at render time, not in the query: the query deliberately has no
+`orderBy`/`limit` (see "Deliberately queried without `orderBy`" below), and a bare `limit()` without
+an `orderBy` returns an *arbitrary* subset rather than the newest ones. Matches Flowboard's
+`limit(30)` on its own notifications query. Without this the dropdown grew without bound and got
+slower every month.
+
 ## Reusable input patterns
 
 - **Chips-with-add-row**: owners use `createOwnerChipInput(inputEl, chipsEl, onChange)` — a small factory returning `{add, set, get}`. Reuse this factory (don't hand-roll a new chip list) for anything that's "add a short label, show it as a removable pill."
@@ -186,6 +235,8 @@ Both the Post and Idea edit modals snapshot their form state (`postFormSnapshot(
 ## Calendar cadence badge (trailing 4 weeks, not "this page")
 
 `renderCadenceBadge()` counts non-draft posts (`status !== "draft"`) whose `date` falls in the trailing 28 days from today, independent of whatever month/week the calendar happens to be scrolled to — it answers "are we actually keeping pace lately", not a stat about the currently-displayed page. Called from the top of `render()` so it stays in sync with the Month/Week toggle and any filter/data change without needing its own listener. Drafts are excluded on purpose: nothing's actually committed to going out yet, so counting them would overstate real cadence.
+
+The badge itself is a `<button>` (`#cadenceBadge`), not a `<span>` — it shows one number ("~1.3 posts/week"), with the raw count and status caveat in a tap-to-open popover (`#cadenceBadgeDetail`, `.cadence-badge-wrap`/`.cadence-badge-detail` CSS) rather than crammed into the visible text. `title` is still set for a desktop hover shortcut, but the popover is what actually makes that detail reachable on touch devices — `title` alone never shows on tap. Same open/close-on-outside-click shape as the status picker (`closeStatusPicker`).
 
 ## Feedback replies (submitFeedbackReply / removeFeedbackReply)
 

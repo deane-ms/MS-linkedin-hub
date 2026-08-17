@@ -100,13 +100,18 @@ no config changes needed.
     this was the first real OS-file drag-and-drop in the app; every other drag-and-drop here moves
     an existing DOM element (image reorder, kanban cards), not a file, so there was no precedent to
     extend. A `window`-level `dragover`/`drop` `preventDefault()` guard stops a file dropped just
-    outside the zone from triggering the browser's default "navigate to this file" behavior.
+    outside the zone from triggering the browser's default "navigate to this file" behavior. The
+    zone's own `dragenter`/`dragleave` pair is depth-counted (`importAnalyticsDropDepth`), not a
+    bare toggle — the zone has child elements (the label, the file input), and the browser fires
+    enter/leave on those too as the cursor crosses their boundaries, which flickered the highlight
+    on and off during a single drag if the toggle was bare. Counting nets to zero only once the
+    cursor has left every element inside the zone.
     Numeric `DAY_FIELDS` are coerced with `Number()` (invalid/missing values default to `0`, each
     counted separately) rather than passed through as-is, so a stray non-numeric cell doesn't
     silently corrupt a later sum in the analytics view — the import summary reports how many
-    values needed defaulting instead of pretending the file was clean. There is no toast system in
-    this app; import feedback is the single inline `#importAnalyticsError` paragraph (red for
-    errors, green for success), same as it's always been.
+    values needed defaulting instead of pretending the file was clean. Import feedback stays the
+    single inline `#importAnalyticsError` paragraph (red for errors, green for success) — it sits
+    next to the field it's about and persists while you fix the file, which a toast wouldn't.
   - **Stale-data reminder**: `updateStaleAnalyticsBanner`, called from `renderAnalytics()`, shows a
     dismissible banner (reusing `.onboarding-banner`'s visual recipe) when the newest day in
     `state.days` is more than `STALE_ANALYTICS_DAYS` (14) old — never for sample data. Unlike the
