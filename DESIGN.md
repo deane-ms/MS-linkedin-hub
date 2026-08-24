@@ -232,6 +232,25 @@ Editing an existing post/idea logs a field-level diff (`status Draft → Approve
 
 Both the Post and Idea edit modals snapshot their form state (`postFormSnapshot()`/`ideaFormSnapshot()`, a JSON string of the editable fields) the moment they open, and compare against a fresh snapshot before actually closing. `requestCloseModal()`/`requestCloseIdeaModal()` — wired to the X button, Cancel button, and Escape — `confirm()` before discarding if the two snapshots differ; a clean (unedited) modal closes immediately with no prompt. The plain `closeModal()`/`closeIdeaModal()` functions still exist and are called directly (no confirm) from the actual save/delete/send-to-calendar paths, where closing is the intended outcome of a completed action, not a discard. If you add a new way to close either modal, route it through the `requestClose*` wrapper unless it's genuinely post-save.
 
+**The feedback draft box was invisible to this whole mechanism until it was ported over from the
+sibling Flowboard app**, where the identical gap had just been found and fixed. Feedback
+(`f-feedback-input` / `i-feedback-input`) writes straight to Firestore the instant Add is clicked
+— its own `arrayUnion` call, entirely separate from the form's own save — so a draft still sitting
+in the box read as "no changes" to both snapshot functions and vanished silently on close, with no
+warning at all. Both snapshots now include `feedbackDraft: fFeedbackInput.value` /
+`iFeedbackInput.value`. `openIdeaModal()` already cleared `iFeedbackInput` on open; `openModal()`
+never did for the Post side — without that, a draft left over from editing a *different* post
+would have silently become part of the *next* post's own baseline, masking it entirely rather than
+correctly flagging it as unsaved, so that got added too.
+
+**Save had no equivalent check of any kind, on either form** — closing via Cancel/X/Escape was
+protected, submitting the form itself wasn't. Both `postForm`/`ideaForm` submit handlers now check
+their feedback input first and `confirm()` before proceeding if it has unsent text ("Save the
+post/idea and lose it?"). Deliberately a separate check from the close-side snapshot comparison,
+not a reuse of it — the correct framing on Save isn't "discard everything or keep editing," it's
+"discard the draft specifically, or go click Add first," which needs its own copy naming the
+draft.
+
 ## Calendar cadence badge (trailing 4 weeks, not "this page")
 
 `renderCadenceBadge()` counts non-draft posts (`status !== "draft"`) whose `date` falls in the trailing 28 days from today, independent of whatever month/week the calendar happens to be scrolled to — it answers "are we actually keeping pace lately", not a stat about the currently-displayed page. Called from the top of `render()` so it stays in sync with the Month/Week toggle and any filter/data change without needing its own listener. Drafts are excluded on purpose: nothing's actually committed to going out yet, so counting them would overstate real cadence.
@@ -269,3 +288,16 @@ were fixed together, and a change to one needs the same change in the other thre
 ## Suggestions tab
 
 A shared feedback board for the dashboard itself (not a post or a client project) — separate top-level tab, separate `suggestions` collection: `{text, author, date, replies: []}`. Replies use the exact same embedded-array shape and the same reasoning as feedback replies above. Deliberately **not** logged to the Activity feed (`logActivity` is never called from any of the suggestion/reply/remove handlers) — the tab itself is already the full history, and duplicating every suggestion/reply into Activity would just be noise there. Same reasoning as notifications for why no new Firestore rule was needed: the blanket `match /{document=**}` rule already covers it.
+
+## Idea card drag feedback
+
+The kanban column already highlighted on drag-over (`.kanban-cards.drop-target`), but the card
+actually being dragged gave no feedback of its own — no opacity change, no lift, nothing — since
+the `dragstart` handler on `.idea-card` only ever called `e.dataTransfer.setData`/set
+`effectAllowed`, never added a class. Ported over after the same gap was closed on Flowboard's task
+cards: `dragstart` now adds `.dragging` (opacity 0.5, a slight `scale(1.02)` lift, `box-shadow:
+var(--shadow)`) and `dragend` removes it. `.idea-card` had no `transition` at all before this — `all:
+unset` resets it along with everything else — so one was added specifically for `opacity`/
+`transform`/`box-shadow`, matching the properties the new state actually changes. `.kanban-cards`
+also picked up a `background-color` transition so the existing drop-target highlight fades in/out
+instead of snapping.

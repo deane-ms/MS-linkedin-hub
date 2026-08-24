@@ -606,7 +606,7 @@
   .kanban-col-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.7rem; }
   .kanban-col-head h3 { margin: 0; font-size: 0.82rem; font-weight: 700; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.03em; }
   .kanban-count { font-size: 0.68rem; font-weight: 700; color: var(--text-faint); background: var(--surface-alt); border-radius: 999px; padding: 0.05rem 0.5rem; }
-  .kanban-cards { display: flex; flex-direction: column; gap: 0.55rem; min-height: 2.5rem; border-radius: 8px; }
+  .kanban-cards { display: flex; flex-direction: column; gap: 0.55rem; min-height: 2.5rem; border-radius: 8px; transition: background-color 0.15s ease; }
   .kanban-cards.drop-target { outline: 2px dashed var(--brand); outline-offset: 2px; background: var(--brand-soft); }
   .file-drop-zone {
     display: flex; align-items: center; gap: 0.5rem; border: 1px dashed var(--border); border-radius: 8px;
@@ -619,8 +619,13 @@
     border-left: 3px solid var(--dot); background: color-mix(in srgb, var(--dot) 10%, var(--surface));
     border-radius: 8px; padding: 0.65rem 0.75rem; font-size: 0.78rem; line-height: 1.4;
     user-select: none; -webkit-user-select: none; -webkit-user-drag: element;
+    transition: opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
   }
   .idea-card:hover { background: color-mix(in srgb, var(--dot) 18%, var(--surface)); }
+  /* The column already highlighted on drop-target (.kanban-cards.drop-target below), but the
+     dragged card itself gave no feedback at all -- no opacity change, no lift, nothing -- since
+     dragstart never added any class. Mirrors the same lift Flowboard's task cards got. */
+  .idea-card.dragging { opacity: 0.5; transform: scale(1.02); box-shadow: var(--shadow); }
   .idea-card:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
   .idea-card .ic-title { color: var(--text); font-weight: 600; display: block; }
   .idea-card .ic-notes {
@@ -4065,6 +4070,10 @@ import {
     postPreviewPanel.hidden = true;
     postPreviewToggleBtn.setAttribute("aria-expanded", "false");
     setPostReadOnly(isMobileView());
+    // Never actually cleared here before -- a draft left over from editing a *different* post
+    // would otherwise silently become part of this post's own baseline, masking it from
+    // postFormSnapshot entirely instead of correctly flagging it as unsaved.
+    fFeedbackInput.value = "";
     modalBackdrop.classList.add("open");
     modalBackdrop.setAttribute("aria-hidden", "false");
     postOpenSnapshot = postFormSnapshot();
@@ -4076,7 +4085,12 @@ import {
     return JSON.stringify({
       title: fTitle.value, bucket: fBucket.value, status: fStatus.value,
       date: fDate.value, time: fTime.value, copy: fCopy.value,
-      images: currentImages, owners: postOwnersCtrl.get()
+      images: currentImages, owners: postOwnersCtrl.get(),
+      // A typed-but-unsent feedback comment used to be invisible to this whole mechanism --
+      // feedback writes straight to Firestore the instant Add is clicked (its own arrayUnion
+      // call, separate from this form's save), so a draft sitting in f-feedback-input looked
+      // identical to "no changes" and vanished silently on Cancel/close with no warning.
+      feedbackDraft: fFeedbackInput.value
     });
   }
   function isPostFormDirty() {
@@ -4123,6 +4137,13 @@ import {
 
   postForm.addEventListener("submit", function (e) {
     e.preventDefault();
+    // Feedback writes on its own via Add, never through this save -- a draft still sitting here
+    // would otherwise be lost the instant the modal closes below, with no warning at all.
+    var pendingPostFeedback = fFeedbackInput.value.trim();
+    if (pendingPostFeedback) {
+      var postFeedbackSnippet = pendingPostFeedback.length > 60 ? pendingPostFeedback.slice(0, 60) + "…" : pendingPostFeedback;
+      if (!confirm('You started typing feedback ("' + postFeedbackSnippet + '") but never clicked Add. Save the post and lose it?')) return;
+    }
     var title = fTitle.value.trim();
     var date = fDate.value;
     // Say why instead of returning silently -- `required` lets a whitespace-only title through.
@@ -4478,7 +4499,9 @@ import {
       btn.addEventListener("dragstart", function (e) {
         e.dataTransfer.setData("text/plain", btn.dataset.id);
         e.dataTransfer.effectAllowed = "move";
+        btn.classList.add("dragging");
       });
+      btn.addEventListener("dragend", function () { btn.classList.remove("dragging"); });
     });
     board.querySelectorAll(".ic-thumb").forEach(function (img) {
       img.addEventListener("error", function () { img.closest(".ic-thumb-wrap").style.display = "none"; });
@@ -4643,7 +4666,10 @@ import {
   function ideaFormSnapshot() {
     return JSON.stringify({
       title: iTitle.value, bucket: iBucket.value, notes: iNotes.value, stage: iStage.value,
-      images: currentIdeaImages, owners: ideaOwnersCtrl.get()
+      images: currentIdeaImages, owners: ideaOwnersCtrl.get(),
+      // Same gap as the Post modal's postFormSnapshot -- feedback writes straight to Firestore on
+      // Add, separate from this form's save, so a typed-but-unsent draft was invisible here too.
+      feedbackDraft: iFeedbackInput.value
     });
   }
   function isIdeaFormDirty() {
@@ -4690,6 +4716,13 @@ import {
 
   ideaForm.addEventListener("submit", function (e) {
     e.preventDefault();
+    // Same reasoning as the Post form: feedback writes on its own via Add, never through this
+    // save, so a draft still sitting here would otherwise be lost the instant the modal closes.
+    var pendingIdeaFeedback = iFeedbackInput.value.trim();
+    if (pendingIdeaFeedback) {
+      var ideaFeedbackSnippet = pendingIdeaFeedback.length > 60 ? pendingIdeaFeedback.slice(0, 60) + "…" : pendingIdeaFeedback;
+      if (!confirm('You started typing feedback ("' + ideaFeedbackSnippet + '") but never clicked Add. Save the idea and lose it?')) return;
+    }
     var title = iTitle.value.trim();
     // Same as the Post form: `required` accepts "   ", so say why rather than silently doing nothing.
     if (!title) { flagInvalid(iTitle, "Please enter a title."); return; }
