@@ -126,6 +126,49 @@ no config changes needed.
 - **PWA-installable**: `manifest.json`/`sw.js`/icons are hand-maintained, separate from the sync
   pipeline (not derived from `content-hub-firebase.html`). `sw.js` deliberately does no caching.
 
+## Who can edit what (ownership rules)
+
+`posts` and `ideas` were `allow read, write: if isMediashock()` — every teammate could change
+everything — until the team grew past five. Reads are unchanged (the calendar is shared and
+nothing is hidden); **writes are now scoped by ownership**:
+
+| | posts / ideas |
+|---|---|
+| **admin** (`admins()` in `firestore.rules`) | anything |
+| **owner** (name in the item's `owners`) | anything on their own item |
+| **item with no `owners`** | anyone — it's unclaimed |
+| **anyone else** | `feedback` + the "move it" fields only |
+
+- **`owners` is an optional array of display names**, unlike Flowboard's single required
+  `assignee` — hence `canEditItem()` treating an empty/absent `owners` as "anyone". Locking
+  unowned items to admins would have frozen most of the existing board the day these rules
+  shipped, since most older posts have never had an owner set.
+- **The feedback carve-out is load-bearing, not a nicety.** Feedback lives *inside* the
+  post/idea doc as an array, so an owners-only update rule silently disables feedback,
+  `@mentions` and every notification that follows, for everyone except an item's own owners.
+- **The "move it" fields differ per collection** and are the direct equivalent of Flowboard's
+  status change (explicitly left open to everyone): `date` + `status` on a post (dragging it to
+  another calendar day / approving it), `stage` + `stageChangedAt` on an idea (dragging it
+  between kanban columns). `lastEditedBy`/`lastEditedAt` ride along because every write here
+  stamps them. Everything else — title, copy, images, and crucially **`owners` itself** — stays
+  closed, so nobody can add themselves as an owner and then edit freely.
+- **Owner matching is by display name** (`request.auth.token.name`, falling back to
+  `request.auth.token.email`). So **someone whose Google display name doesn't match the owner
+  text can't edit an item they own.** Owner names are typed into a chip input here, with no
+  roster behind them — unlike Flowboard, which now has a `people` collection — so mismatches are
+  more likely in this app, not less. An admin is the fix. **Porting Flowboard's `people` roster
+  here is the obvious follow-up and hasn't been done.**
+- **Admins are a hardcoded email list in the rules, not a `role` field** — a role in a document
+  is only as safe as the rule guarding that document. Keep `admins()` identical to Flowboard's.
+- `suggestions` delete is now author-or-admin (update stays open — replies are an embedded
+  array, so replying *is* an update to someone else's doc). `buckets`/`goals` stay team-writable
+  on purpose: shared configuration with no `owners` field and no per-person work in them.
+- **Not yet reflected in the UI.** A denied write currently surfaces as Firestore's raw
+  "Missing or insufficient permissions" in a toast. Flowboard has a `writeErrorMessage()` helper
+  that names the owner and the still-open actions; **this app needs the same, and it hasn't been
+  written** — it's a client change and therefore has to go through the emulator QA cycle in
+  "Shipping a change" above.
+
 ## Where to look for conventions
 
 **`DESIGN.md` is the authoritative, actively-maintained reference** for this app's established

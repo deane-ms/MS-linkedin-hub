@@ -1,14 +1,161 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // request.auth.token.email is the Google-verified claim on the auth token, not
+    // anything client-supplied -- this is the actual security boundary. The client-side
+    // hd param / isAllowedEmail check in index.html is a UX nicety, not enforcement.
+    //
+    // The email claim alone is NOT sufficient: Firebase mints a token with whatever email
+    // a provider asserts, and the Email/Password provider lets anyone self-register any
+    // address -- including @mediashock.com.sg -- with no proof they own it. Enabling that
+    // provider in the console is one checkbox, so the provider and the verified flag are
+    // pinned here rather than left to console configuration staying correct forever.
+    //
+    // .lower() closes the case-folding gap: matches() does not case-fold, so without it a
+    // token carrying a non-lowercase email would pass the client gate and then fail every
+    // read and write with an unexplained permission-denied.
     function isMediashock() {
       return request.auth != null
         && request.auth.token.email != null
-        && request.auth.token.email.matches('.*@mediashock[.]com[.]sg$');
+        && request.auth.token.email_verified == true
+        && request.auth.token.firebase.sign_in_provider == 'google.com'
+        && request.auth.token.email.lower().matches('.*@mediashock[.]com[.]sg');
     }
 
-    match /{document=**} {
-      allow read, write: if isMediashock();
+    // ADMINS. Full edit rights on everything, and the escape hatch for every rule below.
+    // Hardcoded here rather than read from a `role` field on a document, deliberately: a role
+    // stored in a document is only as safe as the rule guarding that document, and a bug there
+    // would let someone promote themselves. An email list in the rules file can only be changed
+    // by someone who can already deploy rules. Kept identical to Flowboard's `admins()`; if one
+    // changes, change both.
+    function admins() {
+      return ['aiuser@mediashock.com.sg', 'deane@mediashock.com.sg'];
+    }
+
+    function isAdmin() {
+      return isMediashock() && request.auth.token.email.lower() in admins();
+    }
+
+    // Posts and ideas carry `owners` -- an OPTIONAL array of display names, unlike Flowboard's
+    // single required assignee. Two consequences drive the shape of this function:
+    //
+    // 1. An item with no owners is unclaimed, and stays editable by the whole team. Doing it
+    //    the other way would have frozen every existing unowned post the moment these rules
+    //    were published, since most of them have never had an owner set.
+    // 2. Owners are display names, so this matches the Google-verified name on the token, with
+    //    email as a fallback for accounts with no displayName. If someone's Google name does
+    //    not match the owner text on an item, they cannot edit an item they own -- an admin is
+    //    the fix.
+    function canEditItem(data) {
+      return isAdmin()
+        || !('owners' in data)
+        || data.owners == null
+        || data.owners.size() == 0
+        || request.auth.token.name in data.owners
+        || request.auth.token.email in data.owners;
+    }
+
+    // The set of fields an update actually changes. `diff` compares values, so a client that
+    // rewrites the whole document still only reports the fields whose values really moved.
+    function changedKeys() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    // Notifications are addressed to a `recipient` string the client sets to the recipient's
+    // Google displayName, falling back to their email (see notifyRecipients in index.html).
+    // token.name / token.email are the Google-verified equivalents on the auth token, so
+    // they are what this compares against. Note this is a display name, which a person can
+    // change in their own Google account -- keying on uid would be stronger, but that needs
+    // a client change and a migration, so it is deliberately left for a later pass.
+    function isNotificationRecipient(notifData) {
+      return notifData.recipient == request.auth.token.name
+        || notifData.recipient == request.auth.token.email;
+    }
+
+    // Collections are enumerated deliberately. This file previously used a single
+    // match /{document=**} granting read+write on everything, which also granted it on every
+    // collection that did not exist yet -- so any future feature storing something sensitive
+    // was readable and writable by all staff from the moment it shipped, with nothing to
+    // remember and nothing to forget. Listing collections means anything new starts denied
+    // and has to be opened on purpose.
+    //
+    // The content boards stay READ-shared -- the whole team plans and reviews the same
+    // calendar, and nothing here is hidden from anyone. What changed is WRITE: an item with
+    // owners can only be edited or deleted by an owner or an admin.
+    //
+    //   admin              -> anything
+    //   owner              -> anything on their own item
+    //   item has no owners -> anyone (it is unclaimed; see canEditItem)
+    //   everyone else      -> feedback, and moving the item, only
+    //
+    // The feedback carve-out is load-bearing, not a nicety: feedback lives INSIDE the post/idea
+    // document as an array, so an owners-only update rule would have silently disabled
+    // feedback, @mentions and every notification that follows from them for everyone except an
+    // item's own owners. `lastEditedBy`/`lastEditedAt` ride along because every write in this
+    // app stamps them.
+    //
+    // `date` on a post (dragging it to another day on the calendar) and `stage` on an idea
+    // (dragging it between kanban columns) are the direct equivalent of Flowboard's status
+    // change, which was explicitly left open to everyone -- so they are treated the same way.
+    // `status` is in the post list too, since approving/scheduling is a workflow step rather
+    // than an edit to the content itself. Everything else -- title, copy, images, and crucially
+    // `owners` -- stays closed, so nobody can add themselves as an owner and then edit freely.
+    match /posts/{postId} {
+      allow read, create: if isMediashock();
+      allow update: if isMediashock() && (
+        canEditItem(resource.data)
+        || changedKeys().hasOnly(['feedback', 'status', 'date', 'lastEditedBy', 'lastEditedAt'])
+      );
+      allow delete: if isMediashock() && canEditItem(resource.data);
+    }
+
+    match /ideas/{ideaId} {
+      allow read, create: if isMediashock();
+      allow update: if isMediashock() && (
+        canEditItem(resource.data)
+        || changedKeys().hasOnly(['feedback', 'stage', 'stageChangedAt', 'lastEditedBy', 'lastEditedAt'])
+      );
+      allow delete: if isMediashock() && canEditItem(resource.data);
+    }
+
+    // Buckets and goals are shared configuration, not owned content -- there is no `owners`
+    // field to scope them by and no per-person work sitting in them. Left team-writable on
+    // purpose rather than by omission.
+    match /buckets/{bucketId}         { allow read, write: if isMediashock(); }
+    match /goals/{goalId}             { allow read, write: if isMediashock(); }
+
+    match /suggestions/{suggestionId} {
+      allow read, create: if isMediashock();
+      // Replies live as an embedded array on the suggestion doc, so posting a reply IS an
+      // update to someone else's document. Update stays open or the board stops being a
+      // conversation.
+      allow update: if isMediashock();
+      // Removing someone else's suggestion outright is not collaboration -- that was open to
+      // everyone only because `write` covers delete, not because anyone chose it.
+      allow delete: if isMediashock() && (
+        isAdmin()
+        || resource.data.author == request.auth.token.name
+        || resource.data.author == request.auth.token.email
+      );
+    }
+
+    // The activity log is append-only. Firestore's `write` covers create + update + delete,
+    // so granting it let anyone silently edit or erase the record of what they just did --
+    // an audit trail its own subject can rewrite is not an audit trail. Both apps only ever
+    // create entries (setDoc on an auto-ID doc in logActivity); nothing updates or prunes
+    // them, so denying update/delete outright breaks no existing path.
+    match /activity/{activityId} {
+      allow read, create: if isMediashock();
+      allow update, delete: if false;
+    }
+
+    // Notifications are the one collection carrying per-person data, so they are scoped to
+    // their recipient rather than shared like the boards above -- otherwise any teammate
+    // could read, mark-read or delete anyone else's. The client's single-equality listener
+    // (where recipient == myName) matches this rule exactly, so it keeps working unchanged.
+    match /notifications/{notifId} {
+      allow create: if isMediashock();
+      allow read, update, delete: if isMediashock() && isNotificationRecipient(resource.data);
     }
   }
 }
