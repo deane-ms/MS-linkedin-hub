@@ -154,20 +154,45 @@ nothing is hidden); **writes are now scoped by ownership**:
   closed, so nobody can add themselves as an owner and then edit freely.
 - **Owner matching is by display name** (`request.auth.token.name`, falling back to
   `request.auth.token.email`). So **someone whose Google display name doesn't match the owner
-  text can't edit an item they own.** Owner names are typed into a chip input here, with no
-  roster behind them — unlike Flowboard, which now has a `people` collection — so mismatches are
-  more likely in this app, not less. An admin is the fix. **Porting Flowboard's `people` roster
-  here is the obvious follow-up and hasn't been done.**
+  text can't edit an item they own** — and owner names are typed by hand into a chip input, so
+  this app is *more* exposed to that than Flowboard, not less. That is what the `people` roster
+  and `canonicalOwnerName()` below exist to prevent. An admin is the fix for anything that
+  slipped through before they shipped.
 - **Admins are a hardcoded email list in the rules, not a `role` field** — a role in a document
   is only as safe as the rule guarding that document. Keep `admins()` identical to Flowboard's.
 - `suggestions` delete is now author-or-admin (update stays open — replies are an embedded
   array, so replying *is* an update to someone else's doc). `buckets`/`goals` stay team-writable
   on purpose: shared configuration with no `owners` field and no per-person work in them.
-- **Not yet reflected in the UI.** A denied write currently surfaces as Firestore's raw
-  "Missing or insufficient permissions" in a toast. Flowboard has a `writeErrorMessage()` helper
-  that names the owner and the still-open actions; **this app needs the same, and it hasn't been
-  written** — it's a client change and therefore has to go through the emulator QA cycle in
-  "Shipping a change" above.
+- **`writeErrorMessage(err, item, movePhrase)`** turns Firestore's bare "Missing or
+  insufficient permissions" into a sentence naming the item's owners *and* the actions that are
+  still open to everyone, so a denial reads as a boundary rather than a broken app. The
+  `movePhrase` argument differs per collection because the still-open action does ("drag it to
+  another day" for a post, "move it between columns" for an idea). Wired into the save, delete
+  and drag handlers for both posts and ideas. Non-permission errors fall through to their real
+  text untouched. Mirrors the helper of the same name in Flowboard.
+
+## Team roster (`people`)
+
+One doc per teammate, **doc ID = their Firebase uid**, `{name, email, lastSeen}`, upserted by
+`registerPresence(user)` on every sign-in (before `startListeners`, so a first-time signer-in is
+in their own session's snapshot and pickable without a reload). Ported from Flowboard.
+
+- **`teamRoster()`** — roster names UNION `getKnownNames()` (names already on posts/ideas). It
+  replaced `getKnownNames()` as the source for the owner datalist, `parseMentions`,
+  `enrichFeedbackText` and the @mention autocomplete. `getKnownNames()` still exists and is still
+  the item-derived half; keeping it means an owner on a pre-roster post stays suggestable and
+  mentionable even though no uid backs them.
+- **`canonicalOwnerName(name)` is the load-bearing part in this app.** The owners field is a
+  free-typed chip input, not a picker — a `<select>` doesn't fit a multi-value field — so instead
+  of constraining input, the typed name is snapped to the roster's spelling when the two differ
+  only by case or padding. It runs at `createOwnerChipInput`'s single `add()` commit point, so
+  the chip shown is exactly the string that gets stored and later compared by `firestore.rules`.
+  A name matching nothing falls through unchanged, so someone who hasn't signed in yet can still
+  be added.
+- The module-level list is **`teamPeople`, not `people`** — same shadowing trap as Flowboard.
+- The `people` listener calls `renderOwnerNamesList()` on change (Flowboard's equivalent
+  deliberately doesn't re-render, because its picker rebuilds on modal open; here the datalist is
+  a persistent DOM node that nothing else refreshes when a new person signs in).
 
 ## Where to look for conventions
 

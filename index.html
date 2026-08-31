@@ -2032,6 +2032,49 @@ import {
   var notificationsCol = collection(db, "notifications");
   var suggestionsCol = collection(db, "suggestions");
 
+  // The team roster: one doc per person, ID'd by their Firebase uid, written on every sign-in.
+  // Ported from the sibling Flowboard, and it matters MORE here, not less. Owner names are typed
+  // by hand into a chip input, and firestore.rules now decides who may edit a post by matching
+  // those names against the signer-in's Google display name -- so a name typed even slightly
+  // differently locks the person it names out of their own work. Before this, the only answer to
+  // "who is on this team" was inferred from names already on posts (getKnownNames), which cannot
+  // know about anyone who has not been given something yet.
+  var peopleCol = collection(db, "people");
+  var unsubPeople = null;
+  // Not `people`: several renderers here use a local list meaning "who is on this item", and a
+  // same-shaped module-level name meaning something else is a trap.
+  var teamPeople = [];
+
+  // Keyed by uid rather than name, so changing a Google display name updates the existing row
+  // instead of creating a twin. merge:true because this runs on every sign-in.
+  function registerPresence(user) {
+    if (!user) return;
+    setDoc(doc(peopleCol, user.uid), {
+      name: user.displayName || user.email,
+      email: user.email || "",
+      lastSeen: new Date().toISOString()
+    }, { merge: true }).catch(function (e) {
+      // Console only: a failure here degrades the roster for OTHER people's autocomplete and
+      // breaks nothing this person can see or act on, so a toast would be an alarm they cannot
+      // do anything about. The app falls back to exactly its old behaviour.
+      console.error("Failed to register presence", e);
+    });
+  }
+
+  // Firestore reports a rules denial as a bare "Missing or insufficient permissions", which
+  // tells the person nothing about what they hit or what they can still do. Posts and ideas are
+  // scoped to their owners and admins (see firestore.rules), so name the owners instead, and
+  // name the things that ARE still open to everyone -- otherwise a boundary reads as the app
+  // being broken. Any other error falls through to its real text unchanged.
+  function writeErrorMessage(err, item, movePhrase) {
+    if (!err || err.code !== "permission-denied") return err ? err.message : "Unknown error";
+    var owners = item && item.owners && item.owners.length ? item.owners.join(" or ") : null;
+    var stillCan = " You can still leave feedback" + (movePhrase ? " and " + movePhrase : "") + ".";
+    return owners
+      ? "Only " + owners + " or an admin can change this." + stillCan
+      : "You do not have permission to change this. Ask an admin if you need to.";
+  }
+
   function logActivity(type, summary) {
     var user = auth.currentUser;
     setDoc(doc(activityCol), {
@@ -2087,7 +2130,7 @@ import {
 
   function parseMentions(text) {
     var mentioned = [];
-    getKnownNames().forEach(function (name) {
+    teamRoster().forEach(function (name) {
       var re = new RegExp("@" + name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + MENTION_TAIL, "i");
       if (re.test(text)) mentioned.push(name);
     });
@@ -2103,7 +2146,7 @@ import {
   // so a URL that happens to contain "@Name"-shaped text (a query string, a path segment)
   // can't get a stray <span> spliced into its href.
   function enrichFeedbackText(text) {
-    var names = getKnownNames().slice().sort(function (a, b) { return b.length - a.length; });
+    var names = teamRoster().slice().sort(function (a, b) { return b.length - a.length; });
     var mentionRe = names.length
       ? new RegExp("@(?:" + names.map(function (name) { return escapeHtml(name).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }).join("|") + ")" + MENTION_TAIL, "gi")
       : null;
@@ -2141,7 +2184,7 @@ import {
     function close() { state = null; menuEl.hidden = true; }
     function render() {
       var q = state.query.toLowerCase();
-      var matches = getKnownNames().filter(function (n) { return n.toLowerCase().indexOf(q) !== -1; }).slice(0, 5);
+      var matches = teamRoster().filter(function (n) { return n.toLowerCase().indexOf(q) !== -1; }).slice(0, 5);
       if (!matches.length) { menuEl.hidden = true; return; }
       menuEl.innerHTML = matches.map(function (n) {
         return '<button type="button" class="mention-option" data-name="' + escapeHtml(n) + '">' + avatarHtml(n, "small") + '<span>' + escapeHtml(n) + '</span></button>';
@@ -2428,7 +2471,7 @@ import {
   // open -- Firestore data already updates live via onSnapshot, so the only thing lagging
   // behind is *this page's own code*, and losing an in-progress draft to a surprise reload
   // would be worse than waiting a few seconds for the tab to be idle.
-  var CURRENT_BUILD_VERSION = "2026-08-24T05:14:07Z";
+  var CURRENT_BUILD_VERSION = "2026-08-31T04:24:36Z";
   var pendingBuildVersion = null;
 
   function anyModalOpen() {
@@ -2547,6 +2590,17 @@ import {
         console.error("notifications listener error", err);
       });
     }
+    // Tiny collection -- one doc per teammate, changing only when somebody signs in. No
+    // re-render on change: the roster is read on demand by teamRoster(), and the two places it
+    // materialises (the owner datalist, the @mention menu) are rebuilt each time they open.
+    unsubPeople = onSnapshot(peopleCol, function (snap) {
+      teamPeople = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+      renderOwnerNamesList();
+    }, function (err) {
+      // Same reasoning as registerPresence: without the roster this falls back to exactly its
+      // old behaviour (names already on posts), so it is a console line, not an alarm.
+      console.error("people listener error", err);
+    });
     unsubSuggestions = onSnapshot(suggestionsCol, function (snap) {
       suggestions = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
       renderSuggestionsTab();
@@ -2646,8 +2700,9 @@ import {
   }
 
   function stopListeners() {
-    [unsubPosts, unsubBuckets, unsubIdeas, unsubAnalytics, unsubActivity, unsubQuickLink, unsubGoal, unsubNotifications, unsubSuggestions].forEach(function (fn) { if (fn) fn(); });
-    unsubPosts = unsubBuckets = unsubIdeas = unsubAnalytics = unsubActivity = unsubQuickLink = unsubGoal = unsubNotifications = unsubSuggestions = null;
+    [unsubPosts, unsubBuckets, unsubIdeas, unsubAnalytics, unsubActivity, unsubQuickLink, unsubGoal, unsubNotifications, unsubSuggestions, unsubPeople].forEach(function (fn) { if (fn) fn(); });
+    unsubPosts = unsubBuckets = unsubIdeas = unsubAnalytics = unsubActivity = unsubQuickLink = unsubGoal = unsubNotifications = unsubSuggestions = unsubPeople = null;
+    teamPeople = [];
   }
 
   onAuthStateChanged(auth, function (user) {
@@ -2685,6 +2740,9 @@ import {
     notifWrap.hidden = false;
     var displayName = user.displayName || user.email;
     userChipLabel.innerHTML = avatarHtml(displayName, "small") + '<span>' + escapeHtml(displayName) + '</span>';
+    // Before startListeners, so this session's own roster snapshot already includes them and a
+    // first-time signer-in can be picked as an owner without reloading.
+    registerPresence(user);
     startListeners();
   });
 
@@ -3155,7 +3213,10 @@ import {
       if (onChange) onChange();
     }
     function add() {
-      var name = inputEl.value.trim();
+      // Snapped to the roster's spelling before it is stored -- see canonicalOwnerName. Done
+      // here, at the single commit point, rather than at save time, so the chip the person sees
+      // is the exact string that will be written and later matched by firestore.rules.
+      var name = canonicalOwnerName(inputEl.value);
       if (!name || owners.indexOf(name) > -1) { inputEl.value = ""; return; }
       owners.push(name);
       inputEl.value = "";
@@ -3252,12 +3313,44 @@ import {
     return names;
   }
 
+  // Everyone who can be an owner or be @mentioned: the `people` roster (anyone who has signed
+  // in) UNION every name already on a post or idea. The roster half means a new joiner is
+  // suggestable the moment they first open the app, instead of only after somebody has already
+  // typed their name somewhere. The item half is not legacy cruft -- posts created before the
+  // roster existed carry names with no uid behind them, and dropping those would make an
+  // existing owner un-suggestable and un-mentionable.
+  function teamRoster() {
+    var seen = {};
+    var names = [];
+    teamPeople.forEach(function (p) {
+      var key = p.name ? p.name.trim().toLowerCase() : "";
+      if (key && !seen[key]) { seen[key] = true; names.push(p.name); }
+    });
+    getKnownNames().forEach(function (n) {
+      var key = n.trim().toLowerCase();
+      if (key && !seen[key]) { seen[key] = true; names.push(n); }
+    });
+    return names;
+  }
+
+  // Returns the roster's spelling of a typed name when the two differ only by case or padding.
+  // This is the whole defence against the lockout described on registerPresence: the rules
+  // compare the stored owner string against a Google display name, and "sarah lim" is not
+  // "Sarah Lim" to a rules `==`. Falls through unchanged when nothing matches, so a genuinely
+  // new name -- someone who has not signed in yet -- is still allowed through.
+  function canonicalOwnerName(name) {
+    var key = String(name || "").trim().toLowerCase();
+    if (!key) return "";
+    var match = teamRoster().find(function (n) { return n.trim().toLowerCase() === key; });
+    return match || String(name).trim();
+  }
+
   // Suggests previously-used owner names via the input's native autocomplete,
   // so the same person gets typed the same way (and so gets the same avatar)
   // instead of drifting across slightly different spellings.
   function renderOwnerNamesList() {
     var el = document.getElementById("ownerNamesList");
-    el.innerHTML = getKnownNames().map(function (n) { return '<option value="' + escapeHtml(n) + '"></option>'; }).join("");
+    el.innerHTML = teamRoster().map(function (n) { return '<option value="' + escapeHtml(n) + '"></option>'; }).join("");
   }
 
   // ---------- calendar: rendering ----------
@@ -3602,7 +3695,7 @@ import {
     }).then(function () {
       logActivity("post_updated", 'Rescheduled post "' + post.title + '" to ' + formatDateShort(newDateKey));
     }).catch(function (err) {
-      showToast("Couldn't reschedule this post: " + err.message, "error");
+      showToast("Couldn't reschedule this post: " + writeErrorMessage(err, post, "drag it to another day"), "error");
     });
   }
 
@@ -4220,7 +4313,7 @@ import {
       }
       closeModal();
     }).catch(function (err) {
-      showToast("Couldn't save this post: " + err.message, "error");
+      showToast("Couldn't save this post: " + writeErrorMessage(err, previousPost, "drag it to another day"), "error");
     }).finally(function () {
       submitBtn.disabled = false;
       submitBtn.textContent = "Save Post";
@@ -4240,7 +4333,7 @@ import {
       logActivity("post_deleted", 'Deleted post "' + (deletedPost ? deletedPost.title : editingId) + '"');
       closeModal();
     }).catch(function (err) {
-      showToast("Couldn't delete this post: " + err.message, "error");
+      showToast("Couldn't delete this post: " + writeErrorMessage(err, deletedPost), "error");
     });
   });
 
@@ -4381,7 +4474,7 @@ import {
       var stage = ideaByKey(newStage);
       logActivity("idea_moved", 'Moved idea "' + idea.title + '" to ' + (stage ? stage.label : newStage));
     }).catch(function (err) {
-      showToast("Couldn't move this idea: " + err.message, "error");
+      showToast("Couldn't move this idea: " + writeErrorMessage(err, idea, "move it between columns"), "error");
     });
   }
 
@@ -4768,7 +4861,7 @@ import {
       }
       closeIdeaModal();
     }).catch(function (err) {
-      showToast("Couldn't save this idea: " + err.message, "error");
+      showToast("Couldn't save this idea: " + writeErrorMessage(err, ideas.find(function (i) { return i.id === ideaId; }), "move it between columns"), "error");
     });
   });
 
@@ -4854,7 +4947,7 @@ import {
       logActivity("idea_deleted", 'Deleted idea "' + (deletedIdea ? deletedIdea.title : editingIdeaId) + '"');
       closeIdeaModal();
     }).catch(function (err) {
-      showToast("Couldn't delete this idea: " + err.message, "error");
+      showToast("Couldn't delete this idea: " + writeErrorMessage(err, deletedIdea), "error");
     });
   });
 

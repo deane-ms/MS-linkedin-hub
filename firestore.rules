@@ -149,6 +149,24 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // The team roster: one doc per teammate, ID'd by their Firebase uid, upserted by
+    // registerPresence() on every sign-in. It feeds the owner autocomplete and the @mention
+    // roster, and -- more importantly here than in the sibling Flowboard -- it is what
+    // canonicalOwnerName() snaps a typed owner name to, so the string stored in `owners`
+    // matches the Google display name canEditItem() above compares it against. Without that,
+    // typing "sarah lim" for "Sarah Lim" locks Sarah out of her own post.
+    //
+    // Readable by the whole team, since it drives everyone's pickers. Writable only by the
+    // person it describes -- the doc ID is their uid -- because rewriting someone else's name
+    // would change who can edit their items and where their notifications go. Admins can write
+    // any row, so a wrong display name is fixable without a rules deploy. Delete is denied:
+    // someone leaving stops signing in; their row still explains the name on their old posts.
+    match /people/{personId} {
+      allow read: if isMediashock();
+      allow create, update: if isMediashock() && (personId == request.auth.uid || isAdmin());
+      allow delete: if false;
+    }
+
     // Notifications are the one collection carrying per-person data, so they are scoped to
     // their recipient rather than shared like the boards above -- otherwise any teammate
     // could read, mark-read or delete anyone else's. The client's single-equality listener
