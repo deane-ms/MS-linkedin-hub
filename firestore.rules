@@ -36,31 +36,6 @@ service cloud.firestore {
       return isMediashock() && request.auth.token.email.lower() in admins();
     }
 
-    // Posts and ideas carry `owners` -- an OPTIONAL array of display names, unlike Flowboard's
-    // single required assignee. Two consequences drive the shape of this function:
-    //
-    // 1. An item with no owners is unclaimed, and stays editable by the whole team. Doing it
-    //    the other way would have frozen every existing unowned post the moment these rules
-    //    were published, since most of them have never had an owner set.
-    // 2. Owners are display names, so this matches the Google-verified name on the token, with
-    //    email as a fallback for accounts with no displayName. If someone's Google name does
-    //    not match the owner text on an item, they cannot edit an item they own -- an admin is
-    //    the fix.
-    function canEditItem(data) {
-      return isAdmin()
-        || !('owners' in data)
-        || data.owners == null
-        || data.owners.size() == 0
-        || request.auth.token.name in data.owners
-        || request.auth.token.email in data.owners;
-    }
-
-    // The set of fields an update actually changes. `diff` compares values, so a client that
-    // rewrites the whole document still only reports the fields whose values really moved.
-    function changedKeys() {
-      return request.resource.data.diff(resource.data).affectedKeys();
-    }
-
     // Notifications are addressed to a `recipient` string the client sets to the recipient's
     // Google displayName, falling back to their email (see notifyRecipients in index.html).
     // token.name / token.email are the Google-verified equivalents on the auth token, so
@@ -79,44 +54,21 @@ service cloud.firestore {
     // remember and nothing to forget. Listing collections means anything new starts denied
     // and has to be opened on purpose.
     //
-    // The content boards stay READ-shared -- the whole team plans and reviews the same
-    // calendar, and nothing here is hidden from anyone. What changed is WRITE: an item with
-    // owners can only be edited or deleted by an owner or an admin.
+    // The content boards are a shared workspace: the whole team plans, writes and reviews the
+    // same calendar, so read AND write for any signed-in teammate is intended here.
     //
-    //   admin              -> anything
-    //   owner              -> anything on their own item
-    //   item has no owners -> anyone (it is unclaimed; see canEditItem)
-    //   everyone else      -> feedback, and moving the item, only
+    // Ownership-scoped editing shipped here on 2026-08-31 and was reverted on 2026-09-02 -- it
+    // blocked real work. A content calendar is not a task board: a post is picked up by whoever
+    // is free, several people touch one post, and `owners` was added as a "who is looking after
+    // this" label years before anything treated it as a permission. Restricting edits to that
+    // field turned a soft label into a hard gate nobody had curated for the job. Flowboard's
+    // equivalent restriction stands, because a task there has exactly one required assignee.
     //
-    // The feedback carve-out is load-bearing, not a nicety: feedback lives INSIDE the post/idea
-    // document as an array, so an owners-only update rule would have silently disabled
-    // feedback, @mentions and every notification that follows from them for everyone except an
-    // item's own owners. `lastEditedBy`/`lastEditedAt` ride along because every write in this
-    // app stamps them.
-    //
-    // `date` on a post (dragging it to another day on the calendar) and `stage` on an idea
-    // (dragging it between kanban columns) are the direct equivalent of Flowboard's status
-    // change, which was explicitly left open to everyone -- so they are treated the same way.
-    // `status` is in the post list too, since approving/scheduling is a workflow step rather
-    // than an edit to the content itself. Everything else -- title, copy, images, and crucially
-    // `owners` -- stays closed, so nobody can add themselves as an owner and then edit freely.
-    match /posts/{postId} {
-      allow read, create: if isMediashock();
-      allow update: if isMediashock() && (
-        canEditItem(resource.data)
-        || changedKeys().hasOnly(['feedback', 'status', 'date', 'lastEditedBy', 'lastEditedAt'])
-      );
-      allow delete: if isMediashock() && canEditItem(resource.data);
-    }
-
-    match /ideas/{ideaId} {
-      allow read, create: if isMediashock();
-      allow update: if isMediashock() && (
-        canEditItem(resource.data)
-        || changedKeys().hasOnly(['feedback', 'stage', 'stageChangedAt', 'lastEditedBy', 'lastEditedAt'])
-      );
-      allow delete: if isMediashock() && canEditItem(resource.data);
-    }
+    // Note this reopens DELETE as well, which is what it was before. If protecting deletion is
+    // worth revisiting on its own, the narrow version is to keep update open and gate only
+    // delete on ownership -- that was offered and not taken. Ask before re-tightening either.
+    match /posts/{postId}             { allow read, write: if isMediashock(); }
+    match /ideas/{ideaId}             { allow read, write: if isMediashock(); }
 
     // Buckets and goals are shared configuration, not owned content -- there is no `owners`
     // field to scope them by and no per-person work sitting in them. Left team-writable on
@@ -151,15 +103,17 @@ service cloud.firestore {
 
     // The team roster: one doc per teammate, ID'd by their Firebase uid, upserted by
     // registerPresence() on every sign-in. It feeds the owner autocomplete and the @mention
-    // roster, and -- more importantly here than in the sibling Flowboard -- it is what
-    // canonicalOwnerName() snaps a typed owner name to, so the string stored in `owners`
-    // matches the Google display name canEditItem() above compares it against. Without that,
-    // typing "sarah lim" for "Sarah Lim" locks Sarah out of her own post.
+    // roster, and it is what canonicalOwnerName() snaps a typed owner name to, so the same
+    // person is spelled the same way everywhere and gets the same avatar.
+    //
+    // It no longer gates anything. It briefly did: owner names were compared against the Google
+    // display name to decide who could edit a post, which is why canonicalOwnerName exists at
+    // all. That restriction is gone (see the posts/ideas rules above), so a misspelled owner is
+    // now only a cosmetic inconsistency rather than a lockout.
     //
     // Readable by the whole team, since it drives everyone's pickers. Writable only by the
     // person it describes -- the doc ID is their uid -- because rewriting someone else's name
-    // would change who can edit their items and where their notifications go. Admins can write
-    // any row, so a wrong display name is fixable without a rules deploy. Delete is denied:
+    // still redirects where their notifications go. Admins can write any row. Delete is denied:
     // someone leaving stops signing in; their row still explains the name on their old posts.
     match /people/{personId} {
       allow read: if isMediashock();

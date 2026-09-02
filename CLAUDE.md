@@ -126,50 +126,49 @@ no config changes needed.
 - **PWA-installable**: `manifest.json`/`sw.js`/icons are hand-maintained, separate from the sync
   pipeline (not derived from `content-hub-firebase.html`). `sw.js` deliberately does no caching.
 
-## Who can edit what (ownership rules)
+## Who can edit what
 
-`posts` and `ideas` were `allow read, write: if isMediashock()` — every teammate could change
-everything — until the team grew past five. Reads are unchanged (the calendar is shared and
-nothing is hidden); **writes are now scoped by ownership**:
+`posts` and `ideas` are `allow read, write: if isMediashock()` — **any signed-in teammate can
+edit or delete any post or idea.** That is the original model and the current one.
 
-| | posts / ideas |
-|---|---|
-| **admin** (`admins()` in `firestore.rules`) | anything |
-| **owner** (name in the item's `owners`) | anything on their own item |
-| **item with no `owners`** | anyone — it's unclaimed |
-| **anyone else** | `feedback` + the "move it" fields only |
+**Ownership-scoped editing shipped on 2026-08-31 and was reverted on 2026-09-02.** Worth reading
+before proposing it again:
 
-- **`owners` is an optional array of display names**, unlike Flowboard's single required
-  `assignee` — hence `canEditItem()` treating an empty/absent `owners` as "anyone". Locking
-  unowned items to admins would have frozen most of the existing board the day these rules
-  shipped, since most older posts have never had an owner set.
-- **The feedback carve-out is load-bearing, not a nicety.** Feedback lives *inside* the
-  post/idea doc as an array, so an owners-only update rule silently disables feedback,
-  `@mentions` and every notification that follows, for everyone except an item's own owners.
-- **The "move it" fields differ per collection** and are the direct equivalent of Flowboard's
-  status change (explicitly left open to everyone): `date` + `status` on a post (dragging it to
-  another calendar day / approving it), `stage` + `stageChangedAt` on an idea (dragging it
-  between kanban columns). `lastEditedBy`/`lastEditedAt` ride along because every write here
-  stamps them. Everything else — title, copy, images, and crucially **`owners` itself** — stays
-  closed, so nobody can add themselves as an owner and then edit freely.
-- **Owner matching is by display name** (`request.auth.token.name`, falling back to
-  `request.auth.token.email`). So **someone whose Google display name doesn't match the owner
-  text can't edit an item they own** — and owner names are typed by hand into a chip input, so
-  this app is *more* exposed to that than Flowboard, not less. That is what the `people` roster
-  and `canonicalOwnerName()` below exist to prevent. An admin is the fix for anything that
-  slipped through before they shipped.
-- **Admins are a hardcoded email list in the rules, not a `role` field** — a role in a document
-  is only as safe as the rule guarding that document. Keep `admins()` identical to Flowboard's.
-- `suggestions` delete is now author-or-admin (update stays open — replies are an embedded
-  array, so replying *is* an update to someone else's doc). `buckets`/`goals` stay team-writable
-  on purpose: shared configuration with no `owners` field and no per-person work in them.
-- **`writeErrorMessage(err, item, movePhrase)`** turns Firestore's bare "Missing or
-  insufficient permissions" into a sentence naming the item's owners *and* the actions that are
-  still open to everyone, so a denial reads as a boundary rather than a broken app. The
-  `movePhrase` argument differs per collection because the still-open action does ("drag it to
-  another day" for a post, "move it between columns" for an idea). Wired into the save, delete
-  and drag handlers for both posts and ideas. Non-permission errors fall through to their real
-  text untouched. Mirrors the helper of the same name in Flowboard.
+- It was ported from Flowboard, where restricting edits to the assignee works. It does not
+  transfer. **A content calendar is not a task board**: a post is picked up by whoever is free,
+  several people touch the same post, and many posts have no owner set at all.
+- **`owners` was never a permission field.** It was added as a soft "who's looking after this"
+  label, years before anything read it for access. Nobody had curated it for the job, so turning
+  it into a hard gate locked people out of work they were actively doing.
+- The lockout was also **silent in a second way**: owner names are free-typed, so "Harin" vs
+  "Harin Thiran" failed the match. `canonicalOwnerName()` was written to fix that and is still
+  in the client — it's now purely cosmetic consistency (same person, same spelling, same avatar)
+  rather than the difference between editing and not.
+- **The rules helpers are gone, not commented out** — `canEditItem()` and `changedKeys()` were
+  deleted. A dead permission helper sitting in a rules file reads as active protection. If this
+  is ever revisited, `git show 50db604:firestore.rules` has the full working version.
+- **If protecting deletion is worth revisiting on its own**, the narrow version is to leave
+  `update` open and gate only `delete` on ownership. That was offered and not taken. **Ask before
+  re-tightening either.**
+
+Still in place from that pass, and unaffected by the revert:
+
+- **`admins()` / `isAdmin()`** — a hardcoded email list (`aiuser@`, `deane@`), kept identical to
+  Flowboard's. Now used only by the `people` rule. Hardcoded rather than a `role` field on a
+  document, because a role in a document is only as safe as the rule guarding that document.
+- **`suggestions` delete is author-or-admin** (update stays open — replies are an embedded array,
+  so replying *is* an update to someone else's doc). This is not editing access to content and
+  was left tightened; say so if you want it reverted too.
+- **`buckets`/`goals`** stay team-writable: shared configuration, no `owners`, no per-person work.
+- **`writeErrorMessage(err, item, movePhrase)`** in the client still translates a Firestore
+  `permission-denied` into a readable sentence. With posts and ideas reopened, nothing routine
+  should reach it any more — it is now a safety net rather than an everyday path.
+
+**A separate cause that is not permissions at all, and was mistaken for them:** the Hub blocks
+Post/Idea editing on any viewport under 720px (`isMobileView()`, `setPostReadOnly`, the
+"View only" badge — see DESIGN.md "Mobile / view-only mode"). That is deliberate and predates all
+of the above. The tell is that **the Save button is absent entirely**, rather than present and
+erroring.
 
 ## Team roster (`people`)
 
